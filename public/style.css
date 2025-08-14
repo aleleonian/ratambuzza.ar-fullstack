@@ -1,46 +1,130 @@
+/* Ratambuzza.ar light theme */
+
+:root {
+  --bg: #f7f2e4;
+  --fg: #1B3650;
+  --accent: #b97f2f; /* orange-yellow accent */
+  --accent-2: #2f4f4f; /* dark green-gray */
+  --nav-bg: #ede8d8;
+  --card-bg: #ffffff;
+  --muted: #6b7075;
+
+  --radius: 12px;
+  --font: 'Press Start 2P', ui-monospace, system-ui, sans-serif;
+}
+
 body {
   margin: 0;
-  font-family: 'Press Start 2P', ui-monospace, system-ui;
-  background-color: #0b0f14;
-  color: #eaeef3;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--fg);
 }
 
-a {
-  color: #ffb600;
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-
-.topbar {
-  background: #0f141b;
-  padding: 10px 16px;
+header.topbar {
+  background: var(--nav-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #1c252f;
+  padding: 12px 20px;
+  border-bottom: 2px solid var(--fg);
 }
 
-.logo {
+header .logo {
   font-size: 14px;
-  color: white;
+  color: var(--accent);
+  text-decoration: none;
 }
 
 .main-nav a,
 .user-nav a {
-  margin-left: 14px;
+  margin-left: 16px;
+  color: var(--fg);
   font-size: 12px;
+  text-decoration: none;
+}
+
+.main-nav a:hover,
+.user-nav a:hover {
+  text-decoration: underline;
 }
 
 .main-container {
   padding: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.footer {
-  border-top: 1px solid #1c252f;
-  padding: 10px 16px;
-  font-size: 10px;
+footer.footer {
+  border-top: 2px solid var(--fg);
+  padding: 12px;
   text-align: center;
-  color: #9aa5b1;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--nav-bg);
+}
+
+/* Components */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--accent-2);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+}
+
+.button {
+  display: inline-block;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-decoration: none;
+  border: 2px solid var(--fg);
+}
+
+.button:hover {
+  background: var(--accent);
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-block;
+  border: 2px solid var(--accent);
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+/* Layouts */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+  header.topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .main-nav,
+  .user-nav {
+    margin-top: 8px;
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
 }

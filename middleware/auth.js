@@ -1,7 +1,8 @@
 function globalAuthGuard(req, res, next) {
     const publicPaths = ['/', '/login', '/signup']
+    const publicHTMX = ['/partials/avatar-ribbon']
 
-    if (publicPaths.includes(req.path)) {
+    if (publicPaths.includes(req.path) || publicHTMX.includes(req.path)) {
         return next()
     }
 

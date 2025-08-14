@@ -53,4 +53,10 @@ app.get('/whatever', (req, res) => {
     res.render('whatever')
 })
 
+app.get('/partials/avatar-ribbon', async (req, res) => {
+    const [crew] = await req.db.execute('SELECT handle, avatar_url FROM users ORDER BY handle')
+    console.log("returning crew:", crew);
+    res.render('partials/avatar-ribbon', { crew })
+})
+
 app.listen(PORT, () => console.log(`Ratambuzza server on http://localhost:${PORT}`))

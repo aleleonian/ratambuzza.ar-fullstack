@@ -17,7 +17,9 @@ router.post('/login', async (req, res) => {
     if (!match) return res.render('login', { error: 'Invalid credentials' })
 
     req.session.user = { id: user.id, handle: user.handle, email: user.email }
-    res.redirect('/')
+    const redirectTo = req.session.redirectTo || '/'
+    delete req.session.redirectTo
+    res.redirect(redirectTo)
 })
 
 router.post('/signup', async (req, res) => {

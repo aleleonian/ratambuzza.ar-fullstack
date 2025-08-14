@@ -1,15 +1,16 @@
 function globalAuthGuard(req, res, next) {
-  const publicPaths = ['/', '/login', '/signup']
+    const publicPaths = ['/', '/login', '/signup']
 
-  if (publicPaths.includes(req.path)) {
-    return next()
-  }
+    if (publicPaths.includes(req.path)) {
+        return next()
+    }
 
-  if (!req.session.user) {
-    return res.redirect('/login')
-  }
+    if (!req.session.user) {
+        req.session.redirectTo = req.originalUrl
+        return res.redirect('/login')
+    }
 
-  next()
+    next()
 }
 
 module.exports = { globalAuthGuard }

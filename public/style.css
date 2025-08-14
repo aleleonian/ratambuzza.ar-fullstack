@@ -3,8 +3,10 @@
 :root {
   --bg: #f7f2e4;
   --fg: #1B3650;
-  --accent: #b97f2f; /* orange-yellow accent */
-  --accent-2: #2f4f4f; /* dark green-gray */
+  --accent: #b97f2f;
+  /* orange-yellow accent */
+  --accent-2: #2f4f4f;
+  /* dark green-gray */
   --nav-bg: #ede8d8;
   --card-bg: #ffffff;
   --muted: #6b7075;
@@ -27,12 +29,17 @@ header.topbar {
   justify-content: space-between;
   padding: 12px 20px;
   border-bottom: 2px solid var(--fg);
+  flex-direction: column;
 }
 
 header .logo {
   font-size: 14px;
   color: var(--accent);
   text-decoration: none;
+}
+
+.nav-bar {
+  margin-top: 20px;
 }
 
 .main-nav a,
@@ -69,7 +76,7 @@ footer.footer {
   border: 1px solid var(--accent-2);
   border-radius: var(--radius);
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 16px;
 }
 
@@ -91,12 +98,10 @@ footer.footer {
 }
 
 .avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   overflow: hidden;
   display: inline-block;
-  border: 2px solid var(--accent);
 }
 
 .grid {
@@ -115,14 +120,16 @@ footer.footer {
   .two-col {
     grid-template-columns: 1fr;
   }
-  header.topbar {
-    flex-direction: column;
+
+  /* header.topbar {
     align-items: flex-start;
-  }
+  } */
+
   .main-nav,
   .user-nav {
     margin-top: 8px;
   }
+
   .avatar {
     width: 36px;
     height: 36px;

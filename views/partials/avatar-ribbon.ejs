@@ -1,6 +1,6 @@
 <!-- views/partials/avatar-ribbon.ejs -->
 <% crew.forEach(member => { %>
   <a class="avatar" href="/crew/<%= member.handle %>" title="<%= member.handle %>">
-    <img src="/images/avatars/heads<%= member.avatar_head_file_name %>" alt="<%= member.handle %>" style="width:100%; height:100%; object-fit:cover;" />
+    <img width="50" height="50" src="/images/avatars/thumbs/<%= member.avatar_head_file_name %>" alt="<%= member.handle %>" style="object-fit:cover;" />
   </a>
 <% }) %>

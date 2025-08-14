@@ -1,11 +1,11 @@
 <%- include('partials/header') %>
 
-<h1>Welcome to Ratambuzza.ar</h1>
-<p>This is the starting point of your trip log app.</p>
+<h1>Bienvenido a Ratambuzza.ar</h1>
+<p>Bitácora de viajes</p>
 <% if (!user) { %>
-<p><a href="/login">Log in</a> or <a href="/signup">Sign up</a> to begin.</p>
+<p><a href="/login">Loguéese, señor</a></p>
 <% } else { %>
-<p>Welcome back, <%= user.handle %>!</p>
+<p>Holis, <%= user.handle %>!</p>
 <p><a href="/trips/brazil-2025">Go to current trip →</a></p>
 <% } %>
 

@@ -24,6 +24,10 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
+app.use('/images', express.static('public/images', {
+    maxAge: '7d', // one week
+    immutable: true
+}))
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -42,21 +46,25 @@ app.use((req, res, next) => {
 })
 
 
-app.use(globalAuthGuard) // applies to all routes
 
 app.use('/', authRoutes)
 
-app.get('/', (req, res) => {
-    res.render('home')
-})
-app.get('/whatever', (req, res) => {
-    res.render('whatever')
+app.get('/', async (req, res) => {
+    const [crew] = await req.db.execute('SELECT handle, avatar_head_file_name FROM users ORDER BY handle')
+    res.render('home', { user: req.session.user, crew })
 })
 
+
 app.get('/partials/avatar-ribbon', async (req, res) => {
-    const [crew] = await req.db.execute('SELECT handle, avatar_url FROM users ORDER BY handle')
+    const [crew] = await req.db.execute('SELECT handle, avatar_head_file_name FROM users ORDER BY handle')
     console.log("returning crew:", crew);
     res.render('partials/avatar-ribbon', { crew })
+})
+
+app.use(globalAuthGuard) // applies to all routes
+
+app.get('/whatever', (req, res) => {
+    res.render('whatever')
 })
 
 app.listen(PORT, () => console.log(`Ratambuzza server on http://localhost:${PORT}`))

@@ -8,6 +8,9 @@ router.get('/login', (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
+
+    const ALLOWED_REDIRECTS = ['/', '/viajes', '/galeria']
+
     const { handle, password } = req.body
     const [rows] = await req.db.execute('SELECT * FROM users WHERE handle = ?', [handle])
     const user = rows[0]
@@ -17,10 +20,18 @@ router.post('/login', async (req, res) => {
     if (!match) return res.render('login', { error: 'Invalid credentials' })
 
     req.session.user = { id: user.id, handle: user.handle, email: user.email }
-    const redirectTo = req.session.redirectTo || '/'
+
+    const redirectTo = req.session.redirectTo
     delete req.session.redirectTo
-    res.redirect(redirectTo)
+
+    const safeRedirect = (
+        typeof redirectTo === 'string' &&
+        ALLOWED_REDIRECTS.includes(redirectTo)
+    ) ? redirectTo : '/'
+
+    res.redirect(safeRedirect)
 })
+
 
 router.post('/signup', async (req, res) => {
     const { email, password, handle } = req.body

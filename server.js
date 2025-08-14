@@ -7,7 +7,7 @@ const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
 const viajesRoutes = require('./routes/viajes')
 const { requireLogin } = require('./middleware/requireLogin')
-
+const feedRoutes = require('./routes/feed')
 const app = express();
 
 const PORT = process.env.PORT || 3000
@@ -55,6 +55,7 @@ app.get('/', async (req, res) => {
     res.render('home', { user: req.session.user, crew })
 })
 
+app.use('/feed', feedRoutes)
 
 app.get('/partials/avatar-ribbon', async (req, res) => {
     const [crew] = await req.db.execute('SELECT handle, avatar_head_file_name FROM users ORDER BY handle')
@@ -62,14 +63,10 @@ app.get('/partials/avatar-ribbon', async (req, res) => {
     res.render('partials/avatar-ribbon', { crew })
 })
 
-app.get('/whatever', requireLogin, (req, res) => {
-    res.render('whatever')
-})
-
 app.use('/viajes', viajesRoutes)
 
 app.get(/^\/\.well-known\/.*/, (req, res) => {
-  res.status(204).end()
+    res.status(204).end()
 })
 
 app.use((req, res) => {

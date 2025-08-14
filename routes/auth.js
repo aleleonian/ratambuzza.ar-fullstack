@@ -8,7 +8,6 @@ router.get('/login', (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-
     const ALLOWED_REDIRECTS = ['/', '/viajes', '/galeria', '/crew']
 
     const { handle, password } = req.body
@@ -24,10 +23,12 @@ router.post('/login', async (req, res) => {
     const redirectTo = req.session.redirectTo
     delete req.session.redirectTo
 
-    const safeRedirect = (
-        typeof redirectTo === 'string' &&
-        ALLOWED_REDIRECTS.includes(redirectTo)
-    ) ? redirectTo : '/'
+    let safeRedirect = '/'
+    if (typeof redirectTo === 'string' && redirectTo.startsWith('/')) {
+        if (ALLOWED_REDIRECTS.includes(redirectTo) || redirectTo.startsWith('/feed/')) {
+            safeRedirect = redirectTo
+        }
+    }
 
     res.redirect(safeRedirect)
 })

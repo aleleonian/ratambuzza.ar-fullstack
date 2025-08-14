@@ -6,11 +6,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof title !== 'undefined' ? title + ' — Ratambuzza' : 'Ratambuzza.ar' %></title>
-    <script src="https://unpkg.com/htmx.org"></script>
-    <link rel="stylesheet" href="https://unpkg.com/htmx.org/dist/ext/boost.css" />
-    <link rel="stylesheet" href="/style.css">
+
+    <link rel="stylesheet" href="/style.css" />
+
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/htmx.org"></script>
+
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 300ms ease-in-out;
+        }
+    </style>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+
 </head>
+
 
 <body>
     <header class="topbar">

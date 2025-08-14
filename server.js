@@ -6,6 +6,7 @@ const path = require('path')
 const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
 const { globalAuthGuard } = require('./middleware/auth');
+const viajesRoutes = require('./routes/viajes')
 
 const app = express();
 
@@ -66,5 +67,8 @@ app.use(globalAuthGuard) // applies to all routes
 app.get('/whatever', (req, res) => {
     res.render('whatever')
 })
+
+app.use('/viajes', viajesRoutes)
+
 
 app.listen(PORT, () => console.log(`Ratambuzza server on http://localhost:${PORT}`))

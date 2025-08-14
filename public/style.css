@@ -31,9 +31,15 @@ header.topbar {
 }
 
 header .logo {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--accent);
   text-decoration: none;
+}
+
+.logo img {
+  vertical-align: middle;
+  border-radius: 50%;
+  margin-right: 8px;
 }
 
 .nav-bar {
@@ -47,7 +53,7 @@ header .logo {
 .user-nav a {
   margin-left: 16px;
   color: var(--fg);
-  font-size: 20px;
+  font-size: 16px;
   text-decoration: none;
 }
 
@@ -135,7 +141,7 @@ footer.footer {
   .user-nav {
     margin-top: 8px;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
     width: 100%;
     gap: 10px;

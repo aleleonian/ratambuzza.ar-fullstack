@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+
+<h1>Viajes</h1>
+<ul>
+    <% trips.forEach(trip => { %>
+    <li>
+        <strong><%= trip.name %></strong>
+        <% if (trip.start_date && trip.end_date) { %>
+        — <%= trip.start_date.toISOString().split('T')[0] %> to <%= trip.end_date.toISOString().split('T')[0] %>
+        <% } %>
+    </li>
+    <% }) %>
+</ul>
+
+<%- include('partials/footer') %>

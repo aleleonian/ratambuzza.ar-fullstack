@@ -5,8 +5,8 @@ const session = require('express-session')
 const path = require('path')
 const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
-const { globalAuthGuard } = require('./middleware/auth');
 const viajesRoutes = require('./routes/viajes')
+const { requireLogin } = require('./middleware/requireLogin')
 
 const app = express();
 
@@ -62,13 +62,21 @@ app.get('/partials/avatar-ribbon', async (req, res) => {
     res.render('partials/avatar-ribbon', { crew })
 })
 
-app.use(globalAuthGuard) // applies to all routes
-
-app.get('/whatever', (req, res) => {
+app.get('/whatever', requireLogin, (req, res) => {
     res.render('whatever')
 })
 
 app.use('/viajes', viajesRoutes)
 
+app.get(/^\/\.well-known\/.*/, (req, res) => {
+  res.status(204).end()
+})
+
+app.use((req, res) => {
+    res.status(404).render('404', {
+        title: '404 — Not Found',
+        user: req.session.user
+    })
+})
 
 app.listen(PORT, () => console.log(`Ratambuzza server on http://localhost:${PORT}`))

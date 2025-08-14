@@ -1,0 +1,11 @@
+<%- include('partials/header') %>
+
+<h1>Welcome to Whatever</h1>
+<% if (!user) { %>
+<p><a href="/login">Log in</a> or <a href="/signup">Sign up</a> to begin.</p>
+<% } else { %>
+<p>Welcome back, <%= user.handle %>!</p>
+<p><a href="/trips/brazil-2025">Go to current trip →</a></p>
+<% } %>
+
+<%- include('partials/footer') %>

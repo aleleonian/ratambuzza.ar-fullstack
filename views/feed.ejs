@@ -6,7 +6,16 @@
 <p>No posts yet for this trip. Be the first to share!</p>
 <% } else { %>
 <div class="grid">
-    <%- include('partials/new-post-form', { trip }) %>
+    <!-- New Post Button -->
+    <button id="showPostForm" class="button" style="margin-bottom: 20px;">+ New Post</button>
+
+    <!-- Modal -->
+    <div id="postModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closePostModal" class="modal-close">✖</button>
+            <%- include('partials/new-post-form', { trip }) %>
+        </div>
+    </div>
 
     <% posts.forEach(post => { %>
     <div class="card">
@@ -33,5 +42,25 @@
     <% }) %>
 </div>
 <% } %>
+
+<script>
+    const modal = document.getElementById('postModal')
+    const openBtn = document.getElementById('showPostForm')
+    const closeBtn = document.getElementById('closePostModal')
+
+    openBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden')
+    })
+
+    closeBtn.addEventListener('click', () => {
+        modal.classList.add('hidden')
+    })
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            modal.classList.add('hidden')
+        }
+    })
+</script>
 
 <%- include('partials/footer') %>

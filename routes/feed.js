@@ -16,7 +16,7 @@ router.get('/:tripId', requireLogin, async (req, res) => {
     )
 
     const [tripRows] = await req.db.execute(
-        'SELECT name FROM trips WHERE id = ?', [tripId]
+        'SELECT name, id FROM trips WHERE id = ?', [tripId]
     )
 
     if (tripRows.length === 0) {
@@ -25,6 +25,7 @@ router.get('/:tripId', requireLogin, async (req, res) => {
 
     const trip = tripRows[0]
     console.log("posts->", posts);
+    console.log("trip->", trip);
     res.render('feed', { user: req.session.user, trip, posts })
 })
 

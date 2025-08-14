@@ -1,6 +1,6 @@
-<% layout('layout') -%>
+<%- include('partials/header') %>
 <h1>Welcome to Ratambuzza.ar</h1>
 <p>This is the starting point of your trip log app.</p>
 <% if (!user) { %>
 <p><a href="/login">Log in</a> or <a href="/signup">Sign up</a> to begin.</p>
-<% } %>
+<% } %><%- include('partials/footer') %>

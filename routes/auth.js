@@ -20,10 +20,6 @@ router.post('/login', async (req, res) => {
     res.redirect('/')
 })
 
-router.get('/signup', (req, res) => {
-    res.render('signup')
-})
-
 router.post('/signup', async (req, res) => {
     const { email, password, handle } = req.body
     const hash = await bcrypt.hash(password, 10)

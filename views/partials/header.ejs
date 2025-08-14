@@ -1,1 +1,33 @@
-HEADER.EJS
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title + ' — Ratambuzza' : 'Ratambuzza.ar' %></title>
+  <link rel="stylesheet" href="/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo-area">
+      <a href="/" class="logo"><strong>R</strong>atambuzza.ar</a>
+    </div>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/trips">Trips</a>
+      <a href="/gallery">Gallery</a>
+      <a href="/crew">Crew</a>
+      <a href="/about">About</a>
+    </nav>
+    <div class="user-nav">
+      <% if (user) { %>
+        <span>Hi, <%= user.handle %>!</span>
+        <a href="/logout">Logout</a>
+      <% } else { %>
+        <a href="/login">Login</a>
+        <a href="/signup">Sign up</a>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="main-container">

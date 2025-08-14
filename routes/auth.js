@@ -8,8 +8,8 @@ router.get('/login', (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body
-    const [rows] = await req.db.execute('SELECT * FROM users WHERE email = ?', [email])
+    const { handle, password } = req.body
+    const [rows] = await req.db.execute('SELECT * FROM users WHERE handle = ?', [handle])
     const user = rows[0]
     if (!user) return res.render('login', { error: 'Invalid credentials' })
 

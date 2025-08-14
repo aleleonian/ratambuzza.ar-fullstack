@@ -5,18 +5,21 @@
 <% if (posts.length === 0) { %>
 <p>No posts yet for this trip. Be the first to share!</p>
 <% } else { %>
-<div class="grid">
-    <!-- New Post Button -->
+
+<!-- Everything related to creating a new post -->
+<div id="post-controls">
     <button id="showPostForm" class="button" style="margin-bottom: 20px;">+ New Post</button>
 
-    <!-- Modal -->
     <div id="postModal" class="modal hidden">
         <div class="modal-content">
             <button id="closePostModal" class="modal-close">✖</button>
             <%- include('partials/new-post-form', { trip }) %>
         </div>
     </div>
+</div>
 
+<div id="post-list" class="grid">
+    <!-- New Post Button -->
     <% posts.forEach(post => { %>
     <div class="card">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -61,6 +64,13 @@
             modal.classList.add('hidden')
         }
     })
+    document.body.addEventListener('htmx:afterRequest', (evt) => {
+        // Close modal after post form submission
+        if (evt.target.closest('form')?.id === 'newPostForm') {
+            document.getElementById('postModal')?.classList.add('hidden')
+        }
+    })
 </script>
+
 
 <%- include('partials/footer') %>

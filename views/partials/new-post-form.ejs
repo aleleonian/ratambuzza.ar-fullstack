@@ -1,9 +1,10 @@
-<form action="/posts/new" id="new-post-form" method="POST" enctype="multipart/form-data" class="card"
-  style="margin-bottom: 24px;">
+<form action="/posts/new" id="newPostForm" method="POST" enctype="multipart/form-data" class="card"
+  style="margin-bottom: 24px;" hx-on::after-request="this.reset()" hx-post="/posts/new"
+  hx-encoding="multipart/form-data" hx-target="#post-list" hx-swap="beforebegin">
   <h3>Nuevo posteo</h3>
   <input type="hidden" name="trip_id" value="<%= trip.id %>" />
 
-  <textarea name="content" rows="3" placeholder="Qué anda pasando?" style="width: 100%;"></textarea>
+  <textarea name="content" rows="3" autofocus placeholder="Qué anda pasando?" style="width: 100%;"></textarea>
 
   <div style="margin-top: 8px;">
     <label for="image">Imagen (opcional):</label>
@@ -13,8 +14,9 @@
   <button type="submit" class="button" style="margin-top: 12px;">Postear</button>
 </form>
 <script>
+  //TODO pending this validation
   function submitHandler(e) {
   }
-  document.getElementById('new-post-form').addEventListener('submit', submitHandler);
+  document.getElementById('newPostForm').addEventListener('submit', submitHandler);
 
 </script>

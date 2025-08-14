@@ -31,7 +31,17 @@ router.post('/new', requireLogin, upload.single('image'), async (req, res) => {
     [req.session.user.id, trip_id, content, image_filename]
   )
 
-  res.redirect(`/feed/${trip_id}`)
+  // fetch post with joined user data
+  const [rows] = await req.db.execute(
+    `SELECT posts.*, users.handle, users.avatar_head_file_name, users.avatar_file_name
+   FROM posts
+   JOIN users ON posts.user_id = users.id
+   WHERE posts.id = LAST_INSERT_ID()`
+  )
+
+  const post = rows[0]
+
+  res.render('partials/post', { post })
 })
 
 module.exports = router

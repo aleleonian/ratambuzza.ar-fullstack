@@ -27,10 +27,15 @@ router.get('/:tripId', requireLogin, async (req, res) => {
         return res.status(404).render('404', { title: '404 — Not Found', user: req.session.user })
     }
 
-    const trip = tripRows[0]
+    const trip = tripRows[0];
+
+    const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC')
+
     console.log("posts->", posts);
     console.log("trip->", trip);
-    res.render('feed', { user: req.session.user, trip, posts })
+    console.log("trips->", trips);
+
+    res.render('feed', { user: req.session.user, trips, trip, posts })
 })
 
 module.exports = router

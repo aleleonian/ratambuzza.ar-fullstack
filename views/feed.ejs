@@ -1,32 +1,47 @@
 <%- include('partials/header') %>
 
-<h2><%= trip.name %></h2>
+<div class="layout">
+    <aside class="sidebar left">
+        <!-- e.g. Profile / Trip Switcher -->
+        <%- include('partials/sidebar-left', { trips, trip }) %>
+    </aside>
 
-<% if (posts.length === 0) { %>
-<p>No posts yet for this trip. Be the first to share!</p>
-<% } else { %>
+    <main class="feed">
+        <!-- your current post loop goes here -->
+        <h2><%= trip.name %></h2>
 
-<!-- Everything related to creating a new post -->
-<div id="post-controls">
-    <button id="showPostForm" class="button" style="margin-bottom: 20px;">+ New Post</button>
+        <% if (posts.length === 0) { %>
+        <p>No posts yet for this trip. Be the first to share!</p>
+        <% } else { %>
 
-    <div id="postModal" class="modal hidden">
-        <div class="modal-content">
-            <button id="closePostModal" class="modal-close">✖</button>
-            <%- include('partials/new-post-form', { trip }) %>
+        <!-- Everything related to creating a new post
+        <div id="post-controls">
+            <button id="showPostForm" class="button" style="margin-bottom: 20px;">+ New Post</button>
+
+            <div id="postModal" class="modal hidden">
+                <div class="modal-content">
+                    <button id="closePostModal" class="modal-close">✖</button>
+                    <%- include('partials/new-post-form', { trip }) %>
+                </div>
+            </div>
+        </div> -->
+
+        <div id="post-inject-point"></div>
+
+        <div id="post-list" class="grid">
+            <!-- New Post Button -->
+            <% posts.forEach(post => { %>
+            <%- include('partials/post', { post }) %>
+            <% }) %>
         </div>
-    </div>
-</div>
+        <% } %>
+    </main>
 
-<div id="post-inject-point"></div>
-
-<div id="post-list" class="grid">
-    <!-- New Post Button -->
-    <% posts.forEach(post => { %>
-    <%- include('partials/post', { post }) %>
-    <% }) %>
+    <aside class="sidebar right">
+        <!-- e.g. Suggested posts / About Ratambuzza -->
+        <%- include('partials/sidebar-right') %>
+    </aside>
 </div>
-<% } %>
 
 <script>
     const modal = document.getElementById('postModal')

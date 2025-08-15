@@ -50,11 +50,18 @@ router.post('/delete', requireLogin, async (req, res) => {
   const userId = req.session.user.id
 
   const [rows] = await req.db.execute(
-    'SELECT user_id FROM posts WHERE id = ?', [post_id]
+    'SELECT user_id, image_filename FROM posts WHERE id = ?', [post_id]
   )
 
   if (!rows.length || rows[0].user_id !== userId) {
     return res.status(403).send('Not allowed')
+  }
+
+  if (rows[0].image_filename) {
+    const imagePath = path.join(__dirname, '../public/uploads', rows[0].image_filename)
+    fs.unlink(imagePath, (err) => {
+      if (err) console.warn('Failed to delete image:', err.message)
+    })
   }
 
   await req.db.execute('DELETE FROM posts WHERE id = ?', [post_id])

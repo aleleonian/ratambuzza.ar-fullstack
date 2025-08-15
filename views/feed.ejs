@@ -14,26 +14,12 @@
         <p>No posts yet for this trip. Be the first to share!</p>
         <% } else { %>
 
-        <!-- Everything related to creating a new post
-        <div id="post-controls">
-            <button id="showPostForm" class="button" style="margin-bottom: 20px;">+ New Post</button>
-
-            <div id="postModal" class="modal hidden">
-                <div class="modal-content">
-                    <button id="closePostModal" class="modal-close">✖</button>
-                    <%- include('partials/new-post-form', { trip }) %>
-                </div>
-            </div>
-        </div> -->
-
         <div id="post-inject-point"></div>
 
-        <div id="post-list" class="grid">
-            <!-- New Post Button -->
-            <% posts.forEach(post => { %>
-            <%- include('partials/post', { post }) %>
-            <% }) %>
+        <div id="post-list" class="grid" hx-get="<%= moreUrl %>" hx-trigger="revealed" hx-swap="afterend">
+            <%- include('partials/post-list', { posts }) %>
         </div>
+
         <% } %>
     </main>
 

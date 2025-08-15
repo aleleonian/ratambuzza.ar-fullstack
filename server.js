@@ -9,7 +9,7 @@ const viajesRoutes = require('./routes/viajes')
 const feedRoutes = require('./routes/feed')
 const app = express();
 const postsRoutes = require('./routes/posts')
-
+const MySQLStore = require('express-mysql-session')(session)
 
 const PORT = process.env.PORT || 3000
 
@@ -20,6 +20,8 @@ const pool = mysql.createPool({
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
 })
+
+const sessionStore = new MySQLStore({}, pool)
 
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
@@ -34,8 +36,9 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: sessionStore,
     cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        maxAge: 30 * 24 * 60 * 60 * 1000
     }
 }))
 

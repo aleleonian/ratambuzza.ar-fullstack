@@ -7,12 +7,16 @@ router.get('/:tripId', requireLogin, async (req, res) => {
     const tripId = req.params.tripId
 
     const [posts] = await req.db.execute(
-        `SELECT posts.*, users.handle, users.avatar_file_name, users.avatar_head_file_name
-     FROM posts
-     JOIN users ON posts.user_id = users.id
-     WHERE trip_id = ?
-     ORDER BY created_at DESC`,
-        [tripId]
+        `SELECT 
+        posts.*, users.handle, users.avatar_file_name, users.avatar_head_file_name, 
+        (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
+        (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id AND likes.user_id = ?) AS liked_by_user
+        FROM posts
+        JOIN users ON posts.user_id = users.id
+        WHERE posts.trip_id = ?
+        ORDER BY posts.created_at DESC
+        `,
+        [req.session.user.id, tripId]
     )
 
     const [tripRows] = await req.db.execute(

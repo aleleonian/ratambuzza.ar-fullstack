@@ -1,0 +1,8 @@
+<!-- Like button (HTMX) -->
+<form hx-post="/likes/toggle" hx-vals='{"post_id": <%= post.id %>}' hx-target="this" hx-swap="outerHTML"
+    style="display:inline">
+    <button class="like-button">
+        <% if (post.liked_by_user) { %>❤️ Liked<% } else { %>🤍 Like<% } %>
+        (<%= post.like_count || 0 %>)
+    </button>
+</form>

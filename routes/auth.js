@@ -3,8 +3,13 @@ const express = require('express')
 const bcrypt = require('bcrypt')
 const router = express.Router()
 
+
 router.get('/login', (req, res) => {
     res.render('login')
+})
+
+router.get('/signup', (req, res) => {
+    res.render('signup')
 })
 
 router.post('/login', async (req, res) => {
@@ -33,13 +38,14 @@ router.post('/login', async (req, res) => {
     res.redirect(safeRedirect)
 })
 
-
 router.post('/signup', async (req, res) => {
     const { email, password, handle } = req.body
     const hash = await bcrypt.hash(password, 10)
+    const avatar_head_file_name = `${handle}_head_file_name`;
+    const avatar_file_name = `${handle}_file_name`;
     await req.db.execute(
-        'INSERT INTO users (email, password_hash, handle) VALUES (?, ?, ?)',
-        [email, hash, handle]
+        'INSERT INTO users (email, password_hash, handle, avatar_file_name, avatar_head_file_name) VALUES (?, ?, ?, ?, ?)',
+        [email, hash, handle, avatar_file_name, avatar_head_file_name]
     )
     res.redirect('/login')
 })

@@ -108,13 +108,17 @@ footer.footer {
   font-size: 12px;
   text-decoration: none;
   border: 2px solid var(--fg);
-  width: 25%;
 }
 
 .button:hover {
   background: var(--accent);
   color: var(--fg);
   border-color: var(--accent);
+}
+
+.danger {
+  background-color: red;
+  color: white;
 }
 
 .avatar {
@@ -180,6 +184,12 @@ footer.footer {
 
 .hidden {
   display: none;
+}
+
+.post-botonera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 @media (max-width: 768px) {

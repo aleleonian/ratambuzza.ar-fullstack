@@ -23,27 +23,6 @@
 <div id="post-list" class="grid">
     <!-- New Post Button -->
     <% posts.forEach(post => { %>
-    <!-- <div class="card">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-            <img src="/images/avatars/thumbs/<%= post.avatar_file_name %>" width="40" height="40"
-                style="border-radius: 50%; object-fit: cover;" alt="avatar" />
-            <strong>@<%= post.handle %></strong>
-            <span style="margin-left:auto; font-size: 10px; color: var(--muted);">
-                <%= new Date(post.created_at).toLocaleString() %>
-            </span>
-        </div>
-
-        <% if (post.content) { %>
-        <p><%= post.content %></p>
-        <% } %>
-
-        <% if (post.image_filename) { %>
-        <div style="margin-top: 12px;">
-            <img src="/uploads/<%= post.image_filename %>" alt="Post Image"
-                style="max-width: 100%; border-radius: var(--radius);" />
-        </div>
-        <% } %>
-    </div> -->
     <%- include('partials/post', { post }) %>
     <% }) %>
 </div>

@@ -44,4 +44,21 @@ router.post('/new', requireLogin, upload.single('image'), async (req, res) => {
   res.render('partials/post', { post })
 })
 
+// Delete a post (HTMX)
+router.post('/delete', requireLogin, async (req, res) => {
+  const { post_id } = req.body
+  const userId = req.session.user.id
+
+  const [rows] = await req.db.execute(
+    'SELECT user_id FROM posts WHERE id = ?', [post_id]
+  )
+
+  if (!rows.length || rows[0].user_id !== userId) {
+    return res.status(403).send('Not allowed')
+  }
+
+  await req.db.execute('DELETE FROM posts WHERE id = ?', [post_id])
+  res.send('') // Empty response will remove element via htmx
+})
+
 module.exports = router

@@ -6,11 +6,8 @@ const path = require('path')
 const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
 const viajesRoutes = require('./routes/viajes')
-// const feedRoutes = require('./routes/feed')
 const app = express();
-// const postsRoutes = require('./routes/posts')
 const MySQLStore = require('express-mysql-session')(session)
-// const likeRoutes = require('./routes/likes')
 const tripRoutes = require('./routes/trips');
 const { requireLogin } = require('./middleware/requireLogin')
 
@@ -55,14 +52,9 @@ app.use((req, res, next) => {
 })
 
 app.use('/', authRoutes)
-
 app.get('/', requireLogin, async (req, res) => {
     res.render('home', { user: req.session.user })
 })
-
-// app.use('/feed', feedRoutes)
-// app.use('/posts', postsRoutes)
-// app.use('/likes', likeRoutes)
 app.use('/trips', tripRoutes);
 
 //TODO deprecated

@@ -55,7 +55,7 @@ router.get('/more', requireLogin, async (req, res) => {
     });
 
     if (posts.length === 0) {
-        return res.send('<p>No more posts found</p>')
+        return res.send('<div data-no-more-posts="true">No more posts found</div>')
     }
 
     res.render('partials/just-posts', {

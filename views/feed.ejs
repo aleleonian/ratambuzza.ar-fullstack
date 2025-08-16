@@ -91,6 +91,17 @@
         if (evt.target.id === 'load-more-btn') {
             console.log('📦 Got response! Status:', evt.detail.xhr.status);
 
+            // Check if the response indicates no more posts
+            const responseText = evt.detail.xhr.responseText;
+            if (responseText.includes('data-no-more-posts="true"')) {
+                console.log('❌ No more posts available - disabling button');
+                evt.target.disabled = true;
+                evt.target.textContent = 'No More Posts';
+                evt.target.style.background = '#ccc';
+                evt.target.style.cursor = 'not-allowed';
+                return; // Don't update offset
+            }
+
             currentOffset += <%= POSTS_PER_PAGE %>;
             document.getElementById('current-offset').value = currentOffset;
             document.getElementById('offset-display').textContent = currentOffset;

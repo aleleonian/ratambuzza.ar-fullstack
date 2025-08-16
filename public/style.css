@@ -112,7 +112,7 @@ footer.footer {
 }
 
 .button:hover {
-  background: var(--accent);
+  background: var(--nav-bg);
   color: var(--fg);
   border-color: var(--accent);
 }

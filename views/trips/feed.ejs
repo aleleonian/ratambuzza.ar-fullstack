@@ -11,7 +11,7 @@
 
         <!-- Everything related to creating a new post -->
         <div id="post-controls" class="mobile-only">
-            <button class="button showPostForm" style="margin-bottom: 20px;">+ New Post</button>
+            <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo</button>
         </div>
 
         <!-- Injected post (new post via HTMX) -->
@@ -34,9 +34,8 @@
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
             <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
-                hx-target="#posts-container" hx-swap="beforeend"
-                style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;">
-                Load More Posts
+                hx-target="#posts-container" hx-swap="beforeend" class="button">
+                Cargar más posteos
             </button>
             <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
         </div>
@@ -57,22 +56,22 @@
         // Look for posts in both containers: main posts and newly injected posts
         const postsContainer = document.getElementById('posts-container');
         const injectPoint = document.getElementById('post-inject-point');
-        
+
         const mainPosts = postsContainer.querySelectorAll('[data-post-id]');
         const injectedPosts = injectPoint.querySelectorAll('[data-post-id]');
-        
+
         // Combine both sets of posts
         const allPostElements = [...mainPosts, ...injectedPosts];
         const postIds = allPostElements.map(el => el.getAttribute('data-post-id'));
-        
+
         console.log('📊 Collecting post IDs:');
         console.log('  - Main container posts:', Array.from(mainPosts).map(el => el.getAttribute('data-post-id')));
         console.log('  - Injected posts:', Array.from(injectedPosts).map(el => el.getAttribute('data-post-id')));
         console.log('  - Combined:', postIds);
-        
+
         document.getElementById('exclude-ids').value = postIds.join(',');
         document.getElementById('loaded-count').textContent = postIds.length;
-        
+
         return postIds;
     }
 
@@ -81,7 +80,7 @@
         if (evt.target.id === 'post-inject-point') {
             document.getElementById('postModal')?.classList.add('hidden')
             console.log('➕ Post added and DOM updated — updating exclude IDs');
-            
+
             // Debug: check what was actually added
             console.log('🔍 DEBUG: Post inject point contents:', evt.target.innerHTML);
             const newPostElement = evt.target.querySelector('[data-post-id]');
@@ -91,11 +90,11 @@
                 console.log('❌ No data-post-id found in new post!');
                 console.log('🔍 New post HTML:', evt.target.innerHTML.substring(0, 200));
             }
-            
+
             setTimeout(() => updateExcludeIds(), 50);
         }
     });
-    
+
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Handle post deletion 
         if (evt.detail?.requestConfig?.elt?.closest('form')?.classList?.contains('delete-post-form')) {
@@ -114,12 +113,12 @@
             console.log('  - Exclude IDs:', excludeIds);
             console.log('  - Exclude IDs length:', excludeIds.length);
             console.log('  - URL:', evt.target.getAttribute('hx-get'));
-            
+
             // Debug: also show what posts are currently visible
             const postElements = document.querySelectorAll('[data-post-id]');
             console.log('  - Visible posts count:', postElements.length);
             console.log('  - Visible post IDs:', Array.from(postElements).map(el => el.getAttribute('data-post-id')));
-            
+
             evt.target.textContent = 'Loading...';
         }
     });

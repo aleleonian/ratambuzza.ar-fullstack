@@ -7,21 +7,39 @@
     </aside>
 
     <main class="feed">
-        <!-- your current post loop goes here -->
         <h2><%= trip.name %></h2>
 
-        <% if (posts.length === 0) { %>
-        <p>No posts yet for this trip. Be the first to share!</p>
-        <% } else { %>
-
+        <!-- Injected post (new post via HTMX) -->
         <div id="post-inject-point"></div>
 
-        <div id="post-list" class="grid" hx-get="<%= moreUrl %>" hx-trigger="revealed" hx-swap="afterend">
-            <%- include('partials/post-list', { posts }) %>
+        <!-- Post list container -->
+        <div id="posts-container">
+            <% if (posts.length === 0) { %>
+            <p>No posts yet for this trip. Be the first to share!</p>
+            <% } else { %>
+            <!-- Initial posts -->
+            <% posts.forEach(post => { %>
+            <%- include('partials/post', { post }) %>
+            <% }) %>
+            <% } %>
         </div>
-
+        
+        <!-- Simple Load More Button for Testing -->
+        <% if (moreUrl) { %>
+        <div style="text-align: center; padding: 20px;">
+            <button 
+                id="load-more-btn"
+                hx-get="/feed/more?trip_id=<%= trip.id %>&offset=<%= POSTS_PER_PAGE %>"
+                hx-target="#posts-container"
+                hx-swap="beforeend"
+                style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;"
+            >
+                Load More Posts
+            </button>
+        </div>
         <% } %>
     </main>
+
 
     <aside class="sidebar right">
         <!-- e.g. Suggested posts / About Ratambuzza -->
@@ -34,25 +52,53 @@
     const openBtn = document.getElementById('showPostForm')
     const closeBtn = document.getElementById('closePostModal')
 
-    openBtn.addEventListener('click', () => {
+    openBtn?.addEventListener('click', () => {
         modal.classList.remove('hidden')
     })
 
-    closeBtn.addEventListener('click', () => {
+    closeBtn?.addEventListener('click', () => {
         modal.classList.add('hidden')
     })
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            modal.classList.add('hidden')
+            modal?.classList.add('hidden')
         }
     })
+    
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Close modal after post form submission
         if (evt.target.closest('form')?.id === 'newPostForm') {
             document.getElementById('postModal')?.classList.add('hidden')
         }
     })
+
+    // Simple load more button handling
+    let currentOffset = <%= POSTS_PER_PAGE %>;
+    const tripId = <%= trip.id %>;
+    
+    console.log('🔧 Setup - tripId:', tripId, 'currentOffset:', currentOffset);
+    
+    document.body.addEventListener('htmx:beforeRequest', (evt) => {
+        if (evt.target.id === 'load-more-btn') {
+            console.log('🚀 Button clicked! Loading offset:', currentOffset);
+            evt.target.textContent = 'Loading...';
+            evt.target.disabled = true;
+        }
+    });
+    
+    document.body.addEventListener('htmx:afterRequest', (evt) => {
+        if (evt.target.id === 'load-more-btn') {
+            console.log('📦 Got response!');
+            currentOffset += <%= POSTS_PER_PAGE %>;
+            const newUrl = `/feed/more?trip_id=${tripId}&offset=${currentOffset}`;
+            console.log('🔄 Next URL will be:', newUrl);
+            
+            evt.target.setAttribute('hx-get', newUrl);
+            evt.target.textContent = 'Load More Posts';
+            evt.target.disabled = false;
+        }
+    });
 </script>
 
 

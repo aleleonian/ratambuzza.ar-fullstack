@@ -1,7 +1,14 @@
 <% posts.forEach(post => { %>
-<%- include('post', { post }) %>
+  <%- include('post', { post }) %>
 <% }) %>
 
-<div class="load-more-trigger" hx-get="<%= moreUrl %>" hx-trigger="revealed" hx-swap="afterend">
-    load more
-</div>
+<% if (moreUrl) { %>
+  <div 
+    class="loading-indicator"
+    hx-get="<%= moreUrl %>" 
+    hx-trigger="revealed once" 
+    hx-swap="outerHTML"
+  >
+    <p>Loading more posts...</p>
+  </div>
+<% } %>

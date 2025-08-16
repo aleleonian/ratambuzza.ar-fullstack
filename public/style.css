@@ -143,6 +143,13 @@ footer.footer {
   gap: 12px;
 }
 
+.loading-indicator {
+  background: yellow;
+  border: 2px dashed red;
+  text-align: center;
+  padding: 20px;
+}
+
 /* Layouts */
 .two-col {
   display: grid;

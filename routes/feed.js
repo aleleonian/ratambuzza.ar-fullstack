@@ -12,9 +12,9 @@ router.get('/more', requireLogin, async (req, res) => {
     const offset = parseInt(req.query['current-offset'] || req.query.offset, 10) || 0
     const userId = parseInt(req.session.user.id, 10)
 
-    console.log('Loading more posts:', { 
-        trip_id, 
-        offset, 
+    console.log('Loading more posts:', {
+        trip_id,
+        offset,
         userId,
         rawQuery: req.query,
         tripIdType: typeof trip_id,
@@ -23,7 +23,7 @@ router.get('/more', requireLogin, async (req, res) => {
 
     // First, get total count of posts for this trip
     const [countResult] = await req.db.execute(
-        'SELECT COUNT(*) as total FROM posts WHERE trip_id = ?', 
+        'SELECT COUNT(*) as total FROM posts WHERE trip_id = ?',
         [trip_id]
     );
     const totalPosts = countResult[0].total;
@@ -58,7 +58,12 @@ router.get('/more', requireLogin, async (req, res) => {
         return res.send('<div data-no-more-posts="true">No more posts found</div>')
     }
 
+    const [tripRows] = await req.db.execute('SELECT * FROM trips WHERE id = ?', [trip_id])
+    const trip = tripRows[0]
+    if (!trip) return res.status(404).render('404')
+
     res.render('partials/just-posts', {
+        trip,
         posts
     })
 })

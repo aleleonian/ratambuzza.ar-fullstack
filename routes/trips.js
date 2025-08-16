@@ -23,13 +23,12 @@ router.param('slug', async (req, res, next, slug) => {
     const [rows] = await req.db.execute('SELECT * FROM trips WHERE slug = ?', [slug]);
     const trip = rows[0];
     if (!trip) return res.status(404).render('404');
-    console.log('trip->', trip);
     req.trip = trip;
     next();
 });
 
 // Constants
-const POSTS_PER_PAGE = 1;
+const POSTS_PER_PAGE = 3;
 
 // GET /trips/:slug/feed
 router.get('/:slug/feed', requireLogin, async (req, res) => {
@@ -82,16 +81,16 @@ router.get('/:slug/feed/more', requireLogin, async (req, res) => {
     LIMIT ${POSTS_PER_PAGE} OFFSET ${offset}
   `, [userId, trip.id]);
 
-    const newOffset = offset + POSTS_PER_PAGE;
-    const moreUrl = posts.length === POSTS_PER_PAGE
-        ? `/trips/${trip.slug}/feed/more?offset=${newOffset}`
-        : null;
+    // const newOffset = offset + POSTS_PER_PAGE;
+    // const moreUrl = posts.length === POSTS_PER_PAGE
+    //     ? `/trips/${trip.slug}/feed/more?offset=${newOffset}`
+    //     : null;
 
     if (posts.length === 0) {
         return res.send('<div data-no-more-posts="true">No more posts found</div>');
     }
 
-    res.render('partials/just-posts', { posts });
+    res.render('partials/just-posts', { trip, posts });
 });
 
 // POST /trips/:slug/posts/new
@@ -114,7 +113,7 @@ router.post('/:slug/posts/new', requireLogin, upload.single('image'), async (req
 
     const post = rows[0];
 
-    res.render('partials/post', { post });
+    res.render('partials/post', { trip, post });
 });
 
 // POST /trips/:slug/posts/delete
@@ -173,7 +172,6 @@ router.post('/:slug/posts/:post_id/likes/toggle', requireLogin, async (req, res)
 });
 
 router.get('/:slug', (req, res) => {
-    console.log('req.trip.slug->', req.trip.slug);
     res.redirect(`/trips/${req.trip.slug}/feed`);
 });
 

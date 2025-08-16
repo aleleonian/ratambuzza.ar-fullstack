@@ -1,4 +1,5 @@
-<form hx-post="/posts/delete" hx-vals='{"post_id": <%= post.id %>}' hx-target="closest .card" hx-swap="outerHTML"
+<form id="delete-post-form" hx-post="/trips/<%= trip.slug %>/posts/delete" hx-vals='{"post_id": <%= post.id %>}'
+    hx-target="closest .card" hx-swap="outerHTML"
     onsubmit="return confirm('Are you sure you want to delete this post?')" style="margin-top: 10px;">
     <button class="button danger">🗑 Delete</button>
 </form>

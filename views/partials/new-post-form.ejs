@@ -1,5 +1,5 @@
-<form action="/posts/new" id="newPostForm" method="POST" enctype="multipart/form-data" class="card"
-  style="margin-bottom: 24px;" hx-on::after-request="this.reset()" hx-post="/posts/new"
+<form action="/trips/<%= trip.slug %>/posts/new" id="add-post-form" method="POST" enctype="multipart/form-data" class="card"
+  style="margin-bottom: 24px;" hx-on::after-request="this.reset()" hx-post="/trips/<%= trip.slug %>/posts/new"
   hx-encoding="multipart/form-data" hx-target="#post-inject-point" hx-swap="afterend">
   <h3>Nuevo posteo</h3>
   <input type="hidden" name="trip_id" value="<%= trip.id %>" />
@@ -17,6 +17,6 @@
   //TODO pending this validation
   function submitHandler(e) {
   }
-  document.getElementById('newPostForm').addEventListener('submit', submitHandler);
+  document.getElementById('add-post-form').addEventListener('submit', submitHandler);
 
 </script>

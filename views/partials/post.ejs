@@ -20,10 +20,10 @@
     <% } %>
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
-        <%- include('like-button', { post }) %>
+        <%- include('like-button', { trip, post }) %>
         <!-- Delete button -->
         <% if (post.user_id === user.id) { %>
-        <%- include('delete-button', { post }) %>
+        <%- include('delete-button', { trip, post }) %>
         <% } %>
     </div>
 </div>

@@ -19,7 +19,7 @@
             <% } else { %>
             <!-- Initial posts -->
             <% posts.forEach(post => { %>
-            <%- include('../partials/post', { post }) %>
+            <%- include('../partials/post', { trip, post }) %>
             <% }) %>
             <% } %>
         </div>
@@ -42,7 +42,7 @@
 
     <aside class="sidebar right">
         <!-- e.g. Suggested posts / About Ratambuzza -->
-        <%- include('../partials/sidebar-right') %>
+        <%- include('../partials/sidebar-right', { trips, trip }) %>
     </aside>
 </div>
 
@@ -67,8 +67,29 @@
 
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Close modal after post form submission
-        if (evt.target.closest('form')?.id === 'newPostForm') {
+        debugger;
+        const triggeringEl = evt.detail?.requestConfig?.elt;
+        if (evt.target.closest('form')?.id === 'add-post-form') {
+            debugger;
             document.getElementById('postModal')?.classList.add('hidden')
+            console.log('🗑 Post added — updating current-offset');
+            const offsetInput = document.getElementById('current-offset');
+            if (offsetInput) {
+                const current = parseInt(offsetInput.value, 10) || 0;
+                const newOffset = Math.max(0, current + 1); // prevent negative offset
+                offsetInput.value = newOffset;
+                document.getElementById('offset-display').textContent = newOffset;
+            }
+        }
+        if (triggeringEl?.id === 'delete-post-form') {
+            console.log('🗑 Post deleted — updating current-offset');
+            const offsetInput = document.getElementById('current-offset');
+            if (offsetInput) {
+                const current = parseInt(offsetInput.value, 10) || 0;
+                const newOffset = Math.max(0, current - 1); // prevent negative offset
+                offsetInput.value = newOffset;
+                document.getElementById('offset-display').textContent = newOffset;
+            }
         }
     })
 

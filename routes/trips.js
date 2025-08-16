@@ -95,9 +95,16 @@ router.get('/:slug/feed/more', requireLogin, async (req, res) => {
 
 // POST /trips/:slug/posts/new
 router.post('/:slug/posts/new', requireLogin, upload.single('image'), async (req, res) => {
-    const content = req.body.content;
+
+    console.log('req.body =', req.body);
+
+    const content = req.body['new-post-content'];
     const trip = req.trip;
     const image_filename = req.file ? req.file.filename : null;
+
+    console.log('content->', content);
+    console.log('trip->', trip);
+    console.log('image_filename->', image_filename);
 
     await req.db.execute(
         'INSERT INTO posts (user_id, trip_id, content, image_filename) VALUES (?, ?, ?, ?)',

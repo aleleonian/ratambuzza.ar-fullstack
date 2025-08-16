@@ -12,6 +12,7 @@ const app = express();
 const MySQLStore = require('express-mysql-session')(session)
 // const likeRoutes = require('./routes/likes')
 const tripRoutes = require('./routes/trips');
+const { requireLogin } = require('./middleware/requireLogin')
 
 const PORT = process.env.PORT || 3000
 
@@ -56,9 +57,8 @@ app.use((req, res, next) => {
 
 app.use('/', authRoutes)
 
-app.get('/', async (req, res) => {
-    const [crew] = await req.db.execute('SELECT handle, avatar_head_file_name FROM users ORDER BY handle')
-    res.render('home', { user: req.session.user, crew })
+app.get('/', requireLogin, async (req, res) => {
+    res.render('home', { user: req.session.user })
 })
 
 // app.use('/feed', feedRoutes)

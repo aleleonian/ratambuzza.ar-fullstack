@@ -62,12 +62,12 @@
             document.getElementById('postModal')?.classList.add('hidden')
             console.log('🗑 Post added — updating current-offset');
             const offsetInput = document.getElementById('current-offset');
-            if (offsetInput) {
-                const current = parseInt(offsetInput.value, 10) || 0;
-                const newOffset = Math.max(0, current + 1); // prevent negative offset
-                offsetInput.value = newOffset;
-                document.getElementById('offset-display').textContent = newOffset;
-            }
+            // if (offsetInput) {
+            //     const current = parseInt(offsetInput.value, 10) || 0;
+            //     const newOffset = Math.max(0, current + 1); // prevent negative offset
+            //     offsetInput.value = newOffset;
+            //     document.getElementById('offset-display').textContent = newOffset;
+            // }
         }
         if (triggeringEl?.id === 'delete-post-form') {
             console.log('🗑 Post deleted — updating current-offset');
@@ -132,6 +132,7 @@
     document.querySelectorAll('.showPostForm').forEach((btn) => {
         btn.addEventListener('click', () => {
             document.getElementById('postModal')?.classList.remove('hidden');
+            document.getElementById('new-post-content')?.focus();
         });
     });
 

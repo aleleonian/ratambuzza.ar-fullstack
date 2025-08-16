@@ -61,10 +61,10 @@ router.get('/:slug/feed', requireLogin, async (req, res) => {
 router.get('/:slug/feed/more', requireLogin, async (req, res) => {
     const userId = req.session.user.id;
     const trip = req.trip;
-    
+
     // Get excluded post IDs (posts already loaded)
     const excludeIds = req.query.exclude_ids ? req.query.exclude_ids.split(',').map(id => parseInt(id, 10)) : [];
-    
+
     console.log('Loading more posts:', {
         userId,
         tripId: trip.id,
@@ -75,7 +75,7 @@ router.get('/:slug/feed/more', requireLogin, async (req, res) => {
     // Build WHERE clause to exclude already loaded posts
     let whereClause = 'WHERE p.trip_id = ?';
     let queryParams = [trip.id];
-    
+
     if (excludeIds.length > 0) {
         const placeholders = excludeIds.map(() => '?').join(',');
         whereClause += ` AND p.id NOT IN (${placeholders})`;
@@ -171,9 +171,11 @@ router.post('/:slug/posts/delete', requireLogin, async (req, res) => {
 });
 
 // POST /trips/:slug/posts/:post_id/likes/toggle
-router.post('/:slug/posts/:post_id/likes/toggle', requireLogin, async (req, res) => {
+router.post('/:slug/likes/toggle', requireLogin, async (req, res) => {
+    // router.post('/:slug/posts/:post_id/likes/toggle', requireLogin, async (req, res) => {
     const userId = req.session.user.id;
-    const post_id = req.params.post_id;
+    // const post_id = req.params.post_id;
+    const { post_id } = req.body
 
     const [[existing]] = await req.db.execute(
         'SELECT id FROM likes WHERE user_id = ? AND post_id = ?', [userId, post_id]
@@ -192,7 +194,10 @@ router.post('/:slug/posts/:post_id/likes/toggle', requireLogin, async (req, res)
     FROM likes WHERE post_id = ?
   `, [userId, post_id, post_id]);
 
+    const trip = req.trip;
+
     res.render('partials/like-button', {
+        trip,
         post: {
             id: post_id,
             liked_by_user: !!updated.liked_by_user,

@@ -6,13 +6,29 @@ const { requireLogin } = require('../middleware/requireLogin')
 // Constants
 const POSTS_PER_PAGE = 1
 
-// GET /feed/more?trip_id=1&offset=10
+// GET /feed/more - accepts query params from hx-include
 router.get('/more', requireLogin, async (req, res) => {
-    const trip_id = parseInt(req.query.trip_id, 10)
-    const offset = parseInt(req.query.offset, 10) || 0
+    const trip_id = parseInt(req.query['trip-id'] || req.query.trip_id, 10)
+    const offset = parseInt(req.query['current-offset'] || req.query.offset, 10) || 0
     const userId = parseInt(req.session.user.id, 10)
 
-    console.log('Loading more posts:', { trip_id, offset, userId });
+    console.log('Loading more posts:', { 
+        trip_id, 
+        offset, 
+        userId,
+        rawQuery: req.query,
+        tripIdType: typeof trip_id,
+        offsetType: typeof offset
+    });
+
+    // First, get total count of posts for this trip
+    const [countResult] = await req.db.execute(
+        'SELECT COUNT(*) as total FROM posts WHERE trip_id = ?', 
+        [trip_id]
+    );
+    const totalPosts = countResult[0].total;
+
+    console.log(`Trip ${trip_id} has ${totalPosts} total posts, requesting offset ${offset}`);
 
     // Fetch posts
     const [posts] = await req.db.execute(`
@@ -34,8 +50,13 @@ router.get('/more', requireLogin, async (req, res) => {
         newOffset,
         POSTS_PER_PAGE,
         returned: posts.length,
-        hasMore: !!moreUrl
+        hasMore: !!moreUrl,
+        postIds: posts.map(p => p.id)
     });
+
+    if (posts.length === 0) {
+        return res.send('<p>No more posts found</p>')
+    }
 
     res.render('partials/just-posts', {
         posts

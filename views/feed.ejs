@@ -24,18 +24,22 @@
             <% } %>
         </div>
         
-        <!-- Simple Load More Button for Testing -->
+        <!-- Fixed: Use hidden input for dynamic offset -->
         <% if (moreUrl) { %>
         <div style="text-align: center; padding: 20px;">
+            <input type="hidden" id="current-offset" name="current-offset" value="<%= POSTS_PER_PAGE %>" />
+            <input type="hidden" id="trip-id" name="trip-id" value="<%= trip.id %>" />
             <button 
                 id="load-more-btn"
-                hx-get="/feed/more?trip_id=<%= trip.id %>&offset=<%= POSTS_PER_PAGE %>"
+                hx-get="/feed/more"
+                hx-include="#current-offset, #trip-id"
                 hx-target="#posts-container"
                 hx-swap="beforeend"
                 style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;"
             >
                 Load More Posts
             </button>
+            <p>Debug: offset = <span id="offset-display"><%= POSTS_PER_PAGE %></span></p>
         </div>
         <% } %>
     </main>
@@ -73,30 +77,31 @@
         }
     })
 
-    // Simple load more button handling
+    // Load more handling with hidden inputs
     let currentOffset = <%= POSTS_PER_PAGE %>;
-    const tripId = <%= trip.id %>;
     
-    console.log('🔧 Setup - tripId:', tripId, 'currentOffset:', currentOffset);
+    console.log('🔧 Setup - currentOffset:', currentOffset);
     
     document.body.addEventListener('htmx:beforeRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('🚀 Button clicked! Loading offset:', currentOffset);
+            console.log('🚀 Button clicked!');
+            console.log('  - Offset input value:', document.getElementById('current-offset').value);
+            console.log('  - Trip ID input value:', document.getElementById('trip-id').value);
+            console.log('  - hx-get URL:', evt.target.getAttribute('hx-get'));
             evt.target.textContent = 'Loading...';
-            evt.target.disabled = true;
         }
     });
     
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('📦 Got response!');
-            currentOffset += <%= POSTS_PER_PAGE %>;
-            const newUrl = `/feed/more?trip_id=${tripId}&offset=${currentOffset}`;
-            console.log('🔄 Next URL will be:', newUrl);
+            console.log('📦 Got response! Status:', evt.detail.xhr.status);
             
-            evt.target.setAttribute('hx-get', newUrl);
+            currentOffset += 1;
+            document.getElementById('current-offset').value = currentOffset;
+            document.getElementById('offset-display').textContent = currentOffset;
+            
+            console.log('🔄 Updated offset input to:', currentOffset);
             evt.target.textContent = 'Load More Posts';
-            evt.target.disabled = false;
         }
     });
 </script>

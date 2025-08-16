@@ -29,11 +29,12 @@
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="current-offset" name="current-offset" value="<%= POSTS_PER_PAGE %>" />
             <input type="hidden" id="trip-id" name="trip-id" value="<%= trip.id %>" />
-            <button id="load-more-btn" hx-get="/feed/more" hx-include="#current-offset, #trip-id"
-                hx-target="#posts-container" hx-swap="beforeend"
-                style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;">
-                Load More Posts
-            </button>
+            <div 
+                id="scroll-sentinel"
+                style="height: 50px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border: 1px solid #ddd; margin: 20px 0;"
+            >
+                <p>Loading more posts...</p>
+            </div>
             <p>Debug: offset = <span id="offset-display"><%= POSTS_PER_PAGE %></span></p>
         </div>
         <% } %>
@@ -72,44 +73,73 @@
         }
     })
 
-    // Load more handling with hidden inputs
+    // Infinite scroll with Intersection Observer
     let currentOffset = <%= POSTS_PER_PAGE %>;
+    let isLoading = false;
+    const tripId = <%= trip.id %>;
 
-    console.log('🔧 Setup - currentOffset:', currentOffset);
+    console.log('🔧 Setup - currentOffset:', currentOffset, 'tripId:', tripId);
 
-    document.body.addEventListener('htmx:beforeRequest', (evt) => {
-        if (evt.target.id === 'load-more-btn') {
-            console.log('🚀 Button clicked!');
-            console.log('  - Offset input value:', document.getElementById('current-offset').value);
-            console.log('  - Trip ID input value:', document.getElementById('trip-id').value);
-            console.log('  - hx-get URL:', evt.target.getAttribute('hx-get'));
-            evt.target.textContent = 'Loading...';
-        }
-    });
+    // Function to load more posts
+    async function loadMorePosts() {
+        if (isLoading) return;
+        isLoading = true;
 
-    document.body.addEventListener('htmx:afterRequest', (evt) => {
-        if (evt.target.id === 'load-more-btn') {
-            console.log('📦 Got response! Status:', evt.detail.xhr.status);
+        const sentinel = document.getElementById('scroll-sentinel');
+        if (!sentinel) return;
 
-            // Check if the response indicates no more posts
-            const responseText = evt.detail.xhr.responseText;
-            if (responseText.includes('data-no-more-posts="true"')) {
-                console.log('❌ No more posts available - disabling button');
-                evt.target.disabled = true;
-                evt.target.textContent = 'No More Posts';
-                evt.target.style.background = '#ccc';
-                evt.target.style.cursor = 'not-allowed';
-                return; // Don't update offset
+        sentinel.innerHTML = '<p>Loading...</p>';
+        console.log('🚀 Loading posts at offset:', currentOffset);
+
+        try {
+            const response = await fetch(`/feed/more?current-offset=${currentOffset}&trip-id=${tripId}`);
+            const html = await response.text();
+
+            console.log('📦 Got response, length:', html.length);
+
+            if (html.includes('data-no-more-posts="true"')) {
+                console.log('❌ No more posts available');
+                sentinel.style.display = 'none';
+                return;
             }
 
-            currentOffset += <%= POSTS_PER_PAGE %>;
+            // Add new posts to container
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer.insertAdjacentHTML('beforeend', html);
+
+            // Update offset
+            currentOffset += 1;
             document.getElementById('current-offset').value = currentOffset;
             document.getElementById('offset-display').textContent = currentOffset;
 
-            console.log('🔄 Updated offset input to:', currentOffset);
-            evt.target.textContent = 'Load More Posts';
+            console.log('🔄 Updated offset to:', currentOffset);
+            sentinel.innerHTML = '<p>Loading more posts...</p>';
+
+        } catch (error) {
+            console.error('❌ Error loading posts:', error);
+            sentinel.innerHTML = '<p>Error loading posts</p>';
+        } finally {
+            isLoading = false;
         }
-    });
+    }
+
+    // Set up Intersection Observer
+    const sentinel = document.getElementById('scroll-sentinel');
+    if (sentinel) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !isLoading) {
+                    console.log('📍 Sentinel visible, loading more...');
+                    loadMorePosts();
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        observer.observe(sentinel);
+        console.log('👀 Intersection Observer set up');
+    }
 </script>
 
 

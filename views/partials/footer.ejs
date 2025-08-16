@@ -1,13 +1,12 @@
 </main>
 
-<footer class="footer">
-    <p>© <span id="year"></span> Ratambuzza.ar · <span class="muted">Un progama hecho con ❤️</span></p>
-</footer>
 
-<script>
-    // Update copyright
-    document.getElementById('year').textContent = new Date().getFullYear();
-</script>
+<% if (!['/login'].includes(currentPath)) { %>
+<footer class="footer">
+    <p>© <span id="year">2025</span> Ratambuzza.ar · <span class="muted">Un progama hecho con ❤️</span></p>
+</footer>
+<% } %>
+
 </body>
 
 </html>

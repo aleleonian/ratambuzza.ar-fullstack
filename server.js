@@ -50,10 +50,9 @@ app.use(session({
 app.use((req, res, next) => {
     req.db = pool
     res.locals.user = req.session.user
+    res.locals.currentPath = req.path;
     next()
 })
-
-
 
 app.use('/', authRoutes)
 

@@ -13,43 +13,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is a travel log (bitácora de viajes) web application built with Express.js and MySQL featuring real-time interactions via HTMX.
+This is a travel log (bitácora de viajes) web application built with Express.js and MySQL. The application has undergone significant refactoring to use slug-based routing for trips.
 
 **Core Features:**
 - User authentication with handle-based login
-- Trip management and participation  
-- Post creation with image uploads and deletion
-- Like/unlike functionality with real-time updates
-- Infinite scroll pagination (1 post per page)
+- Slug-based trip routing (`/trips/:slug/feed`)
+- Post creation with image uploads via HTMX
+- Infinite scroll pagination using Intersection Observer API
 - Avatar system with thumbnails
 
 **Key Components:**
-- **Server Entry Point:** `server.js` - Express app with MySQL session store and route mounting
+- **Server Entry Point:** `server.js` - Express app with MySQL session store. Note: some routes (feed, posts, likes) are currently commented out
 - **Authentication:** `routes/auth.js` - Handle-based login with secure redirects, auto-generated avatar filenames
-- **Posts:** `routes/posts.js` - Image upload/deletion with multer, HTMX post creation/removal
-- **Likes:** `routes/likes.js` - Toggle like functionality with count updates
-- **Feed:** `routes/feed.js` - Infinite scroll pagination with like counts and user data joins
-- **Trips:** `routes/viajes.js` - Trip listing (protected routes)
+- **Trips:** `routes/trips.js` - Main trip functionality with slug-based routing, post creation, and infinite scroll
+- **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
 - **Middleware:** `middleware/requireLogin.js` - Authentication guard with redirect handling
 
-**HTMX Integration:**
-- Real-time post creation without page refresh
-- Like button toggling with instant UI updates
-- Infinite scroll loading via `hx-trigger="revealed"`
-- Dynamic content swapping using `hx-swap` directives
-- Form reset after successful submission
+**Routing Architecture:**
+- **Slug-based URLs:** `/trips/:slug/feed` instead of `/feed/:id`
+- **Router param middleware:** `router.param('slug')` handles trip lookup by slug
+- **Post creation:** `/trips/:slug/posts/new` with HTMX integration
+- **Infinite scroll:** `/trips/:slug/feed/more` for pagination
 
 **Template System:**
-- EJS partials for modular components (post, like-button, delete-button, post-list)
-- Sidebar layout with left/right components
-- No layout engine - uses include() partials for composition
-- Static image serving with 7-day caching for avatars
+- **Organized by feature:** `views/trips/` for trip-specific templates
+- **EJS partials:** Modular components in `views/partials/`
+- **HTMX integration:** Forms use `hx-post` with `hx-target` for dynamic updates
+- **No layout engine:** Uses include() partials for composition
+
+**Infinite Scroll Implementation:**
+- **Intersection Observer API:** Replaces HTMX triggers for better reliability
+- **3 posts per page:** `POSTS_PER_PAGE = 3` in trips routes
+- **Scroll sentinel:** Fixed element that triggers loading when visible
+- **Graceful degradation:** Handles "no more posts" state
 
 **Database Schema:**
 - **users:** id, email, password_hash, handle, avatar_file_name, avatar_head_file_name
-- **trips:** id, name, start_date  
+- **trips:** id, name, slug, start_date
 - **posts:** id, user_id, trip_id, content, image_filename, created_at
-- **likes:** id, user_id, post_id (many-to-many relationship)
+- **likes:** id, user_id, post_id (if still active)
 
 **Session Management:**
 - MySQL-backed sessions via `express-mysql-session`
@@ -59,7 +61,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 **File Organization:**
 - `public/images/avatars/thumbs/` - Avatar thumbnails for UI
 - `public/uploads/` - User-uploaded post images
-- `views/partials/` - Modular EJS components for HTMX responses
+- `views/trips/` - Trip-specific templates (feed, gallery, members)
+- `views/partials/` - Reusable EJS components
 - `noupload/` - Development assets not committed
 
 **Environment Variables Required:**
@@ -75,3 +78,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - multer - File upload handling
 - sharp - Image processing
 - ejs - Templating system
+
+**Development Notes:**
+- **Legacy code:** Some routes in server.js are commented out, indicating ongoing refactoring
+- **Debug output:** Templates include debug comments for development
+- **HTMX migration:** Moving from HTMX triggers to Intersection Observer for infinite scroll

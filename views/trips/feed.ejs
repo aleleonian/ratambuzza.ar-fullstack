@@ -9,6 +9,11 @@
     <main class="feed">
         <h2><%= trip.name %></h2>
 
+        <!-- Everything related to creating a new post -->
+        <div id="post-controls" class="mobile-only">
+            <button class="button showPostForm" style="margin-bottom: 20px;">+ New Post</button>
+        </div>
+
         <!-- Injected post (new post via HTMX) -->
         <div id="post-inject-point"></div>
 
@@ -47,23 +52,6 @@
 </div>
 
 <script>
-    const modal = document.getElementById('postModal')
-    const openBtn = document.getElementById('showPostForm')
-    const closeBtn = document.getElementById('closePostModal')
-
-    openBtn?.addEventListener('click', () => {
-        modal.classList.remove('hidden')
-    })
-
-    closeBtn?.addEventListener('click', () => {
-        modal.classList.add('hidden')
-    })
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            modal?.classList.add('hidden')
-        }
-    })
 
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Close modal after post form submission
@@ -133,5 +121,42 @@
     });
 </script>
 
+<div id="postModal" class="modal hidden">
+    <div class="modal-content">
+        <button id="closePostModal" class="modal-close">✖</button>
+        <%- include('../partials/new-post-form', { trip }) %>
+    </div>
+</div>
+<script>
+    // Handle all open buttons
+    document.querySelectorAll('.showPostForm').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('postModal')?.classList.remove('hidden');
+        });
+    });
 
+    // Handle modal close
+    document.getElementById('closePostModal')?.addEventListener('click', () => {
+        document.getElementById('postModal')?.classList.add('hidden');
+    });
+
+    const modal = document.getElementById('postModal')
+    // const openBtn = document.getElementById('showPostForm')
+    // const closeBtn = document.getElementById('closePostModal')
+
+    // openBtn?.addEventListener('click', () => {
+    //     debugger;
+    //     modal.classList.remove('hidden')
+    // })
+
+    // closeBtn?.addEventListener('click', () => {
+    //     modal.classList.add('hidden')
+    // })
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            modal?.classList.add('hidden')
+        }
+    })
+</script>
 <%- include('../partials/footer') %>

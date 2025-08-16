@@ -1,9 +1,9 @@
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 
 <div class="layout">
     <aside class="sidebar left">
         <!-- e.g. Profile / Trip Switcher -->
-        <%- include('partials/sidebar-left', { trips, trip }) %>
+        <%- include('../partials/sidebar-left', { trips, trip }) %>
     </aside>
 
     <main class="feed">
@@ -19,7 +19,7 @@
             <% } else { %>
             <!-- Initial posts -->
             <% posts.forEach(post => { %>
-            <%- include('partials/post', { post }) %>
+            <%- include('../partials/post', { post }) %>
             <% }) %>
             <% } %>
         </div>
@@ -28,8 +28,8 @@
         <% if (moreUrl) { %>
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="current-offset" name="current-offset" value="<%= POSTS_PER_PAGE %>" />
-            <input type="hidden" id="trip-id" name="trip-id" value="<%= trip.id %>" />
-            <button id="load-more-btn" hx-get="/feed/more" hx-include="#current-offset, #trip-id"
+            <!-- <input type="hidden" id="trip-id" name="trip-id" value="<%= trip.id %>" /> -->
+            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#current-offset"
                 hx-target="#posts-container" hx-swap="beforeend"
                 style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;">
                 Load More Posts
@@ -42,7 +42,7 @@
 
     <aside class="sidebar right">
         <!-- e.g. Suggested posts / About Ratambuzza -->
-        <%- include('partials/sidebar-right') %>
+        <%- include('../partials/sidebar-right') %>
     </aside>
 </div>
 
@@ -81,7 +81,7 @@
         if (evt.target.id === 'load-more-btn') {
             console.log('🚀 Button clicked!');
             console.log('  - Offset input value:', document.getElementById('current-offset').value);
-            console.log('  - Trip ID input value:', document.getElementById('trip-id').value);
+            // console.log('  - Trip ID input value:', document.getElementById('trip-id').value);
             console.log('  - hx-get URL:', evt.target.getAttribute('hx-get'));
             evt.target.textContent = 'Loading...';
         }
@@ -113,4 +113,4 @@
 </script>
 
 
-<%- include('partials/footer') %>
+<%- include('../partials/footer') %>

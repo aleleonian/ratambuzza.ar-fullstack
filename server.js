@@ -6,11 +6,12 @@ const path = require('path')
 const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
 const viajesRoutes = require('./routes/viajes')
-const feedRoutes = require('./routes/feed')
+// const feedRoutes = require('./routes/feed')
 const app = express();
-const postsRoutes = require('./routes/posts')
+// const postsRoutes = require('./routes/posts')
 const MySQLStore = require('express-mysql-session')(session)
-const likeRoutes = require('./routes/likes')
+// const likeRoutes = require('./routes/likes')
+const tripRoutes = require('./routes/trips');
 
 const PORT = process.env.PORT || 3000
 
@@ -60,9 +61,10 @@ app.get('/', async (req, res) => {
     res.render('home', { user: req.session.user, crew })
 })
 
-app.use('/feed', feedRoutes)
-app.use('/posts', postsRoutes)
-app.use('/likes', likeRoutes)
+// app.use('/feed', feedRoutes)
+// app.use('/posts', postsRoutes)
+// app.use('/likes', likeRoutes)
+app.use('/trips', tripRoutes);
 
 //TODO deprecated
 app.get('/partials/avatar-ribbon', async (req, res) => {

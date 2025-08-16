@@ -23,20 +23,15 @@
             <% }) %>
             <% } %>
         </div>
-        
+
         <!-- Fixed: Use hidden input for dynamic offset -->
         <% if (moreUrl) { %>
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="current-offset" name="current-offset" value="<%= POSTS_PER_PAGE %>" />
             <input type="hidden" id="trip-id" name="trip-id" value="<%= trip.id %>" />
-            <button 
-                id="load-more-btn"
-                hx-get="/feed/more"
-                hx-include="#current-offset, #trip-id"
-                hx-target="#posts-container"
-                hx-swap="beforeend"
-                style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;"
-            >
+            <button id="load-more-btn" hx-get="/feed/more" hx-include="#current-offset, #trip-id"
+                hx-target="#posts-container" hx-swap="beforeend"
+                style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;">
                 Load More Posts
             </button>
             <p>Debug: offset = <span id="offset-display"><%= POSTS_PER_PAGE %></span></p>
@@ -69,7 +64,7 @@
             modal?.classList.add('hidden')
         }
     })
-    
+
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Close modal after post form submission
         if (evt.target.closest('form')?.id === 'newPostForm') {
@@ -79,9 +74,9 @@
 
     // Load more handling with hidden inputs
     let currentOffset = <%= POSTS_PER_PAGE %>;
-    
+
     console.log('🔧 Setup - currentOffset:', currentOffset);
-    
+
     document.body.addEventListener('htmx:beforeRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
             console.log('🚀 Button clicked!');
@@ -91,15 +86,15 @@
             evt.target.textContent = 'Loading...';
         }
     });
-    
+
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
             console.log('📦 Got response! Status:', evt.detail.xhr.status);
-            
-            currentOffset += 1;
+
+            currentOffset += <%= POSTS_PER_PAGE %>;
             document.getElementById('current-offset').value = currentOffset;
             document.getElementById('offset-display').textContent = currentOffset;
-            
+
             console.log('🔄 Updated offset input to:', currentOffset);
             evt.target.textContent = 'Load More Posts';
         }

@@ -29,17 +29,16 @@
             <% } %>
         </div>
 
-        <!-- Fixed: Use hidden input for dynamic offset -->
+        <!-- Post ID-based pagination -->
         <% if (moreUrl) { %>
         <div style="text-align: center; padding: 20px;">
-            <input type="hidden" id="current-offset" name="current-offset" value="<%= POSTS_PER_PAGE %>" />
-            <!-- <input type="hidden" id="trip-id" name="trip-id" value="<%= trip.id %>" /> -->
-            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#current-offset"
+            <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
+            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
                 hx-target="#posts-container" hx-swap="beforeend"
                 style="padding: 10px 20px; font-size: 16px; background: #007cba; color: white; border: none; cursor: pointer;">
                 Load More Posts
             </button>
-            <p>Debug: offset = <span id="offset-display"><%= POSTS_PER_PAGE %></span></p>
+            <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
         </div>
         <% } %>
     </main>
@@ -53,45 +52,74 @@
 
 <script>
 
-    document.body.addEventListener('htmx:afterRequest', (evt) => {
-        // Close modal after post form submission
-        debugger;
-        const triggeringEl = evt.detail?.requestConfig?.elt;
-        if (evt.target.closest('form')?.id === 'add-post-form') {
-            debugger;
+    // Function to collect all post IDs currently shown
+    function updateExcludeIds() {
+        // Look for posts in both containers: main posts and newly injected posts
+        const postsContainer = document.getElementById('posts-container');
+        const injectPoint = document.getElementById('post-inject-point');
+        
+        const mainPosts = postsContainer.querySelectorAll('[data-post-id]');
+        const injectedPosts = injectPoint.querySelectorAll('[data-post-id]');
+        
+        // Combine both sets of posts
+        const allPostElements = [...mainPosts, ...injectedPosts];
+        const postIds = allPostElements.map(el => el.getAttribute('data-post-id'));
+        
+        console.log('📊 Collecting post IDs:');
+        console.log('  - Main container posts:', Array.from(mainPosts).map(el => el.getAttribute('data-post-id')));
+        console.log('  - Injected posts:', Array.from(injectedPosts).map(el => el.getAttribute('data-post-id')));
+        console.log('  - Combined:', postIds);
+        
+        document.getElementById('exclude-ids').value = postIds.join(',');
+        document.getElementById('loaded-count').textContent = postIds.length;
+        
+        return postIds;
+    }
+
+    document.body.addEventListener('htmx:afterSwap', (evt) => {
+        // Handle post addition - this fires AFTER the DOM is updated
+        if (evt.target.id === 'post-inject-point') {
             document.getElementById('postModal')?.classList.add('hidden')
-            console.log('🗑 Post added — updating current-offset');
-            const offsetInput = document.getElementById('current-offset');
-            // if (offsetInput) {
-            //     const current = parseInt(offsetInput.value, 10) || 0;
-            //     const newOffset = Math.max(0, current + 1); // prevent negative offset
-            //     offsetInput.value = newOffset;
-            //     document.getElementById('offset-display').textContent = newOffset;
-            // }
-        }
-        if (triggeringEl?.id === 'delete-post-form') {
-            console.log('🗑 Post deleted — updating current-offset');
-            const offsetInput = document.getElementById('current-offset');
-            if (offsetInput) {
-                const current = parseInt(offsetInput.value, 10) || 0;
-                const newOffset = Math.max(0, current - 1); // prevent negative offset
-                offsetInput.value = newOffset;
-                document.getElementById('offset-display').textContent = newOffset;
+            console.log('➕ Post added and DOM updated — updating exclude IDs');
+            
+            // Debug: check what was actually added
+            console.log('🔍 DEBUG: Post inject point contents:', evt.target.innerHTML);
+            const newPostElement = evt.target.querySelector('[data-post-id]');
+            if (newPostElement) {
+                console.log('✅ Found new post with ID:', newPostElement.getAttribute('data-post-id'));
+            } else {
+                console.log('❌ No data-post-id found in new post!');
+                console.log('🔍 New post HTML:', evt.target.innerHTML.substring(0, 200));
             }
+            
+            setTimeout(() => updateExcludeIds(), 50);
+        }
+    });
+    
+    document.body.addEventListener('htmx:afterRequest', (evt) => {
+        // Handle post deletion 
+        if (evt.detail?.requestConfig?.elt?.closest('form')?.classList?.contains('delete-post-form')) {
+            console.log('🗑 Post deleted — updating exclude IDs');
+            setTimeout(() => updateExcludeIds(), 50);
         }
     })
 
-    // Load more handling with hidden inputs
-    let currentOffset = <%= POSTS_PER_PAGE %>;
-
-    console.log('🔧 Setup - currentOffset:', currentOffset);
+    // Initialize exclude IDs on page load - collect initial posts
+    updateExcludeIds();
 
     document.body.addEventListener('htmx:beforeRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('🚀 Button clicked!');
-            console.log('  - Offset input value:', document.getElementById('current-offset').value);
-            // console.log('  - Trip ID input value:', document.getElementById('trip-id').value);
-            console.log('  - hx-get URL:', evt.target.getAttribute('hx-get'));
+            console.log('🚀 Load More clicked!');
+            const excludeIds = document.getElementById('exclude-ids').value;
+            console.log('  - Exclude IDs:', excludeIds);
+            console.log('  - Exclude IDs length:', excludeIds.length);
+            console.log('  - URL:', evt.target.getAttribute('hx-get'));
+            
+            // Debug: also show what posts are currently visible
+            const postElements = document.querySelectorAll('[data-post-id]');
+            console.log('  - Visible posts count:', postElements.length);
+            console.log('  - Visible post IDs:', Array.from(postElements).map(el => el.getAttribute('data-post-id')));
+            
             evt.target.textContent = 'Loading...';
         }
     });
@@ -108,14 +136,11 @@
                 evt.target.textContent = 'No More Posts';
                 evt.target.style.background = '#ccc';
                 evt.target.style.cursor = 'not-allowed';
-                return; // Don't update offset
+                return;
             }
 
-            currentOffset += <%= POSTS_PER_PAGE %>;
-            document.getElementById('current-offset').value = currentOffset;
-            document.getElementById('offset-display').textContent = currentOffset;
-
-            console.log('🔄 Updated offset input to:', currentOffset);
+            // Update exclude IDs after new posts are loaded
+            setTimeout(() => updateExcludeIds(), 50);
             evt.target.textContent = 'Load More Posts';
         }
     });

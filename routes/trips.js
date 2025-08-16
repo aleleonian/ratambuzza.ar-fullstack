@@ -28,7 +28,7 @@ router.param('slug', async (req, res, next, slug) => {
 });
 
 // Constants
-const POSTS_PER_PAGE = 3;
+const POSTS_PER_PAGE = 2;
 
 // GET /trips/:slug/feed
 router.get('/:slug/feed', requireLogin, async (req, res) => {
@@ -59,32 +59,42 @@ router.get('/:slug/feed', requireLogin, async (req, res) => {
 
 // GET /trips/:slug/feed/more
 router.get('/:slug/feed/more', requireLogin, async (req, res) => {
-    const offset = parseInt(req.query['current-offset'] || req.query.offset, 10) || 0
     const userId = req.session.user.id;
     const trip = req.trip;
-
+    
+    // Get excluded post IDs (posts already loaded)
+    const excludeIds = req.query.exclude_ids ? req.query.exclude_ids.split(',').map(id => parseInt(id, 10)) : [];
+    
     console.log('Loading more posts:', {
-        offset,
         userId,
-        rawQuery: req.query,
-        offsetType: typeof offset
+        tripId: trip.id,
+        excludeIds,
+        rawQuery: req.query
     });
 
-    const [posts] = await req.db.execute(`
-    SELECT p.*, u.handle, u.avatar_head_file_name,
-      EXISTS (SELECT 1 FROM likes WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
-      (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count
-    FROM posts p
-    JOIN users u ON u.id = p.user_id
-    WHERE p.trip_id = ?
-    ORDER BY p.created_at DESC, p.id DESC
-    LIMIT ${POSTS_PER_PAGE} OFFSET ${offset}
-  `, [userId, trip.id]);
+    // Build WHERE clause to exclude already loaded posts
+    let whereClause = 'WHERE p.trip_id = ?';
+    let queryParams = [trip.id];
+    
+    if (excludeIds.length > 0) {
+        const placeholders = excludeIds.map(() => '?').join(',');
+        whereClause += ` AND p.id NOT IN (${placeholders})`;
+        queryParams = queryParams.concat(excludeIds);
+    }
 
-    // const newOffset = offset + POSTS_PER_PAGE;
-    // const moreUrl = posts.length === POSTS_PER_PAGE
-    //     ? `/trips/${trip.slug}/feed/more?offset=${newOffset}`
-    //     : null;
+    // Add userId for the likes subqueries at the end
+    const finalParams = [userId, ...queryParams];
+
+    const [posts] = await req.db.execute(`
+        SELECT p.*, u.handle, u.avatar_head_file_name,
+          EXISTS (SELECT 1 FROM likes WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
+          (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count
+        FROM posts p
+        JOIN users u ON u.id = p.user_id
+        ${whereClause}
+        ORDER BY p.created_at DESC, p.id DESC
+        LIMIT ${POSTS_PER_PAGE}
+    `, finalParams);
 
     if (posts.length === 0) {
         return res.send('<div data-no-more-posts="true">No more posts found</div>');
@@ -95,32 +105,45 @@ router.get('/:slug/feed/more', requireLogin, async (req, res) => {
 
 // POST /trips/:slug/posts/new
 router.post('/:slug/posts/new', requireLogin, upload.single('image'), async (req, res) => {
+    try {
+        console.log('🔥 POST NEW REQUEST STARTED');
+        console.log('req.body =', req.body);
 
-    console.log('req.body =', req.body);
+        const content = req.body['new-post-content'];
+        const trip = req.trip;
+        const image_filename = req.file ? req.file.filename : null;
 
-    const content = req.body['new-post-content'];
-    const trip = req.trip;
-    const image_filename = req.file ? req.file.filename : null;
+        console.log('content->', content);
+        console.log('trip->', trip?.id, trip?.name);
+        console.log('image_filename->', image_filename);
 
-    console.log('content->', content);
-    console.log('trip->', trip);
-    console.log('image_filename->', image_filename);
+        await req.db.execute(
+            'INSERT INTO posts (user_id, trip_id, content, image_filename) VALUES (?, ?, ?, ?)',
+            [req.session.user.id, trip.id, content, image_filename]
+        );
 
-    await req.db.execute(
-        'INSERT INTO posts (user_id, trip_id, content, image_filename) VALUES (?, ?, ?, ?)',
-        [req.session.user.id, trip.id, content, image_filename]
-    );
+        console.log('✅ Post inserted successfully');
 
-    const [rows] = await req.db.execute(`
-    SELECT posts.*, users.handle, users.avatar_head_file_name, users.avatar_file_name
-    FROM posts
-    JOIN users ON posts.user_id = users.id
-    WHERE posts.id = LAST_INSERT_ID()
-  `);
+        const [rows] = await req.db.execute(`
+        SELECT p.*, u.handle, u.avatar_head_file_name,
+          EXISTS (SELECT 1 FROM likes WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
+          (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count
+        FROM posts p
+        JOIN users u ON u.id = p.user_id
+        WHERE p.id = LAST_INSERT_ID()
+      `, [req.session.user.id]);
 
-    const post = rows[0];
+        const post = rows[0];
+        console.log('✅ Post retrieved:', post?.id, post?.content);
 
-    res.render('partials/post', { trip, post });
+        console.log('🎨 Rendering template...');
+        res.render('partials/post', { trip, post });
+        console.log('✅ Template rendered successfully');
+
+    } catch (error) {
+        console.error('❌ Error in post creation:', error);
+        res.status(500).send('Error creating post');
+    }
 });
 
 // POST /trips/:slug/posts/delete

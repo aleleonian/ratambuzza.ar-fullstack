@@ -4,5 +4,30 @@
 
 <h1>Holis <%= user.handle %>!</h1>
 
+<% if (currentTrip) { %>
+<section class="trip-section current-trip">
+    <h2>📍 Current Trip: <%= currentTrip.name %></h2>
+    <p>📅 <%= currentTrip.start_date %> – <%= currentTrip.end_date %></p>
+    <a href="/trips/<%= currentTrip.slug %>/feed" class="button">👉 Ver Feed</a>
+</section>
+<% } %>
+<% if (upcomingTrip) { %>
+<section class="trip-section upcoming-trip">
+    <h2>🕰️ Lo que viene, lo que viene 🔜 <%= upcomingTrip.name %></h2>
+    <p>📅 <%= upcomingTrip.start_date %></p>
+    <p>✨ Get ready!</p>
+</section>
+<% } %>
+
+<% if (pastTrips && pastTrips.length > 0) { %>
+<section class="trip-section past-trips">
+    <h2>📚 Past Trips</h2>
+    <ul>
+        <% pastTrips.forEach(trip => { %>
+        <li><a href="/trips/<%= trip.slug %>/feed">📍 <%= trip.name %> (<%= trip.start_date %>)</a></li>
+        <% }) %>
+    </ul>
+</section>
+<% } %>
 
 <%- include('partials/footer') %>

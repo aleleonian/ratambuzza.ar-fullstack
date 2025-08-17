@@ -1,0 +1,346 @@
+<!-- views/partials/header.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' — Ratambuzza' : 'Ratambuzza.ar' %></title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <!-- <link rel="stylesheet" href="/style.css" /> -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/htmx.org"></script>
+
+    <style>
+        :root {
+            --cream: #f7f2e4;
+            --navy: #0d1b2a;
+            --label: #4b463f;
+            --accent: #0081a7;
+            --ink: #111;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            opacity: 0;
+            transition: opacity 300ms ease-in-out;
+        }
+
+        /* Base */
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Press Start 2P', system-ui, sans-serif;
+            color: white;
+            background: black;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Left side (image) */
+        .left {
+            width: 50%;
+            height: 100%;
+            background-image: url('/images/trips/landscape/<%- trip.landscape_image %>');
+            background-size: cover;
+            background-position: center;
+            flex: 0 0 50%;
+        }
+
+        /* Right side (content) */
+        .right {
+            width: 50%;
+            height: 100%;
+            background: var(--cream);
+            color: black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+
+        h1 {
+            margin: 0 0 1rem 0;
+            font-size: 2rem;
+            color: var(--navy);
+            text-align: center;
+        }
+
+        h5 {
+            color: var(--label);
+            margin: 0.5rem 0 0;
+        }
+
+        #title {
+            text-align: center;
+        }
+
+        #countdown {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            color: var(--accent);
+            line-height: 1.6rem;
+            transform: translateZ(0);
+            -webkit-font-smoothing: none;
+            image-rendering: pixelated;
+        }
+
+        #avatars {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem 1rem;
+        }
+
+        .avatar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            text-decoration: none;
+            outline: none;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            transition: transform 120ms ease;
+            image-rendering: pixelated;
+        }
+
+        .avatar-container:hover .avatar {
+            transform: scale(1.04);
+        }
+
+        .avatar-container:focus-visible .avatar {
+            outline: 3px solid var(--accent);
+            outline-offset: 4px;
+        }
+
+        /* --- Mobile --- */
+        @media (max-width: 800px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow: auto;
+            }
+
+            .left {
+                width: 100%;
+                height: 50vh;
+                flex: 0 0 auto;
+            }
+
+            .right {
+                width: 100%;
+                min-height: 50vh;
+                height: auto;
+                overflow: visible;
+                padding: 1.25rem;
+            }
+
+            .avatar {
+                width: 90px;
+                height: 90px;
+            }
+
+            #countdown {
+                font-size: 1rem;
+                line-height: 1.2rem;
+            }
+        }
+
+        /* ====== PERSON DIALOG ====== */
+        .dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--shadow);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .dialog-overlay[aria-hidden="false"] {
+            display: flex;
+        }
+
+        .person-dialog {
+            max-height: 90vh;
+            overflow: auto;
+            background: var(--cream);
+            color: var(--ink);
+            max-width: min(720px, 92vw);
+            width: 680px;
+            box-sizing: border-box;
+            padding: 1.25rem;
+            position: relative;
+            /* chunky pixel-style frame */
+            box-shadow:
+                0 0 0 4px #111,
+                0 0 0 8px #fff,
+                0 0 0 12px #111,
+                12px 12px 0 0 rgba(0, 0, 0, 0.25);
+            border-radius: 0;
+            /* keep it chiptune */
+            image-rendering: pixelated;
+        }
+
+        .person-dialog header {
+            display: flex;
+            /* align-items: center; */
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .person-dialog h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--navy);
+        }
+
+        .dlg-avatar {
+            width: 180px;
+            height: 180px;
+            flex: 0 0 auto;
+            image-rendering: pixelated;
+            border: 4px solid #111;
+            background: #fff;
+        }
+
+        .dlg-body {
+            display: grid;
+            /* grid-template-columns: 1fr 1.2fr; */
+            gap: 1rem;
+        }
+
+        #dlgBio {
+            line-height: 1.6;
+            margin: 0;
+            text-align: left;
+
+        }
+
+        .kv-grid {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: .5rem 1rem;
+            align-content: start;
+            padding: .75rem;
+            background: #fff;
+            border: 4px solid #111;
+        }
+
+        .kv-key {
+            color: var(--label);
+        }
+
+        .kv-val {
+            color: var(--ink);
+        }
+
+        .dlg-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: .5rem;
+        }
+
+        .btn {
+            font-family: 'Press Start 2P', system-ui, sans-serif;
+            font-size: .8rem;
+            background: var(--accent);
+            color: #fff;
+            border: 0;
+            padding: .6rem .9rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0b5c72;
+            text-transform: uppercase;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0b5c72;
+        }
+
+        .dlg-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #111;
+            color: #fff;
+            border: 0;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 800px) {
+            .person-dialog {
+                width: 92vw;
+                padding: 1rem;
+            }
+
+            .person-dialog header {
+                flex-direction: column;
+                /* row -> column */
+                align-items: center;
+                /* center the avatar */
+                text-align: left;
+                /* keep paragraph left-aligned */
+                gap: .75rem;
+            }
+
+            .dlg-body {
+                grid-template-columns: 1fr;
+            }
+
+            .dlg-avatar {
+                width: 180px;
+                /* a touch larger looks better on mobile */
+                height: 180px;
+                margin-bottom: .25rem;
+            }
+
+            #dlgBio {
+                line-height: 1.6;
+                margin: 0;
+                max-width: 42ch;
+                /* comfortable measure on phones */
+            }
+
+            .dlg-actions {
+                justify-content: center;
+                /* center the CLOSE button on mobile */
+            }
+
+            .btn {
+                font-size: .7rem;
+            }
+        }
+    </style>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+
+</head>
+
+
+<body>

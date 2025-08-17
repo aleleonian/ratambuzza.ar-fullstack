@@ -9,6 +9,7 @@ const viajesRoutes = require('./routes/viajes')
 const app = express();
 const MySQLStore = require('express-mysql-session')(session)
 const tripRoutes = require('./routes/trips');
+const homeRoutes = require('./routes/home');
 const { requireLogin } = require('./middleware/requireLogin')
 
 const PORT = process.env.PORT || 3000
@@ -52,21 +53,23 @@ app.use((req, res, next) => {
 })
 
 app.use('/', authRoutes)
-app.get('/', requireLogin, async (req, res) => {
-    const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
-    const now = new Date();
+app.use('/', homeRoutes);
 
-    const currentTrip = trips.find(t => new Date(t.start_date) <= now && new Date(t.end_date) >= now);
-    const upcomingTrip = trips.find(t => new Date(t.start_date) > now);
-    const pastTrips = trips.filter(t => new Date(t.end_date) < now);
+// app.get('/', requireLogin, async (req, res) => {
+//     const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
+//     const now = new Date();
 
-    res.render('home', {
-        currentTrip: currentTrip,
-        upcomingTrip: upcomingTrip,
-        pastTrips: pastTrips,
-        user: req.session.user
-    })
-})
+//     const currentTrip = trips.find(t => new Date(t.start_date) <= now && new Date(t.end_date) >= now);
+//     const upcomingTrip = trips.find(t => new Date(t.start_date) > now);
+//     const pastTrips = trips.filter(t => new Date(t.end_date) < now);
+
+//     res.render('home', {
+//         currentTrip: currentTrip,
+//         upcomingTrip: upcomingTrip,
+//         pastTrips: pastTrips,
+//         user: req.session.user
+//     })
+// })
 app.use('/trips', tripRoutes);
 
 //TODO deprecated

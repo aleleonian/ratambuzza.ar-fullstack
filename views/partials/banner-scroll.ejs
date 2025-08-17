@@ -1,0 +1,47 @@
+<style>
+    .banner-scroll-container {
+        overflow: hidden;
+        height: 100px;
+        position: relative;
+    }
+
+    .banner-scroll-inner {
+        display: flex;
+        width: max-content;
+        animation: scroll-left 30s linear infinite;
+    }
+
+    .banner-scroll-inner img {
+        height: 100px;
+        image-rendering: pixelated;
+        flex-shrink: 0;
+    }
+
+    @keyframes scroll-left {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .banner-scroll-container {
+            height: 80px;
+        }
+
+        .banner-scroll-inner img {
+            height: 80px;
+        }
+    }
+</style>
+
+
+<div class="banner-scroll-container">
+    <div class="banner-scroll-inner">
+        <img src="/images/ratambuzza-banner.png" alt="Ratambuzza Crew Banner" />
+        <img src="/images/ratambuzza-banner.png" alt="" aria-hidden="true" />
+    </div>
+</div>

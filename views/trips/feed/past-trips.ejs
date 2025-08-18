@@ -28,18 +28,6 @@
             <% }) %>
             <% } %>
         </div>
-
-        <!-- Post ID-based pagination -->
-        <% if (moreUrl) { %>
-        <div style="text-align: center; padding: 20px;">
-            <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
-            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
-                hx-target="#posts-container" hx-swap="beforeend" class="button">
-                Cargar más posteos
-            </button>
-            <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
-        </div>
-        <% } %>
     </main>
 
 

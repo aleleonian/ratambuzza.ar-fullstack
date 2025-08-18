@@ -23,13 +23,9 @@ router.get('/feed', requireLogin, async (req, res, next) => {
             [userId, trip.id]
         );
 
-        const moreUrl = posts.length === POSTS_PER_PAGE
-            ? `/trips/${trip.slug}/feed/more?offset=${POSTS_PER_PAGE}`
-            : null;
-
         const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
 
-        res.render('trips/feed', { trips, trip, posts, moreUrl, POSTS_PER_PAGE });
+        res.render('trips/feed', { trips, trip, posts, POSTS_PER_PAGE });
     } catch (e) { next(e); }
 });
 

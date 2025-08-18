@@ -132,33 +132,9 @@
             }
         });
 
-        // document.getElementById('avatars').addEventListener('keydown', (e) => {
-        //     const el = e.target.closest('.avatar-container');
-        //     if (!el) return;
-        //     if (e.key === 'Enter' || e.key === ' ') {
-        //         e.preventDefault();
-        //         const person = el.getAttribute('data-person');
-        //         if (person) openDialog(person);
-        //     }
-        // });
-
-        // // Keyboard support on avatars
-        // document.querySelectorAll('.avatar-container').forEach(el => {
-        //     debugger;
-        //     el.setAttribute('tabindex', '0');
-        //     el.addEventListener('keydown', (e) => {
-        //         if (e.key === 'Enter' || e.key === ' ') {
-        //             e.preventDefault();
-        //             const person = el.getAttribute('data-person');
-        //             if (person) openDialog(person);
-        //         }
-        //     });
-        // });
-
         let lastFocus = null;
 
         function openDialog(personName, personDescription, avatar) {
-            debugger;
             dlgAvatar.src = `/images/avatars/${avatar}`;
             dlgAvatar.alt = personName;
             dlgBio.textContent = personDescription;

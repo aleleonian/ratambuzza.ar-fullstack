@@ -112,12 +112,13 @@ footer.footer {
   font-size: 12px;
   text-decoration: none;
   border: 2px solid var(--fg);
+  font-family: var(--font);
 }
 
 .button:hover {
   background: var(--nav-bg);
   color: var(--fg);
-  border-color: var(--accent);
+  border-color: var(--accent-1);
 }
 
 .danger {

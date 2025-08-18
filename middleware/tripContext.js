@@ -1,13 +1,26 @@
-// Loads trip by slug into req.trip
 module.exports = async function tripContext(req, res, next) {
-  const slug = req.params.slug;
-  try {
-    const [rows] = await req.db.execute('SELECT * FROM trips WHERE slug = ?', [slug]);
-    const trip = rows[0];
-    if (!trip) return res.status(404).render('404');
-    req.trip = trip;
-    next();
-  } catch (err) {
-    next(err);
-  }
+    try {
+        // Skip static files
+        // if (req.path.startsWith('/assets') || req.path.startsWith('/favicon')) {
+        //   return next();
+        // }
+
+        const now = new Date();
+        const [rows] = await req.db.execute(`
+      SELECT * FROM trips
+      WHERE start_date <= ? AND end_date >= ?
+         OR start_date > ?
+      ORDER BY start_date ASC
+      LIMIT 1
+    `, [now, now, now]);
+
+        const trip = rows[0] || null;
+
+        res.locals.currentOrUpcomingTrip = trip;
+        res.locals.tripMode = trip ? (new Date(trip.start_date) <= now ? 'current' : 'upcoming') : null;
+
+        next();
+    } catch (err) {
+        next(err);
+    }
 };

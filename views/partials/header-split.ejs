@@ -8,14 +8,14 @@
     <title><%= typeof title !== 'undefined' ? title + ' — Ratambuzza' : 'Ratambuzza.ar' %></title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="shortcut icon" href="/favicon.ico">
-    <!-- <link rel="stylesheet" href="/style.css" /> -->
+    <link rel="stylesheet" href="/style.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
     <script src="https://unpkg.com/htmx.org"></script>
 
     <style>
-        :root {
+        /* :root {
             --cream: #f7f2e4;
             --navy: #0d1b2a;
             --label: #4b463f;
@@ -29,7 +29,6 @@
             transition: opacity 300ms ease-in-out;
         }
 
-        /* Base */
         html,
         body {
             margin: 0;
@@ -39,10 +38,15 @@
         body {
             font-family: 'Press Start 2P', system-ui, sans-serif;
             color: white;
-            background: black;
-            display: flex;
+            background: var(--cream);
             height: 100vh;
             overflow: hidden;
+        } */
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
         }
 
         /* Left side (image) */
@@ -69,7 +73,7 @@
             overflow: auto;
         }
 
-        h1 {
+        /* h1 {
             margin: 0 0 1rem 0;
             font-size: 2rem;
             color: var(--navy);
@@ -79,7 +83,7 @@
         h5 {
             color: var(--label);
             margin: 0.5rem 0 0;
-        }
+        } */
 
         #title {
             text-align: center;
@@ -88,7 +92,7 @@
         #countdown {
             font-size: 1.5rem;
             margin-top: 20px;
-            color: var(--accent);
+            color: var(--accent-1);
             line-height: 1.6rem;
             transform: translateZ(0);
             -webkit-font-smoothing: none;
@@ -344,3 +348,17 @@
 
 
 <body>
+    <% if (!['/login'].includes(currentPath)) { %>
+    <header class="topbar">
+        <!-- 2. Navigation Bar -->
+        <div class="nav-bar">
+            <a class="logo" href="/">Ratambuzza.ar</a>
+            <nav class="main-nav">
+                <a href="/trips/<%-trip.slug%>/feed">Feed</a>
+                <a href="/trips/<%-trip.slug%>/galeria">Galeria</a>
+                <a href="/trips/<%-trip.slug%>/premios">Premios</a>
+                <a href="/logout">Salir</a>
+            </nav>
+        </div>
+    </header>
+    <% } %>

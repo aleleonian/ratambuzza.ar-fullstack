@@ -10,7 +10,7 @@ const app = express();
 const MySQLStore = require('express-mysql-session')(session)
 const tripRoutes = require('./routes/trips');
 const homeRoutes = require('./routes/home');
-const { requireLogin } = require('./middleware/requireLogin')
+const tripContext = require('./middleware/tripContext');
 
 const PORT = process.env.PORT || 3000
 
@@ -52,6 +52,7 @@ app.use((req, res, next) => {
     next()
 })
 
+app.use(tripContext);
 app.use('/', authRoutes)
 app.use('/', homeRoutes);
 

@@ -53,6 +53,10 @@ app.use((req, res, next) => {
 })
 
 app.use(tripContext);
+app.get('/debug', (req, res) => {
+    res.send('<h1>Debug route is working</h1>');
+});
+
 app.use('/', authRoutes)
 app.use('/', homeRoutes);
 

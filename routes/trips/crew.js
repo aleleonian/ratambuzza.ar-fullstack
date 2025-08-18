@@ -19,7 +19,7 @@ router.get('/crew-fragment', async (req, res, next) => {
 
     // fetch minimal fields
     const [rows] = await req.db.execute(
-      `SELECT u.handle, u.avatar_file_name
+      `SELECT u.handle, u.avatar_file_name, u.description
        FROM users u
        JOIN trip_members tm ON tm.user_id = u.id
        WHERE tm.trip_id = ?

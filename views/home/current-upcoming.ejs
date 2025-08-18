@@ -1,0 +1,198 @@
+<%- include('header-split') %>
+<main class="main-container">
+    <div class="left"></div>
+
+    <div class="right">
+        <div id="title">
+            <h1><%- currentOrUpcomingTrip.name %></h1>
+            <div id="countdown"><span id="timer"></span></div>
+        </div>
+
+        <!-- <div id="avatars">
+        <div class="avatar-container" data-person="Afro" aria-haspopup="dialog">
+            <img src="images/avatars/Afro.png" alt="Afro" class="avatar" />
+            <h5>Afro</h5>
+        </div>
+     -->
+        <div id="avatars" hx-get="/trips/<%= currentOrUpcomingTrip.slug %>/crew-fragment" hx-trigger="load"
+            hx-swap="outerHTML">
+            <div style="opacity:.6; padding:2rem; text-align:center;">Loading crew…</div>
+        </div>
+    </div>
+
+    <!-- Dialog -->
+    <div class="dialog-overlay" id="personOverlay" aria-hidden="true">
+        <div class="person-dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+            <!-- <button class="dlg-close" id="dlgClose" aria-label="Close dialog">✖</button> -->
+            <header>
+                <img id="dlgAvatar" class="dlg-avatar" alt="">
+                <!-- <div>
+                    <h2 id="dlgTitle">Name</h2>
+                </div> -->
+                <div>
+                    <p id="dlgBio"></p>
+                </div>
+            </header>
+
+            <div class="dlg-actions">
+                <button class="btn" id="dlgCloseBottom">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Countdown logic
+        const countdown = document.getElementById('timer');
+        const targetDate = new Date("2025-10-08T00:00:00");
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (diff <= 0) { countdown.textContent = "Estamos en Rio!"; return; }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // TODO: dynamic
+
+        // ===== Person data (stub – tweak freely) =====
+        // Use short keys you like; UI capitalizes keys as given.
+        const PEOPLE = {
+            "Afro": {
+                avatar: "images/avatars/afro.png",
+            },
+            "Alefa": {
+                avatar: "images/avatars/alefa.png",
+            },
+            "Boli": {
+                avatar: "images/avatars/boli.png",
+            },
+            "Butis": {
+                avatar: "images/avatars/butis.png",
+            },
+            "Charly": { avatar: "images/avatars/charly.png" },
+            "Depo": { avatar: "images/avatars/depo.png" },
+            "Firulais": { avatar: "images/avatars/firulais.png" },
+            "Latigo": { avatar: "images/avatars/latigo.png" },
+            "Marian": { avatar: "images/avatars/mariano.png" },
+            "Patas": { avatar: "images/avatars/patas.png" },
+            "Pato": { avatar: "images/avatars/pato.png" },
+            "Sanchez": { avatar: "images/avatars/sanchez.png" },
+            "Topo": { avatar: "images/avatars/topo.png" }
+        };
+
+        // ===== Dialog wiring =====
+
+        const overlay = document.getElementById('personOverlay');
+        // const dlgClose = document.getElementById('dlgClose');
+        const dlgCloseBottom = document.getElementById('dlgCloseBottom');
+        const dlgAvatar = document.getElementById('dlgAvatar');
+        const dlgTitle = document.getElementById('dlgTitle');
+        const kvGrid = document.getElementById('kvGrid');
+        const dlgBio = document.getElementById('dlgBio');
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeDialog();
+        });
+        // dlgClose.addEventListener('click', closeDialog);
+        dlgCloseBottom.addEventListener('click', closeDialog);
+
+        // Delegate clicks from grid of avatars
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            if (e.target.id === 'avatars') {
+                e.target.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.avatar-container');
+                    if (!btn) return;
+                    const person = btn.getAttribute('data-person');
+                    const description = btn.getAttribute('data-description');
+                    const avatar = btn.getAttribute('data-avatar');
+                    if (person) openDialog(person, description, avatar);
+                });
+
+                e.target.querySelectorAll('.avatar-container').forEach(el => {
+                    el.setAttribute('tabindex', '0');
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const person = el.getAttribute('data-person');
+                            const description = el.getAttribute('data-description');
+                            const avatar = el.getAttribute('data-avatar');
+                            if (person) openDialog(person, description, avatar);
+                        }
+                    });
+                });
+            }
+        });
+
+        // document.getElementById('avatars').addEventListener('keydown', (e) => {
+        //     const el = e.target.closest('.avatar-container');
+        //     if (!el) return;
+        //     if (e.key === 'Enter' || e.key === ' ') {
+        //         e.preventDefault();
+        //         const person = el.getAttribute('data-person');
+        //         if (person) openDialog(person);
+        //     }
+        // });
+
+        // // Keyboard support on avatars
+        // document.querySelectorAll('.avatar-container').forEach(el => {
+        //     debugger;
+        //     el.setAttribute('tabindex', '0');
+        //     el.addEventListener('keydown', (e) => {
+        //         if (e.key === 'Enter' || e.key === ' ') {
+        //             e.preventDefault();
+        //             const person = el.getAttribute('data-person');
+        //             if (person) openDialog(person);
+        //         }
+        //     });
+        // });
+
+        let lastFocus = null;
+
+        function openDialog(personName, personDescription, avatar) {
+            debugger;
+            dlgAvatar.src = `/images/avatars/${avatar}`;
+            dlgAvatar.alt = personName;
+            dlgBio.textContent = personDescription;
+            lastFocus = document.activeElement;
+            overlay.setAttribute('aria-hidden', 'false');
+            document.addEventListener('keydown', onKeydown);
+            // prevent body scroll behind dialog (desktop already fixed, mobile needs this)
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDialog() {
+            overlay.setAttribute('aria-hidden', 'true');
+            document.removeEventListener('keydown', onKeydown);
+            document.body.style.overflow = ''; // restore
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
+        }
+
+        function onKeydown(e) {
+            if (e.key === 'Escape') closeDialog();
+            // very light focus trap: loop close buttons
+            if (e.key === 'Tab') {
+                const focusables = [dlgCloseBottom];
+                const idx = focusables.indexOf(document.activeElement);
+                if (idx === -1) return;
+                e.preventDefault();
+                const next = e.shiftKey ? (idx - 1 + focusables.length) % focusables.length
+                    : (idx + 1) % focusables.length;
+                focusables[next].focus();
+            }
+        }
+
+    </script>
+
+</main>
+</body>
+
+</html>

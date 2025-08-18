@@ -1,6 +1,6 @@
 <div id="avatars" class="avatars-grid">
     <% people.forEach(p => { %>
-    <a class="avatar-container" data-person="<%= p.handle %>" tabindex="0" aria-haspopup="dialog">
+    <a class="avatar-container" data-avatar="<%= p.avatar_file_name %>" data-person="<%= p.handle %>" data-description="<%= p.description %>" tabindex="0" aria-haspopup="dialog">
         <img class="avatar" src="/images/avatars/<%= p.avatar_file_name %>" alt="<%= p.handle %>" width="120"
             loading="lazy" decoding="async" style="image-rendering: pixelated;" />
         <h5><%= p.handle %></h5>

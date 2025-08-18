@@ -1,0 +1,176 @@
+<%- include('../partials/header') %>
+
+<div class="layout">
+    <aside class="sidebar left">
+        <!-- e.g. Profile / Trip Switcher -->
+        <%- include('../partials/sidebar-left', { trips, trip }) %>
+    </aside>
+
+    <main class="feed">
+        <h2><%= trip.name %></h2>
+
+        <!-- Everything related to creating a new post -->
+        <div id="post-controls" class="mobile-only">
+            <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo</button>
+        </div>
+
+        <!-- Injected post (new post via HTMX) -->
+        <div id="post-inject-point"></div>
+
+        <!-- Post list container -->
+        <div id="posts-container">
+            <% if (posts.length === 0) { %>
+            <p>No posts yet for this trip. Be the first to share!</p>
+            <% } else { %>
+            <!-- Initial posts -->
+            <% posts.forEach(post => { %>
+            <%- include('../partials/post', { trip, post }) %>
+            <% }) %>
+            <% } %>
+        </div>
+
+        <!-- Post ID-based pagination -->
+        <% if (moreUrl) { %>
+        <div style="text-align: center; padding: 20px;">
+            <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
+            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
+                hx-target="#posts-container" hx-swap="beforeend" class="button">
+                Cargar más posteos
+            </button>
+            <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
+        </div>
+        <% } %>
+    </main>
+
+
+    <aside class="sidebar right">
+        <!-- e.g. Suggested posts / About Ratambuzza -->
+        <%- include('../partials/sidebar-right', { trips, trip }) %>
+    </aside>
+</div>
+
+<script>
+
+    // Function to collect all post IDs currently shown
+    function updateExcludeIds() {
+        // Look for posts in both containers: main posts and newly injected posts
+        const postsContainer = document.getElementById('posts-container');
+        const injectPoint = document.getElementById('post-inject-point');
+
+        const mainPosts = postsContainer.querySelectorAll('[data-post-id]');
+        const injectedPosts = injectPoint.querySelectorAll('[data-post-id]');
+
+        // Combine both sets of posts
+        const allPostElements = [...mainPosts, ...injectedPosts];
+        const postIds = allPostElements.map(el => el.getAttribute('data-post-id'));
+
+        console.log('📊 Collecting post IDs:');
+        console.log('  - Main container posts:', Array.from(mainPosts).map(el => el.getAttribute('data-post-id')));
+        console.log('  - Injected posts:', Array.from(injectedPosts).map(el => el.getAttribute('data-post-id')));
+        console.log('  - Combined:', postIds);
+
+        document.getElementById('exclude-ids').value = postIds.join(',');
+        document.getElementById('loaded-count').textContent = postIds.length;
+
+        return postIds;
+    }
+
+    document.body.addEventListener('htmx:afterSwap', (evt) => {
+        // Handle post addition - this fires AFTER the DOM is updated
+        if (evt.target.id === 'post-inject-point') {
+            document.getElementById('postModal')?.classList.add('hidden')
+            console.log('➕ Post added and DOM updated — updating exclude IDs');
+
+            // Debug: check what was actually added
+            console.log('🔍 DEBUG: Post inject point contents:', evt.target.innerHTML);
+            const newPostElement = evt.target.querySelector('[data-post-id]');
+            if (newPostElement) {
+                console.log('✅ Found new post with ID:', newPostElement.getAttribute('data-post-id'));
+            } else {
+                console.log('❌ No data-post-id found in new post!');
+                console.log('🔍 New post HTML:', evt.target.innerHTML.substring(0, 200));
+            }
+
+            setTimeout(() => updateExcludeIds(), 50);
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', (evt) => {
+        // Handle post deletion 
+        if (evt.detail?.requestConfig?.elt?.closest('form')?.classList?.contains('delete-post-form')) {
+            console.log('🗑 Post deleted — updating exclude IDs');
+            setTimeout(() => updateExcludeIds(), 50);
+        }
+    })
+
+    // Initialize exclude IDs on page load - collect initial posts
+    updateExcludeIds();
+
+    document.body.addEventListener('htmx:beforeRequest', (evt) => {
+        if (evt.target.id === 'load-more-btn') {
+            console.log('🚀 Load More clicked!');
+            const excludeIds = document.getElementById('exclude-ids').value;
+            console.log('  - Exclude IDs:', excludeIds);
+            console.log('  - Exclude IDs length:', excludeIds.length);
+            console.log('  - URL:', evt.target.getAttribute('hx-get'));
+
+            // Debug: also show what posts are currently visible
+            const postElements = document.querySelectorAll('[data-post-id]');
+            console.log('  - Visible posts count:', postElements.length);
+            console.log('  - Visible post IDs:', Array.from(postElements).map(el => el.getAttribute('data-post-id')));
+
+            evt.target.textContent = 'Loading...';
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', (evt) => {
+        if (evt.target.id === 'load-more-btn') {
+            console.log('📦 Got response! Status:', evt.detail.xhr.status);
+
+            // Check if the response indicates no more posts
+            const responseText = evt.detail.xhr.responseText;
+            if (responseText.includes('data-no-more-posts="true"')) {
+                console.log('❌ No more posts available - disabling button');
+                evt.target.disabled = true;
+                evt.target.textContent = 'No More Posts';
+                evt.target.style.background = '#ccc';
+                evt.target.style.cursor = 'not-allowed';
+                return;
+            }
+
+            // Update exclude IDs after new posts are loaded
+            setTimeout(() => updateExcludeIds(), 50);
+            evt.target.textContent = 'Load More Posts';
+        }
+    });
+</script>
+
+<div id="postModal" class="modal hidden">
+    <div class="modal-content">
+        <button id="closePostModal" class="modal-close">✖</button>
+        <%- include('../partials/new-post-form', { trip }) %>
+    </div>
+</div>
+<script>
+    // Handle all open buttons
+    document.querySelectorAll('.showPostForm').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('postModal')?.classList.remove('hidden');
+            document.getElementById('new-post-content')?.focus();
+        });
+    });
+
+    // Handle modal close
+    document.getElementById('closePostModal')?.addEventListener('click', () => {
+        document.getElementById('postModal')?.classList.add('hidden');
+    });
+
+    const modal = document.getElementById('postModal')
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            modal?.classList.add('hidden')
+        }
+    })
+</script>
+<%- include('../partials/footer') %>

@@ -319,17 +319,4 @@
 
 
 <body>
-    <% if (!['/login'].includes(currentPath)) { %>
-    <header class="topbar">
-        <!-- 2. Navigation Bar -->
-        <div class="nav-bar">
-            <a class="logo desktop-only" href="/">Ratambuzza.ar</a>
-            <nav class="main-nav">
-                <a href="/trips/<%-currentOrUpcomingTrip.slug%>/feed">Feed</a>
-                <a href="/trips/<%-currentOrUpcomingTrip.slug%>/galeria">Galeria</a>
-                <a href="/trips/<%-currentOrUpcomingTrip.slug%>/premios">Premios</a>
-                <a href="/logout">Salir</a>
-            </nav>
-        </div>
-    </header>
-    <% } %>
+    <%- include('../top-menu/current-upcoming') %>

@@ -1,6 +1,5 @@
 <%- include('../../partials/header/current-upcoming') %>
-moreUrl:
-<%- moreUrl %>
+
 <div class="layout">
     <aside class="sidebar left">
         <!-- e.g. Profile / Trip Switcher -->
@@ -31,7 +30,7 @@ moreUrl:
         </div>
 
         <!-- Post ID-based pagination -->
-        <% if (moreUrl) { %>
+        <% if (theresMore) { %>
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
             <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
@@ -147,7 +146,7 @@ moreUrl:
 
             // Update exclude IDs after new posts are loaded
             setTimeout(() => updateExcludeIds(), 50);
-            evt.target.textContent = 'Load More Posts';
+            evt.target.textContent = 'Cargar más posteos';
         }
     });
 </script>

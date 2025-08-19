@@ -7,7 +7,7 @@ const router = express.Router({ mergeParams: true });
 // GET /trips/:slug/feed
 router.get('/feed', requireLogin, async (req, res, next) => {
     try {
-        const offset = 0;
+        // const offset = 0;
         const userId = req.session.user.id;
         const trip = req.trip;
 
@@ -19,17 +19,20 @@ router.get('/feed', requireLogin, async (req, res, next) => {
        JOIN users u ON u.id = p.user_id
        WHERE p.trip_id = ?
        ORDER BY p.created_at DESC, p.id DESC
-       LIMIT ${POSTS_PER_PAGE} OFFSET ${offset}`,
+       LIMIT ${POSTS_PER_PAGE}`,
+            //    LIMIT ${POSTS_PER_PAGE} OFFSET ${offset}`,
             [userId, trip.id]
         );
 
-        const moreUrl = posts.length === POSTS_PER_PAGE
-            ? `/trips/${trip.slug}/feed/more?offset=${POSTS_PER_PAGE}`
-            : null;
+        const theresMore = posts.length === POSTS_PER_PAGE;
+
+        // const moreUrl = posts.length === POSTS_PER_PAGE
+        //     ? `/trips/${trip.slug}/feed/more?offset=${POSTS_PER_PAGE}`
+        //     : null;
 
         const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
 
-        res.render('trips/feed', { trips, trip, posts, moreUrl, POSTS_PER_PAGE });
+        res.render('trips/feed', { trips, trip, posts, theresMore, POSTS_PER_PAGE });
     } catch (e) { next(e); }
 });
 

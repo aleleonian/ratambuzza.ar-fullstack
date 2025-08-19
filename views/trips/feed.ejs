@@ -1,10 +1,9 @@
 <% if (tripMode === 'current' || tripMode === 'upcoming') { %>
-moreUrl:
-<%- moreUrl %>
-<%- include('feed/current-upcoming',{ trips, trip, posts, moreUrl, POSTS_PER_PAGE }) %>
+
+<%- include('feed/current-upcoming',{ trips, trip, posts, theresMore, POSTS_PER_PAGE }) %>
 
 <% } else { %>
 
-<%- include('feed/past-trips', { trips, trip, posts, moreUrl, POSTS_PER_PAGE }) %>
+<%- include('feed/past-trips', { trips, trip, posts, theresMore, POSTS_PER_PAGE }) %>
 
 <% } %>

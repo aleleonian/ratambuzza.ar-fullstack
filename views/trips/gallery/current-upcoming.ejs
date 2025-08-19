@@ -1,0 +1,75 @@
+<%- include('../../partials/header/current-upcoming') %>
+<style>
+    #avatar-head {
+        width: 10%;
+        height: 10%;
+    }
+
+    .gallery-container {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+
+    .media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
+    .media-item {
+        position: relative;
+        /* background: white; */
+        /* border: 1px solid #111; */
+        padding: 0.5rem;
+    }
+
+    .media-item img {
+        width: 100%;
+        display: block;
+        height: auto;
+        object-fit: cover;
+        display: block;
+        border-radius: 6px;
+        transition: transform 0.2s ease;
+    }
+
+    .media-item img:hover {
+        transform: scale(1.03);
+    }
+
+    .attribution {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .attribution .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+</style>
+<main class="gallery-container">
+    <% if (media.length === 0) { %>
+    <p>No hay imágenes todavía. ¡Sé el primero en subir una!</p>
+    <% } else { %>
+    <div class="media-grid">
+        <% media.forEach(item => { %>
+        <div class="media-item">
+            <a href="<%= item.url %>" class="gallery-item" target="_blank">
+                <img src="<%= item.thumbnail_url %>" alt="Uploaded image">
+            </a>
+            <div class="attribution">
+                <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
+                    alt="<%= item.uploader_name %>">
+            </div>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
+</main>
+
+<%- include('../../partials/footer') %>

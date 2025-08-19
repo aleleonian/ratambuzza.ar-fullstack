@@ -11,7 +11,7 @@ const MySQLStore = require('express-mysql-session')(session)
 const tripRoutes = require('./routes/trips');
 const homeRoutes = require('./routes/home');
 const tripContext = require('./middleware/tripContext');
-const mediaRoutes = require('./routes/mediaRoutes');
+const { requireLogin } = require('./middleware/requireLogin')
 
 const PORT = process.env.PORT || 3000
 
@@ -59,9 +59,8 @@ app.get('/debug', (req, res) => {
 });
 
 app.use('/', authRoutes)
-app.use('/', homeRoutes);
-app.use('/', mediaRoutes);
-app.use('/trips', tripRoutes);
+app.use('/', requireLogin, homeRoutes);
+app.use('/trips', requireLogin, tripRoutes);
 
 //TODO deprecated
 app.get('/partials/avatar-ribbon', async (req, res) => {
@@ -70,7 +69,7 @@ app.get('/partials/avatar-ribbon', async (req, res) => {
     res.render('partials/avatar-ribbon', { crew })
 })
 
-app.use('/viajes', viajesRoutes)
+app.use('/viajes', requireLogin, viajesRoutes)
 
 app.get(/^\/\.well-known\/.*/, (req, res) => {
     res.status(204).end()

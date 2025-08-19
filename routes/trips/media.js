@@ -3,7 +3,7 @@ const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 
-const { uploadDir, upload, createThumbnail, uploadMultiple } = require('../lib/upload');
+const { uploadDir, upload, createThumbnail, uploadMultiple } = require('../../lib/upload');
 
 const router = express.Router();
 
@@ -23,6 +23,10 @@ const router = express.Router();
 
 // router.post('/upload', upload.single('image'), async (req, res, next) => {
 router.post('/upload', uploadMultiple, async (req, res, next) => {
+    const width = 1600;
+    const height = 1600;
+    const quality = 80;
+
     try {
         const files = req.files; // ✅ Now an array
 
@@ -33,12 +37,15 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
         const resizedFiles = [];
 
         for (const file of files) {
+            const resizedName = 'resized-' + file.filename;
+            const resizedUrl = "/uploads/" + resizedName;
+
             const originalPath = path.join(uploadDir, file.filename);
-            const outputPath = path.join(uploadDir, 'resized-' + file.filename);
+            const outputPath = path.join(uploadDir, resizedName);
 
             await sharp(file.path)
-                .resize({ width: 1600, height: 1600, fit: 'inside' })
-                .jpeg({ quality: 80 })
+                .resize({ width, height, fit: 'inside' })
+                .jpeg({ quality })
                 .toFile(outputPath);
 
             const thumbName = `thumb-${file.filename}`;
@@ -49,24 +56,13 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
                 resized: '/uploads/resized-' + file.filename,
                 thumb: '/uploads/' + thumbnailUrl
             });
+            await req.db.execute(`
+            INSERT INTO media (trip_id, user_id, url, thumbnail_url, width, height, type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            `, [req.trip.id, req.session.user.id, resizedUrl, thumbnailUrl, width, height, 'image']);
         }
-        // const originalPath = path.join(uploadDir, req.file.filename);
-        // const resizedFilename = `resized-${req.file.filename}`;
-        // const resizedPath = path.join(uploadDir, resizedFilename);
-
-        // const thumbName = `thumb-${req.file.filename}`;
-        // const thumbnailUrl = await createThumbnail(req.file.path, thumbName);
-
-        // // Resize the uploaded image
-        // await sharp(originalPath)
-        //     .resize({ width: 1600, height: 1600, fit: 'inside' })
-        //     .jpeg({ quality: 80 })
-        //     .toFile(resizedPath);
-
-        // // Optionally delete the original if you don’t want it
-        // fs.unlinkSync(originalPath);
-
         // Return the public URL
+
         res.json({ success: true, files: resizedFiles });
     } catch (err) {
         next(err);
@@ -74,6 +70,39 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
 });
 
 router.get('/test-upload', async (req, res, next) => {
-    res.render('test-upload')
+    res.render('trips/test-upload')
 })
+
+router.get('/gallery', async (req, res, next) => {
+    const trip = req.trip;
+    const [media] = await req.db.execute(`
+    SELECT m.*, u.handle AS uploader_name, u.avatar_head_file_name AS uploader_avatar
+    FROM media m
+    JOIN users u ON m.user_id = u.id
+    WHERE m.trip_id = ?
+    ORDER BY m.created_at DESC
+    `, [trip.id]);
+
+    res.render('trips/gallery', { media })
+})
+
+router.get('/gallery/page/:n', async (req, res, next) => {
+    // const trip = req.trip;
+    // const [media] = await req.db.execute(
+    //     'SELECT * FROM media WHERE trip_id = ? ORDER BY created_at DESC',
+    //     [trip.id]
+    // );
+
+    // res.render('trips/gallery', { media })
+})
+router.post('/gallery/:id/delete', async (req, res, next) => {
+
+});
+router.post('/gallery/:id/like', async (req, res, next) => {
+
+});
+router.post('/gallery/:id/tag', async (req, res, next) => {
+
+});
+
 module.exports = router;

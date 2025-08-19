@@ -11,6 +11,7 @@ const MySQLStore = require('express-mysql-session')(session)
 const tripRoutes = require('./routes/trips');
 const homeRoutes = require('./routes/home');
 const tripContext = require('./middleware/tripContext');
+const mediaRoutes = require('./routes/mediaRoutes');
 
 const PORT = process.env.PORT || 3000
 
@@ -59,22 +60,7 @@ app.get('/debug', (req, res) => {
 
 app.use('/', authRoutes)
 app.use('/', homeRoutes);
-
-// app.get('/', requireLogin, async (req, res) => {
-//     const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
-//     const now = new Date();
-
-//     const currentTrip = trips.find(t => new Date(t.start_date) <= now && new Date(t.end_date) >= now);
-//     const upcomingTrip = trips.find(t => new Date(t.start_date) > now);
-//     const pastTrips = trips.filter(t => new Date(t.end_date) < now);
-
-//     res.render('home', {
-//         currentTrip: currentTrip,
-//         upcomingTrip: upcomingTrip,
-//         pastTrips: pastTrips,
-//         user: req.session.user
-//     })
-// })
+app.use('/', mediaRoutes);
 app.use('/trips', tripRoutes);
 
 //TODO deprecated

@@ -72,7 +72,7 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
             return res.send('<div data-no-more-posts="true">No hay más che, qué querés.</div>');
         }
 
-        res.render('partials/just-posts', { trip, posts });
+        res.render('trips/feed/just-posts', { trip, posts });
     } catch (e) { next(e); }
 });
 

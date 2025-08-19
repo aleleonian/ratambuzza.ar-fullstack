@@ -27,7 +27,7 @@ router.post('/likes/toggle', requireLogin, async (req, res, next) => {
       FROM likes WHERE post_id = ?
     `, [userId, post_id, post_id]);
 
-    res.render('partials/like-button', {
+    res.render('trips/feed/like-button', {
       trip,
       post: {
         id: post_id,

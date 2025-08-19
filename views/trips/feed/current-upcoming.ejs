@@ -7,8 +7,6 @@
     </aside>
 
     <main class="feed">
-        <h2><%= trip.name %></h2>
-
         <!-- Everything related to creating a new post -->
         <div id="post-controls" class="mobile-only">
             <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo</button>
@@ -24,7 +22,7 @@
             <% } else { %>
             <!-- Initial posts -->
             <% posts.forEach(post => { %>
-            <%- include('../../partials/post', { trip, post }) %>
+            <%- include('./post', { trip, post }) %>
             <% }) %>
             <% } %>
         </div>

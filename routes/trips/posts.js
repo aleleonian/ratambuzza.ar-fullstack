@@ -28,7 +28,7 @@ router.post('/posts/new', requireLogin, upload.single('image'), async (req, res,
     `, [req.session.user.id]);
 
     const post = rows[0];
-    return res.render('partials/post', { trip, post });
+    return res.render('trips/feed/post', { trip, post });
   } catch (e) { next(e); }
 });
 

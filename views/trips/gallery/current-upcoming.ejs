@@ -1,8 +1,8 @@
 <%- include('../../partials/header/current-upcoming') %>
 <style>
     #avatar-head {
-        width: 10%;
-        height: 10%;
+        width: 40px;
+        height: 40px;
     }
 
     .gallery-container {
@@ -19,37 +19,131 @@
     }
 
     .media-item {
+        cursor: pointer;
         position: relative;
-        /* background: white; */
-        /* border: 1px solid #111; */
-        padding: 0.5rem;
+        padding: 0;
+        overflow: hidden;
     }
 
-    .media-item img {
+    .media-item-image {
         width: 100%;
         display: block;
         height: auto;
         object-fit: cover;
-        display: block;
         border-radius: 6px;
         transition: transform 0.2s ease;
     }
 
-    .media-item img:hover {
+    .media-item-image:hover {
         transform: scale(1.03);
     }
 
-    .attribution {
+    .overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        color: white;
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0.5rem;
+        opacity: 0;
+        transition: opacity 200ms ease-in-out;
+        pointer-events: none;
     }
 
-    .attribution .avatar {
-        width: 32px;
-        height: 32px;
+    .media-item:hover .overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .overlay-top {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .overlay-top .avatar {
+        width: 40px;
+        height: 40px;
+        border: 2px solid white;
         border-radius: 50%;
+    }
+
+    .overlay-bottom {
+        display: flex;
+        justify-content: space-evenly;
+        gap: 0.5rem;
+    }
+
+    .overlay-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        padding: 0.4rem 0.6rem;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .overlay-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+    }
+
+    .lightbox-close {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid white;
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 1.25rem;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    .lightbox-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        flex-direction: column;
+    }
+
+    .lightbox-overlay.active {
+        display: flex;
+    }
+
+    .lightbox-image {
+        max-width: 90vw;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .lightbox-controls {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .lightbox-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        padding: 0.6rem 1rem;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .lightbox-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
     }
 </style>
 <main class="gallery-container">
@@ -57,19 +151,96 @@
     <p>No hay imágenes todavía. ¡Sé el primero en subir una!</p>
     <% } else { %>
     <div class="media-grid">
-        <% media.forEach(item => { %>
+        <% media.forEach((item, index) => { %>
         <div class="media-item">
-            <a href="<%= item.url %>" class="gallery-item" target="_blank">
-                <img src="<%= item.thumbnail_url %>" alt="Uploaded image">
+            <a href="<%= item.url %>" class="gallery-item" data-index="<%= index %>">
+                <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
             </a>
-            <div class="attribution">
-                <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
-                    alt="<%= item.uploader_name %>">
+            <div class="overlay">
+                <!-- <div class="overlay-top">
+                    <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
+                        alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
+                </div> -->
+                <div class="overlay-bottom">
+                    <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
+                        alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
+                    <button onclick="openLightbox(<%-index%>)" class="overlay-btn" title="Play">▶️</button>
+                    <!-- <button class="overlay-btn" title="Like">❤️</button> -->
+                    <%- include('./like-button',{
+                        mediaId: item.id,
+                        liked: item.userLiked,
+                        count: item.likesCount
+                    })%>
+                    <button class="overlay-btn" title="Download">⬇️</button>
+                </div>
             </div>
         </div>
         <% }) %>
     </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox-overlay" id="lightbox">
+        <button id="lightbox-close" class="lightbox-close" aria-label="Cerrar">&times;</button>
+
+        <img id="lightbox-img" class="lightbox-image" src="" alt="Expanded media" />
+        <div class="lightbox-controls">
+            <button class="lightbox-btn" id="lightbox-prev">⏮</button>
+            <button class="lightbox-btn" id="lightbox-download">⬇️</button>
+            <button class="lightbox-btn" id="lightbox-like">❤️</button>
+            <button class="lightbox-btn" id="lightbox-next">⏭</button>
+        </div>
+    </div>
+
+    <script>
+        const mediaItems = Array.from(document.querySelectorAll('.gallery-item'));
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const downloadBtn = document.getElementById('lightbox-download');
+        let currentIndex = -1;
+
+        function openLightbox(index) {
+            currentIndex = index;
+            const link = mediaItems[currentIndex];
+            const fullUrl = link.getAttribute('href');
+            lightboxImg.src = fullUrl;
+            downloadBtn.onclick = () => window.open(fullUrl, '_blank');
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            lightboxImg.src = '';
+        }
+
+        function showNext() {
+            if (currentIndex < mediaItems.length - 1) openLightbox(currentIndex + 1);
+        }
+
+        function showPrev() {
+            if (currentIndex > 0) openLightbox(currentIndex - 1);
+        }
+
+        mediaItems.forEach((item, idx) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                openLightbox(idx);
+            });
+        });
+
+        document.getElementById('lightbox-next').addEventListener('click', showNext);
+        document.getElementById('lightbox-prev').addEventListener('click', showPrev);
+
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'ArrowRight') showNext();
+            if (e.key === 'ArrowLeft') showPrev();
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+    </script>
     <% } %>
 </main>
-
 <%- include('../../partials/footer') %>

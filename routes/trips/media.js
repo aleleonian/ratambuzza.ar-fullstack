@@ -74,6 +74,7 @@ router.get('/test-upload', async (req, res, next) => {
 })
 
 router.get('/gallery', async (req, res, next) => {
+    const user = req.session.user;
     const trip = req.trip;
     const [media] = await req.db.execute(`
     SELECT m.*, u.handle AS uploader_name, u.avatar_head_file_name AS uploader_avatar
@@ -82,6 +83,28 @@ router.get('/gallery', async (req, res, next) => {
     WHERE m.trip_id = ?
     ORDER BY m.created_at DESC
     `, [trip.id]);
+
+    // what media items did the user like?
+    const [likes] = await req.db.execute(
+        'SELECT media_id FROM likes_media WHERE user_id = ?', [user.id]
+    );
+
+    const likedMediaIds = new Set(likes.map(l => l.media_id));
+
+    media.forEach(item => {
+        item.userLiked = likedMediaIds.has(item.id);
+    });
+
+    // what is the like count for the media files for /gallery?
+    const [likeCounts] = await req.db.execute(
+        'SELECT media_id, COUNT(*) AS count FROM likes_media GROUP BY media_id'
+    );
+
+    const countMap = Object.fromEntries(likeCounts.map(row => [row.media_id, row.count]));
+
+    media.forEach(item => {
+        item.likesCount = countMap[item.id] || 0;
+    });
 
     res.render('trips/gallery', { media })
 })
@@ -99,7 +122,48 @@ router.post('/gallery/:id/delete', async (req, res, next) => {
 
 });
 router.post('/gallery/:id/like', async (req, res, next) => {
+    const userId = req.session.user.id;
+    const mediaId = req.params.id;
 
+    try {
+        const [rows] = await req.db.execute(
+            'SELECT * FROM likes_media WHERE user_id = ? AND media_id = ?',
+            [userId, mediaId]
+        );
+
+        if (rows.length > 0) {
+            // Already liked → remove like
+            await req.db.execute(
+                'DELETE FROM likes_media WHERE user_id = ? AND media_id = ?',
+                [userId, mediaId]
+            );
+        } else {
+            // Not yet liked → add like
+            await req.db.execute(
+                'INSERT INTO likes_media (user_id, media_id) VALUES (?, ?)',
+                [userId, mediaId]
+            );
+        }
+
+        // Query new like state to re-render the button
+        const [[{ count }]] = await req.db.execute(
+            'SELECT COUNT(*) AS count FROM likes_media WHERE media_id = ?',
+            [mediaId]
+        );
+
+        const [[{ liked }]] = await req.db.execute(
+            'SELECT COUNT(*) AS liked FROM likes_media WHERE user_id = ? AND media_id = ?',
+            [userId, mediaId]
+        );
+
+        res.render('trips/gallery/like-button', {
+            mediaId,
+            liked: liked > 0,
+            count,
+        });
+    } catch (err) {
+        next(err);
+    }
 });
 router.post('/gallery/:id/tag', async (req, res, next) => {
 

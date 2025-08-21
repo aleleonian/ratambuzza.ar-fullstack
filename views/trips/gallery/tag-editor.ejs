@@ -1,18 +1,19 @@
-<form hx-post="/trips/<%- currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/tags"
-    hx-target="#tag-editor-<%= mediaId %>" hx-swap="outerHTML" class="tag-edit-form" onsubmit="return false"
-    >
-    <label for="tag-input-<%= mediaId %>" style="display: block; margin-bottom: 0.25rem; font-size: small;">
-        Tags (comma-separated):
-    </label>
-    <textarea id="tag-input-<%= mediaId %>" name="tags" rows="3"
-        style="width: 100%; margin-bottom: 0.5rem;"><%= currentTags.join(', ') %></textarea>
+<div onclick="event.stopPropagation()">
+    <form hx-post="/trips/<%- currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/tags"
+        hx-target="#tag-editor-<%= mediaId %>" hx-swap="outerHTML" class="tag-edit-form" onsubmit="return false">
+        <label for="tag-input-<%= mediaId %>" style="display: block; margin-bottom: 0.25rem; font-size: x-small;">
+            Tags (separadas por coma):
+        </label>
+        <textarea id="tag-input-<%= mediaId %>" name="tags" rows="3"
+            style="width: 100%; margin-bottom: 0.5rem;"><%= currentTags.join(', ') %></textarea>
 
-    <div style="display: flex; gap: 0.5rem;">
-        <button type="button" id="cancel-tags-<%= mediaId %>" onclick="restoreTags(<%= mediaId %>)">Cancel</button>
-        <button id="save-tags-<%= mediaId %>" type="submit">Save</button>
-    </div>
-</form>
-
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="button" id="cancel-tags-<%= mediaId %>"
+                onclick="event.stopPropagation(); restoreTags(<%= mediaId %>)">Cancel</button>
+            <button onclick="event.stopPropagation();" id="save-tags-<%= mediaId %>" type="submit">Save</button>
+        </div>
+    </form>
+</div>
 <script>
     function initTagEditor(mediaId, originalTags) {
         const textarea = document.getElementById(`tag-input-${mediaId}`);
@@ -47,11 +48,12 @@
 
     function restoreTags(mediaId) {
         const el = document.getElementById(`tag-editor-${mediaId}`);
-        el.setAttribute('hx-get', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/tags`);
-        el.setAttribute('hx-swap', 'outerHTML');
-        htmx.process(el); // triggers reprocessing
-        el.click(); // manually trigger the request
+        htmx.ajax('GET', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/tags`, {
+            target: el,
+            swap: 'outerHTML'
+        });
     }
+
 
 </script>
 

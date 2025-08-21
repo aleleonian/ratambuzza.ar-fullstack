@@ -179,23 +179,24 @@
     <div class="media-grid">
         <% media.forEach((item, index) => { %>
         <div class="media-item">
-            <a href="<%= item.url %>" class="gallery-item" data-item="<%= JSON.stringify(item) %>"
-                data-index="<%= index %>">
+            <a href="<%= item.url %>" class="gallery-item" data-media-id="<%= item.id %>" data-index="<%= index %>">
                 <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
             </a>
-            <div class="overlay" onclick="openLightbox(<%-index%>, <%-item.id%>)">
+            <div class="overlay" onclick="openLightbox(<%-index%>)">
                 <!-- <div class="overlay-top">
                     <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                 </div> -->
                 <div class="overlay-bottom">
-                    <button onclick="event.stopPropagation();openLightbox(<%-index%>, <%-item.id%>)" class="overlay-btn"
+                    <button onclick="event.stopPropagation();openLightbox(<%-index%>)" class="overlay-btn"
                         title="Play">▶️</button>
-                    <%- include('./like-button-gallery',{
+                    <div id="like-button-container-<%= item.id %>">
+                        <%- include('./like-button-gallery',{
                         mediaId: item.id,
                         liked: item.userLiked,
                         count: item.likesCount
                     })%>
+                    </div>
                     <a href="<%-item.url%>" download class="download-link">
                         <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
                     </a>
@@ -242,7 +243,8 @@
             <a id="lightbox-download" href="#" class="download-link" download>
                 <button class="lightbox-btn" title="Download">⬇️</button>
             </a>
-            <button class="lightbox-btn" id="lightbox-like"></button>
+            <button class="lightbox-btn" id="lightbox-like-button"></button>
+            <button class="lightbox-btn" id="lightbox-delete-button">❌</button>
             <button class="lightbox-btn" id="lightbox-next">⏭</button>
         </div>
         <div id="lightbox-meta"></div>
@@ -254,22 +256,26 @@
         const lightboxImg = document.getElementById('lightbox-img');
         let currentIndex = -1;
 
-        async function openLightbox(index, mediaId) {
+        async function openLightbox(index) {
             // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
             // Use hx-target to inject into a #lightbox-meta container
-            debugger;
+            const mediaId = mediaItems[index].dataset.mediaId;
             await htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, { target: '#lightbox-meta' });
 
+            const meta = document.getElementById('lightbox-metadata').dataset;
+            debugger;
             // now according to the data in #lightbox-container i must make some modifications
-            const userLiked = Boolean(Number(document.getElementById('lbm-userLiked').value));
-            const lightboxLikeButton = document.getElementById('lightbox-like');
+            // const userLiked = Boolean(Number(document.getElementById('lightbox-meta-userLiked').value));
+            const userLiked = Boolean(Number(meta.liked));
+            const lightboxLikeButton = document.getElementById('lightbox-like-button');
             if (userLiked) {
                 lightboxLikeButton.innerHTML = "❤️"
             }
             else {
                 lightboxLikeButton.innerHTML = "🤍"
             }
-            const itemUrl = document.getElementById('lbm-itemUrl').value;
+            // const itemUrl = document.getElementById('lightbox-meta-itemUrl').value;
+            const itemUrl = meta.mediaUrl;
             document.getElementById('lightbox-download').href = itemUrl;
 
             currentIndex = index;
@@ -291,8 +297,29 @@
         function showPrev() {
             if (currentIndex > 0) openLightbox(currentIndex - 1);
         }
-        function likeToggle() {
+
+        async function deleteMediaItem() {
             debugger;
+        }
+
+        async function likeToggle() {
+            const meta = document.getElementById('lightbox-metadata').dataset;
+            const mediaId = meta.mediaId;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/like`;
+            const options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
+            try {
+                await htmx.ajax('POST', url, options);
+                const userLiked = Boolean(Number(meta.liked));
+                const lightboxLikeButton = document.getElementById('lightbox-like-button');
+                if (userLiked) {
+                    lightboxLikeButton.innerHTML = "🤍"
+                }
+                else {
+                    lightboxLikeButton.innerHTML = "❤️"
+                }
+            } catch (err) {
+                showToast('Error toggling like', 'error');
+            }
         }
 
         mediaItems.forEach((item, idx) => {
@@ -304,7 +331,8 @@
 
         document.getElementById('lightbox-next').addEventListener('click', showNext);
         document.getElementById('lightbox-prev').addEventListener('click', showPrev);
-        document.getElementById('lightbox-like').addEventListener('click', likeToggle);
+        document.getElementById('lightbox-like-button').addEventListener('click', likeToggle);
+        document.getElementById('lightbox-delete-button').addEventListener('click', deleteMediaItem);
 
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;

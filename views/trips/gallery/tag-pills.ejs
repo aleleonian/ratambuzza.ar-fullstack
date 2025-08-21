@@ -1,0 +1,9 @@
+<div class="tag-list" id="tag-editor-<%= mediaId %>">
+    <% if (currentTags && currentTags.length > 0) { %>
+    <% currentTags.forEach(tag => { %>
+    <span class="tag-pill"><%= tag.trim() %></span>
+    <% }) %>
+    <% } else { %>
+    <span class="tag-pill empty">No tags</span>
+    <% } %>
+</div>

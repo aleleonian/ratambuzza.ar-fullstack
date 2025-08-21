@@ -145,6 +145,28 @@
     .lightbox-btn:hover {
         background: rgba(255, 255, 255, 0.4);
     }
+
+    <style>.tag-list {
+        margin-top: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        justify-content: flex-start;
+    }
+
+    .tag-pill {
+        background-color: rgba(255, 255, 255, 0.5);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.6rem;
+    }
+
+    .tag-pill.empty {
+        opacity: 0.6;
+    }
+</style>
+
 </style>
 <main class="gallery-container">
     <% if (media.length === 0) { %>
@@ -162,8 +184,6 @@
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                 </div> -->
                 <div class="overlay-bottom">
-                    <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
-                        alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                     <button onclick="openLightbox(<%-index%>)" class="overlay-btn" title="Play">▶️</button>
                     <!-- <button class="overlay-btn" title="Like">❤️</button> -->
                     <%- include('./like-button',{
@@ -172,6 +192,28 @@
                         count: item.likesCount
                     })%>
                     <button class="overlay-btn" title="Download">⬇️</button>
+                    <% if (currentUser.id === item.user_id || currentUser.isAdmin) { %>
+                    <button class="overlay-btn" title="Edit Tags"
+                        hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
+                        hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
+                        🏷️
+                    </button>
+                    <% } %>
+                </div>
+                <div id="tag-editor">
+                    <!-- 🧩 Placeholder for tag editor form -->
+                     <br>
+                    <div id="tag-editor-<%= item.id %>">
+                        <div class="tag-list" id="tag-editor-<%= item.id %>">
+                            <% if (item.tags && item.tags.length > 0) { %>
+                            <% item.tags.split(',').forEach(tag => { %>
+                            <span class="tag-pill"><%= tag.trim() %></span>
+                            <% }) %>
+                            <% } else { %>
+                            <span class="tag-pill empty">No tags</span>
+                            <% } %>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

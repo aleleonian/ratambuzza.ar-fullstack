@@ -77,11 +77,19 @@ router.get('/gallery', async (req, res, next) => {
     const user = req.session.user;
     const trip = req.trip;
     const [media] = await req.db.execute(`
-    SELECT m.*, u.handle AS uploader_name, u.avatar_head_file_name AS uploader_avatar
+    SELECT 
+    m.*, 
+    u.handle AS uploader_name, 
+    u.avatar_head_file_name AS uploader_avatar,
+    GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags
     FROM media m
     JOIN users u ON m.user_id = u.id
-    WHERE m.trip_id = ?
-    ORDER BY m.created_at DESC
+    LEFT JOIN media_tags mt ON m.id = mt.media_id
+    LEFT JOIN tags ON mt.tag_id = tags.id
+    WHERE m.trip_id = 1
+    GROUP BY m.id
+    ORDER BY m.created_at DESC;
+
     `, [trip.id]);
 
     // what media items did the user like?
@@ -165,8 +173,76 @@ router.post('/gallery/:id/like', async (req, res, next) => {
         next(err);
     }
 });
-router.post('/gallery/:id/tag', async (req, res, next) => {
 
+router.get('/gallery/:id/tags/edit', async (req, res, next) => {
+    const mediaId = req.params.id;
+    const [tagRows] = await req.db.execute(
+        `SELECT t.name FROM media_tags mt
+     JOIN tags t ON mt.tag_id = t.id
+     WHERE mt.media_id = ?`,
+        [mediaId]
+    );
+    const currentTags = tagRows.map(row => row.name);
+    res.render('trips/gallery/tag-editor', { mediaId, currentTags });
 });
+// GET /trips/:slug/gallery/:id/tags
+router.get('/gallery/:id/tags', async (req, res) => {
+    const mediaId = req.params.id;
+    const [tagRows] = await req.db.execute(
+        `SELECT t.name FROM media_tags mt
+     JOIN tags t ON mt.tag_id = t.id
+     WHERE mt.media_id = ?`,
+        [mediaId]
+    );
+    const currentTags = tagRows.map(row => row.name);
+
+    res.render('trips/gallery/tag-pills', { currentTags, mediaId });
+});
+
+router.post('/gallery/:id/tags', async (req, res, next) => {
+
+    const mediaId = req.params.id;
+    const user = req.session.user;
+
+    const [rows] = await req.db.execute('SELECT user_id from media WHERE id = ?', [mediaId]);
+    const ownerId = rows[0]?.user_id;
+
+    const isUploader = ownerId === user.id;
+    const isAdmin = user.role === 'admin';
+
+    if (!isUploader && !isAdmin) {
+        return res.status(403).send('Unauthorized');
+    }
+
+    const tagsInput = req.body.tags || '';
+    const tagNames = tagsInput
+        .split(',')
+        .map(tag => tag.trim().toLowerCase())
+        .filter(tag => tag);
+
+    const conn = await req.db.getConnection();
+    await conn.beginTransaction();
+
+    // Delete old tags for this media
+    await conn.execute('DELETE FROM media_tags WHERE media_id = ?', [mediaId]);
+
+    for (const name of tagNames) {
+        // Insert tag if it doesn't exist. 
+        // We want unique values in this table
+        await conn.execute('INSERT IGNORE INTO tags (name) VALUES (?)', [name]);
+        const [tagRow] = await conn.execute('SELECT id FROM tags WHERE name = ?', [name]);
+        const tagId = tagRow[0].id;
+        await conn.execute('INSERT INTO media_tags (media_id, tag_id) VALUES (?, ?)', [mediaId, tagId]);
+    }
+
+    await conn.commit();
+    conn.release();
+
+    // Re-render editor with new tags
+    console.log('tagNames->', tagNames);
+    res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
+});
+
+
 
 module.exports = router;

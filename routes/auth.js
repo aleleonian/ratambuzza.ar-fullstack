@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash)
     if (!match) return res.render('login', { error: 'Invalid credentials' })
 
-    req.session.user = { id: user.id, handle: user.handle, email: user.email }
+    req.session.user = { id: user.id, handle: user.handle, email: user.email, role: user.role }
 
     const redirectTo = req.session.redirectTo
     delete req.session.redirectTo

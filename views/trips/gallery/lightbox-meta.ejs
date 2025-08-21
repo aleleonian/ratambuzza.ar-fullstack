@@ -1,0 +1,26 @@
+<div class="lightbox-meta">
+    <div class="uploader-info">
+        <img src="/images/avatars/thumbs/<%= media.uploader_avatar %>" alt="<%= media.uploader_name %>" class="avatar-small">
+        <span><%= media.uploader_name %></span>
+    </div>
+
+    <div class="tags">
+        <% if (media.tags && media.tags.length) { %>
+        <% media.tags.split(',').forEach(tag => { %>
+        <span class="tag-pill"><%= tag.trim() %></span>
+        <% }) %>
+        <% } else { %>
+        <span>No tags</span>
+        <% } %>
+    </div>
+
+    <div class="likes">
+        <input type="hidden" id="lbm-userLiked" value="<%=media.userLiked%>">
+        <input type="hidden" id="lbm-likesCount" value="<%=media.likesCount%>">
+        <input type="hidden" id="lbm-itemUrl" value="<%=media.url%>">
+        ❤️ <%= media.likesCount %>
+        <% if (media.userLiked) { %>
+        <span>(You liked this)</span>
+        <% } %>
+    </div>
+</div>

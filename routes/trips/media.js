@@ -86,10 +86,9 @@ router.get('/gallery', async (req, res, next) => {
     JOIN users u ON m.user_id = u.id
     LEFT JOIN media_tags mt ON m.id = mt.media_id
     LEFT JOIN tags ON mt.tag_id = tags.id
-    WHERE m.trip_id = 1
+    WHERE m.trip_id = ?
     GROUP BY m.id
     ORDER BY m.created_at DESC;
-
     `, [trip.id]);
 
     // what media items did the user like?
@@ -118,14 +117,9 @@ router.get('/gallery', async (req, res, next) => {
 })
 
 router.get('/gallery/page/:n', async (req, res, next) => {
-    // const trip = req.trip;
-    // const [media] = await req.db.execute(
-    //     'SELECT * FROM media WHERE trip_id = ? ORDER BY created_at DESC',
-    //     [trip.id]
-    // );
-
-    // res.render('trips/gallery', { media })
 })
+
+// delete an item in the gallery
 router.post('/gallery/:id/delete', async (req, res, next) => {
 
 });
@@ -164,7 +158,7 @@ router.post('/gallery/:id/like', async (req, res, next) => {
             [userId, mediaId]
         );
 
-        res.render('trips/gallery/like-button', {
+        res.render('trips/gallery/like-button-gallery', {
             mediaId,
             liked: liked > 0,
             count,
@@ -243,6 +237,38 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
     res.setHeader('X-Toast', 'Tags updated!');
     res.setHeader('X-Toast-Type', 'success');
     res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
+});
+
+router.get('/gallery/:id/lightbox-data', async (req, res) => {
+    const user = req.session.user;
+    const mediaId = req.params.id;
+    const userId = user.id;
+
+    try {
+        //Get full metadata for a specific media item, including uploader info, 
+        // tags, like status for a specific user, and total like count.
+        const [[media]] = await req.db.execute(`
+      SELECT m.*, u.handle AS uploader_name, u.avatar_head_file_name AS uploader_avatar,
+             GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
+             EXISTS (
+               SELECT 1 FROM likes_media WHERE user_id = ? AND media_id = m.id
+             ) AS userLiked,
+             (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
+      FROM media m
+      JOIN users u ON m.user_id = u.id
+      LEFT JOIN media_tags mt ON m.id = mt.media_id
+      LEFT JOIN tags ON mt.tag_id = tags.id
+      WHERE m.id = ?
+      GROUP BY m.id
+    `, [userId, mediaId]);
+
+        if (!media) return res.status(404).send('Not found');
+
+        res.render('trips/gallery/lightbox-meta', { media });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
 });
 
 

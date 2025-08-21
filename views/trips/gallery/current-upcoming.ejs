@@ -146,7 +146,7 @@
         background: rgba(255, 255, 255, 0.4);
     }
 
-    <style>.tag-list {
+    .tag-list {
         margin-top: 0.5rem;
         display: flex;
         flex-wrap: wrap;
@@ -165,6 +165,10 @@
     .tag-pill.empty {
         opacity: 0.6;
     }
+
+    a.download-link {
+        display: contents;
+    }
 </style>
 
 </style>
@@ -175,30 +179,33 @@
     <div class="media-grid">
         <% media.forEach((item, index) => { %>
         <div class="media-item">
-            <a href="<%= item.url %>" class="gallery-item" data-index="<%= index %>">
+            <a href="<%= item.url %>" class="gallery-item" data-item="<%= JSON.stringify(item) %>"
+                data-index="<%= index %>">
                 <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
             </a>
-            <div class="overlay">
+            <div class="overlay" onclick="openLightbox(<%-index%>, <%-item.id%>)">
                 <!-- <div class="overlay-top">
                     <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                 </div> -->
                 <div class="overlay-bottom">
-                    <button onclick="openLightbox(<%-index%>)" class="overlay-btn" title="Play">▶️</button>
-                    <!-- <button class="overlay-btn" title="Like">❤️</button> -->
-                    <%- include('./like-button',{
+                    <button onclick="event.stopPropagation();openLightbox(<%-index%>, <%-item.id%>)" class="overlay-btn"
+                        title="Play">▶️</button>
+                    <%- include('./like-button-gallery',{
                         mediaId: item.id,
                         liked: item.userLiked,
                         count: item.likesCount
                     })%>
-                    <button class="overlay-btn" title="Download">⬇️</button>
+                    <a href="<%-item.url%>" download class="download-link">
+                        <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
+                    </a>
                     <% if (currentUser.id === item.user_id || currentUser.isAdmin) { %>
-                    <button class="overlay-btn" title="Edit Tags"
+                    <button class="overlay-btn" onclick="event.stopPropagation();" title="Edit Tags"
                         hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
                         hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
                         🏷️
                     </button>
-                    <button class="overlay-btn" title="Delete Image"
+                    <button class="overlay-btn" title="Delete Image" onclick="event.stopPropagation();"
                         hx-delete="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/delete"
                         hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
                         ❌
@@ -232,25 +239,43 @@
         <img id="lightbox-img" class="lightbox-image" src="" alt="Expanded media" />
         <div class="lightbox-controls">
             <button class="lightbox-btn" id="lightbox-prev">⏮</button>
-            <button class="lightbox-btn" id="lightbox-download">⬇️</button>
-            <button class="lightbox-btn" id="lightbox-like">❤️</button>
+            <a id="lightbox-download" href="#" class="download-link" download>
+                <button class="lightbox-btn" title="Download">⬇️</button>
+            </a>
+            <button class="lightbox-btn" id="lightbox-like"></button>
             <button class="lightbox-btn" id="lightbox-next">⏭</button>
         </div>
+        <div id="lightbox-meta"></div>
     </div>
 
     <script>
         const mediaItems = Array.from(document.querySelectorAll('.gallery-item'));
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
-        const downloadBtn = document.getElementById('lightbox-download');
         let currentIndex = -1;
 
-        function openLightbox(index) {
+        async function openLightbox(index, mediaId) {
+            // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
+            // Use hx-target to inject into a #lightbox-meta container
+            debugger;
+            await htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, { target: '#lightbox-meta' });
+
+            // now according to the data in #lightbox-container i must make some modifications
+            const userLiked = Boolean(Number(document.getElementById('lbm-userLiked').value));
+            const lightboxLikeButton = document.getElementById('lightbox-like');
+            if (userLiked) {
+                lightboxLikeButton.innerHTML = "❤️"
+            }
+            else {
+                lightboxLikeButton.innerHTML = "🤍"
+            }
+            const itemUrl = document.getElementById('lbm-itemUrl').value;
+            document.getElementById('lightbox-download').href = itemUrl;
+
             currentIndex = index;
             const link = mediaItems[currentIndex];
             const fullUrl = link.getAttribute('href');
             lightboxImg.src = fullUrl;
-            downloadBtn.onclick = () => window.open(fullUrl, '_blank');
             lightbox.classList.add('active');
         }
 
@@ -266,6 +291,9 @@
         function showPrev() {
             if (currentIndex > 0) openLightbox(currentIndex - 1);
         }
+        function likeToggle() {
+            debugger;
+        }
 
         mediaItems.forEach((item, idx) => {
             item.addEventListener('click', (e) => {
@@ -276,6 +304,7 @@
 
         document.getElementById('lightbox-next').addEventListener('click', showNext);
         document.getElementById('lightbox-prev').addEventListener('click', showPrev);
+        document.getElementById('lightbox-like').addEventListener('click', likeToggle);
 
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;

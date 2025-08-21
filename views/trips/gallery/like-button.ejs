@@ -1,8 +1,0 @@
-<form hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%= mediaId %>/like"
-      hx-swap="outerHTML"
-      hx-target="this"
-      style="display: inline;">
-  <button class="overlay-btn" title="Like" aria-pressed="<%= liked %>">
-    <%= liked ? '❤️' : '🤍' %> <%= count %>
-  </button>
-</form>

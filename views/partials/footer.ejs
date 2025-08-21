@@ -7,6 +7,18 @@
 </footer>
 <% } %>
 
+<!-- Hook into HTMX’s global lifecycle events for spinner purposes -->
+<script>
+    document.body.addEventListener('htmx:configRequest', () => {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+    });
+
+    document.body.addEventListener('htmx:afterRequest', () => {
+        document.getElementById('loading-overlay').classList.add('hidden');
+    });
+</script>
+
+
 </body>
 
 </html>

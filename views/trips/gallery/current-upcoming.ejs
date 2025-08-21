@@ -198,11 +198,16 @@
                         hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
                         🏷️
                     </button>
+                    <button class="overlay-btn" title="Delete Image"
+                        hx-delete="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/delete"
+                        hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
+                        ❌
+                    </button>
                     <% } %>
                 </div>
                 <div id="tag-editor">
                     <!-- 🧩 Placeholder for tag editor form -->
-                     <br>
+                    <br>
                     <div id="tag-editor-<%= item.id %>">
                         <div class="tag-list" id="tag-editor-<%= item.id %>">
                             <% if (item.tags && item.tags.length > 0) { %>

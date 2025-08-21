@@ -1,5 +1,6 @@
 <form hx-post="/trips/<%- currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/tags"
-    hx-target="#tag-editor-<%= mediaId %>" hx-swap="outerHTML" class="tag-edit-form" onsubmit="return false">
+    hx-target="#tag-editor-<%= mediaId %>" hx-swap="outerHTML" class="tag-edit-form" onsubmit="return false"
+    >
     <label for="tag-input-<%= mediaId %>" style="display: block; margin-bottom: 0.25rem; font-size: small;">
         Tags (comma-separated):
     </label>

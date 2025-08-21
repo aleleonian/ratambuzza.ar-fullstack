@@ -240,6 +240,8 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
 
     // Re-render editor with new tags
     console.log('tagNames->', tagNames);
+    res.setHeader('X-Toast', 'Tags updated!');
+    res.setHeader('X-Toast-Type', 'success');
     res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
 });
 

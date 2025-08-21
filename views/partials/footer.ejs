@@ -18,6 +18,59 @@
     });
 </script>
 
+<!-- Toaster  -->
+<!-- Toast container -->
+<div id="toast-container" style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            padding: 1rem 1.5rem; border-radius: 6px; font-size: 1rem;
+            display: none; z-index: 9999; color: white; min-width: 200px; text-align: center;">
+</div>
+
+
+<script>
+    function showToast(message, type = 'info', duration = 3000) {
+        const toast = document.getElementById('toast-container');
+        toast.innerText = message;
+
+        // Set background color based on type
+        const colors = {
+            success: '#4caf50',  // Green
+            error: '#f44336',  // Red
+            warning: '#ff9800',  // Orange
+            info: '#2196f3'   // Blue
+        };
+        toast.style.backgroundColor = colors[type] || colors.info;
+
+        toast.style.display = 'block';
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+            toast.style.display = 'none';
+        }, duration);
+    }
+
+    // Listen for HTMX response headers
+    document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+        const xhr = evt.detail.xhr;
+        const msg = xhr.getResponseHeader('X-Toast');
+        const type = xhr.getResponseHeader('X-Toast-Type') || 'info';
+        if (msg) showToast(msg, type);
+    });
+</script>
+
+<!-- 
+From your server route: send this header to trigger a toast
+
+res.setHeader('X-Toast', 'Tags updated successfully!');
+res.setHeader('X-Toast-Type', 'success');
+res.send(/* partial, etc. */);
+
+
+or from the front-end:
+
+showToast('Image saved!', 'success');
+showToast('Something went wrong.', 'error');
+
+-->
+
 
 </body>
 

@@ -207,7 +207,7 @@
                     </button>
                     <button class="overlay-btn" title="Delete Image" onclick="event.stopPropagation();"
                         hx-delete="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/delete"
-                        hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
+                        hx-swap="outerHTML" hx-target="closest .media-item" hx-confirm="Seguro de borrar este item?">
                         ❌
                     </button>
                     <% } %>

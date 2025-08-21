@@ -120,7 +120,47 @@ router.get('/gallery/page/:n', async (req, res, next) => {
 })
 
 // delete an item in the gallery
-router.post('/gallery/:id/delete', async (req, res, next) => {
+router.delete('/gallery/:id/delete', async (req, res, next) => {
+    const user = req.session.user;
+    const mediaId = req.params.id;
+    // is the user the owner of this resource?
+    if (!isAuthorized(req.db, user.role, user.id, mediaId)) {
+        return res.status(403).send('Unauthorized');
+    }
+    // if so:
+    // delete from likes_media if any
+    try {
+        await req.db.execute(
+            'DELETE FROM likes_media WHERE media_id = ?',
+            [mediaId]
+        );
+        await req.db.execute(
+            'DELETE FROM media_tags WHERE media_id = ?',
+            [mediaId]
+        );
+        // get the filenames before deleting the entry in 'media'
+        const [[media]] = await req.db.execute('SELECT url, thumbnail_url FROM media WHERE id = ?', [mediaId]);
+        const uploadPath = path.join('public', media.url);
+        const thumbPath = path.join('public', media.thumbnail_url);
+
+        // delete from media
+        await req.db.execute(
+            'DELETE FROM media WHERE id = ?',
+            [mediaId]
+        );
+        // delete from /uploads
+        if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
+        if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+        res.setHeader('X-Toast', 'Item eliminado!');
+        res.setHeader('X-Toast-Type', 'success');
+        return res.status(200).send('');
+    }
+    catch (error) {
+        console.log("Error deleting media: " + error);
+        res.setHeader('X-Toast', 'No se pudo eliminar!');
+        res.setHeader('X-Toast-Type', 'error');
+        return res.status(500).send('Internal Server Error:' + error);
+    }
 
 });
 router.post('/gallery/:id/like', async (req, res, next) => {
@@ -234,7 +274,7 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
 
     // Re-render editor with new tags
     console.log('tagNames->', tagNames);
-    res.setHeader('X-Toast', 'Tags updated!');
+    res.setHeader('X-Toast', 'Tags actualizados!');
     res.setHeader('X-Toast-Type', 'success');
     res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
 });
@@ -274,3 +314,11 @@ router.get('/gallery/:id/lightbox-data', async (req, res) => {
 
 
 module.exports = router;
+
+async function isAuthorized(db, userRole, userId, mediaId) {
+    if (userRole === 'admin') return true;
+    const [rows] = await db.execute('SELECT user_id from media WHERE id = ?', [mediaId]);
+    if (rows.length === 0) return false;
+    const ownerId = rows[0]?.user_id;
+    return ownerId === userId;
+}

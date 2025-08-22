@@ -81,7 +81,8 @@ router.get('/gallery', async (req, res, next) => {
     m.*, 
     u.handle AS uploader_name, 
     u.avatar_head_file_name AS uploader_avatar,
-    GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags
+    GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
+    m.user_id = ? AS isOwner
     FROM media m
     JOIN users u ON m.user_id = u.id
     LEFT JOIN media_tags mt ON m.id = mt.media_id
@@ -89,7 +90,8 @@ router.get('/gallery', async (req, res, next) => {
     WHERE m.trip_id = ?
     GROUP BY m.id
     ORDER BY m.created_at DESC;
-    `, [trip.id]);
+
+    `, [user.id, trip.id]);
 
     // what media items did the user like?
     const [likes] = await req.db.execute(
@@ -288,19 +290,20 @@ router.get('/gallery/:id/lightbox-data', async (req, res) => {
         //Get full metadata for a specific media item, including uploader info, 
         // tags, like status for a specific user, and total like count.
         const [[media]] = await req.db.execute(`
-      SELECT m.*, u.handle AS uploader_name, u.avatar_head_file_name AS uploader_avatar,
-             GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
-             EXISTS (
-               SELECT 1 FROM likes_media WHERE user_id = ? AND media_id = m.id
-             ) AS userLiked,
-             (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
-      FROM media m
-      JOIN users u ON m.user_id = u.id
-      LEFT JOIN media_tags mt ON m.id = mt.media_id
-      LEFT JOIN tags ON mt.tag_id = tags.id
-      WHERE m.id = ?
-      GROUP BY m.id
-    `, [userId, mediaId]);
+        SELECT m.*, u.handle AS uploader_name, u.avatar_head_file_name AS uploader_avatar,
+        m.user_id = ? AS isOwner,
+        GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
+        EXISTS (
+        SELECT 1 FROM likes_media WHERE user_id = ? AND media_id = m.id
+        ) AS userLiked,
+        (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
+        FROM media m
+        JOIN users u ON m.user_id = u.id
+        LEFT JOIN media_tags mt ON m.id = mt.media_id
+        LEFT JOIN tags ON mt.tag_id = tags.id
+        WHERE m.id = ?
+        GROUP BY m.id
+    `, [userId, userId, mediaId]);
 
         if (!media) return res.status(404).send('Not found');
 

@@ -7,3 +7,32 @@
     <span class="tag-pill empty">No tags</span>
     <% } %>
 </div>
+
+<script>
+    document.body.addEventListener('tags-saved', function (e) {
+        debugger;
+        const form = e.target;
+        const mediaId = form.dataset.mediaId;
+
+        const dialog = document.getElementById('lightbox-tag-editor-modal');
+        if (dialog) dialog.remove();
+
+        // Refresh lightbox metadata
+        const metaContainer = document.getElementById('lightbox-meta');
+        if (metaContainer) {
+            htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/lightbox-data`, {
+                target:
+                    '#lightbox-meta'
+            });
+        }
+
+    });
+
+    // "Every time the server sends back this fragment — whether it's from a 
+    // form submission or a manual call — fire an event telling the page 
+    // that the tags were saved for this media item."
+
+    document.body.dispatchEvent(new CustomEvent('tags-saved', {
+        detail: { mediaId: '<%= mediaId %>' }
+    }));
+</script>

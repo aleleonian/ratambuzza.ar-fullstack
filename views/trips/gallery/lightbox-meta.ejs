@@ -1,11 +1,11 @@
 <div class="lightbox-meta">
-    <div class="uploader-info">
+    <!-- <div class="uploader-info">
         <img src="/images/avatars/thumbs/<%= media.uploader_avatar %>" alt="<%= media.uploader_name %>"
             class="avatar-small">
         <span><%= media.uploader_name %></span>
-    </div>
+    </div> -->
 
-    <div class="tags">
+    <div class="lightbox-tags">
         <% if (media.tags && media.tags.length) { %>
         <% media.tags.split(',').forEach(tag => { %>
         <span class="tag-pill"><%= tag.trim() %></span>
@@ -15,20 +15,19 @@
         <% } %>
     </div>
 
-    <div id="lightbox-metadata" data-media-id="<%=media.id%>" data-liked="<%=media.userLiked%>"
-        data-like-count="<%=media.likesCount%>" data-media-url="<%=media.url%>" data-media-owner="<%=media.isOwner%>">
-        <!-- data-owner="true"> -->
+    <div id="lightbox-metadata" 
+        data-media-id="<%=media.id%>" 
+        data-liked="<%=media.userLiked%>"
+        data-likes-count="<%=media.likesCount%>" 
+        data-media-url="<%=media.url%>" 
+        data-media-owner="<%=media.isOwner%>"
+        data-media-uploader-name="<%= media.uploader_name %>"
+        data-media-uploader-avatar="<%= media.uploader_avatar %>"
+        >
     </div>
 
-    <!-- <input type="hidden" id="lightbox-meta-userLiked" value="<%=media.userLiked%>">
-    <input type="hidden" id="lightbox-meta-likesCount" value="<%=media.likesCount%>">
-    <input type="hidden" id="lightbox-meta-itemUrl" value="<%=media.url%>">
-    <input type="hidden" id="lightbox-meta-mediaId" value="<%=media.id%>"> -->
 
-    <div class="likes">
+    <!-- <div class="likes">
         ❤️ <%= media.likesCount %>
-        <% if (media.userLiked) { %>
-        <span>(You liked this)</span>
-        <% } %>
-    </div>
+    </div> -->
 </div>

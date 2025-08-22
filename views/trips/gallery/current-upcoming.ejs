@@ -146,6 +146,29 @@
         background: rgba(255, 255, 255, 0.4);
     }
 
+    .lightbox-tags {
+        margin-top: 10px;
+    }
+
+    .lightbox-tag-editor-modal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(30, 30, 30, 0.95);
+        padding: 1rem;
+        border-radius: 6px;
+        box-shadow: 0 0 10px #000;
+        z-index: 1000;
+        width: 80%;
+        max-width: 400px;
+        color: white;
+    }
+
+    .lightbox-tag-editor-modal.hidden {
+        display: none;
+    }
+
     .tag-list {
         margin-top: 0.5rem;
         display: flex;
@@ -248,10 +271,19 @@
             this button has to be hidden or shown according to
             document.getElementById('lightbox-metadata').dataset.isOwner
             -->
-            <button class="lightbox-btn" id="lightbox-delete-button">❌</button>
+            <button class="lightbox-btn" title="Delete item" id="lightbox-delete-button">❌</button>
+
+            <!-- 
+            this button has to be hidden or shown according to
+            document.getElementById('lightbox-metadata').dataset.isOwner
+            -->
+            <button class="lightbox-btn" title="Edit Tags" id="lightbox-edit-tags-button">🏷️</button>
+
             <button class="lightbox-btn" id="lightbox-next">⏭</button>
         </div>
         <div id="lightbox-meta"></div>
+        <div class="lightbox-tag-editor-modal hidden" id="lightbox-tag-editor-modal"></div>
+
     </div>
 
     <script>
@@ -268,11 +300,48 @@
             return Boolean(string);
         }
 
+        function htmxAjaxPromise(method, url, options = {}) {
+            return new Promise((resolve, reject) => {
+                const targetSelector = options.target;
+                if (!targetSelector) {
+                    reject(new Error("htmxAjaxPromise requires a { target } option"));
+                    return;
+                }
+
+                const targetId = targetSelector.startsWith('#')
+                    ? targetSelector.slice(1)
+                    : targetSelector;
+
+                const handler = (evt) => {
+                    if (evt.target.id === targetId) {
+                        document.body.removeEventListener('htmx:afterSwap', handler);
+                        resolve(evt);
+                    }
+                };
+
+                document.body.addEventListener('htmx:afterSwap', handler);
+
+                try {
+                    htmx.ajax(method, url, options);
+                } catch (err) {
+                    document.body.removeEventListener('htmx:afterSwap', handler);
+                    reject(err);
+                }
+            });
+        }
+
+
         async function openLightbox(index) {
             // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
             // Use hx-target to inject into a #lightbox-meta container
             const mediaId = mediaItems[index].dataset.mediaId;
-            await htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, { target: '#lightbox-meta' });
+            // htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, { target: '#lightbox-meta' });
+
+            await htmxAjaxPromise(
+                'GET',
+                `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`,
+                { target: '#lightbox-meta' }
+            );
 
             const meta = document.getElementById('lightbox-metadata').dataset;
             // now according to the data in #lightbox-container i must make some modifications
@@ -289,12 +358,13 @@
             document.getElementById('lightbox-download').href = itemUrl;
 
             // this comment is here to show the 'unrendered' version of the 'if'
-            // if (stringNumberToBoolean(meta.mediaOwner) || <%= currentUser.role === 'admin' %>) {
             if (stringNumberToBoolean(meta.mediaOwner) || <%= currentUser.role === 'admin' %>) {
-                document.getElementById('lightbox-delete-button').style.display = 'block'
+                document.getElementById('lightbox-delete-button').style.display = 'block';
+                document.getElementById('lightbox-edit-tags-button').style.display = 'block';
             }
             else {
-                document.getElementById('lightbox-delete-button').style.display = 'none'
+                document.getElementById('lightbox-delete-button').style.display = 'none';
+                document.getElementById('lightbox-edit-tags-button').style.display = 'none'
             }
 
             currentIndex = index;
@@ -317,14 +387,14 @@
             if (currentIndex > 0) openLightbox(currentIndex - 1);
         }
 
-        async function deleteMediaItem() {
+        function deleteMediaItem() {
             if (!confirm('Seguro de borrar este item?')) return false;
             const meta = document.getElementById('lightbox-metadata').dataset;
             const mediaId = meta.mediaId;
             const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/delete`;
             const options = { target: `#media-item-${mediaId}`, swap: 'outerHTML' };
             try {
-                await htmx.ajax('DELETE', url, options);
+                htmx.ajax('DELETE', url, options);
                 return true;
             }
             catch (error) {
@@ -332,6 +402,45 @@
                 return false;
             }
         }
+        function editTags() {
+            const meta = document.getElementById('lightbox-metadata').dataset;
+            const mediaId = meta.mediaId;
+            const modal = document.getElementById('lightbox-tag-editor-modal');
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/tags/edit`;
+
+            // Set a one-time event listener for this request
+            const listener = () => {
+                modal.classList.remove('hidden');
+                htmx.off("htmx:afterSwap", listener); // clean up after firing
+            };
+
+            htmx.on("htmx:afterSwap", listener);
+
+            // Fire the HTMX request
+            try {
+                htmx.ajax('GET', url, { target: '#lightbox-tag-editor-modal', swap: 'innerHTML' });
+            }
+            catch (error) {
+                showToast('Error retrieving tags: ' + error, 'error');
+            }
+        }
+
+        // async function editTags() {
+        //     debugger;
+        //     const meta = document.getElementById('lightbox-metadata').dataset;
+        //     const mediaId = meta.mediaId;
+        //     const modal = document.getElementById('lightbox-tag-editor-modal');
+        //     const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/tags/edit`;
+        //     const options = { target: '#lightbox-tag-editor-modal', swap: 'innerHTML' };
+        //     try {
+        //         await htmx.ajax('GET', url, options);
+        //         modal.classList.remove('hidden');
+        //     }
+        //     catch (error) {
+        //         showToast('Error retrieving tags: ' + error, 'error');
+        //     }
+
+        // }
 
         async function likeToggle() {
             const meta = document.getElementById('lightbox-metadata').dataset;
@@ -339,7 +448,7 @@
             const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/like`;
             const options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
             try {
-                await htmx.ajax('POST', url, options);
+                await htmxAjaxPromise('POST', url, options);
                 const userLiked = stringNumberToBoolean(meta.liked);
                 const lightboxLikeButton = document.getElementById('lightbox-like-button');
                 if (userLiked) {
@@ -366,6 +475,8 @@
         document.getElementById('lightbox-delete-button').addEventListener('click', async () => {
             if (await deleteMediaItem()) { closeLightbox() }
         });
+        document.getElementById('lightbox-edit-tags-button').addEventListener('click', editTags);
+
 
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;

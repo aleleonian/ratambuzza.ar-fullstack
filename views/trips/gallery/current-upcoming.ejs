@@ -318,15 +318,18 @@
         }
 
         async function deleteMediaItem() {
+            if (!confirm('Seguro de borrar este item?')) return false;
             const meta = document.getElementById('lightbox-metadata').dataset;
             const mediaId = meta.mediaId;
             const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/delete`;
             const options = { target: `#media-item-${mediaId}`, swap: 'outerHTML' };
             try {
                 await htmx.ajax('DELETE', url, options);
+                return true;
             }
             catch (error) {
-                showToast('Error deleting media item: ' + error, 'error')
+                showToast('Error deleting media item: ' + error, 'error');
+                return false;
             }
         }
 
@@ -360,9 +363,8 @@
         document.getElementById('lightbox-next').addEventListener('click', showNext);
         document.getElementById('lightbox-prev').addEventListener('click', showPrev);
         document.getElementById('lightbox-like-button').addEventListener('click', likeToggle);
-        document.getElementById('lightbox-delete-button').addEventListener('click', () => {
-            deleteMediaItem();
-            closeLightbox();
+        document.getElementById('lightbox-delete-button').addEventListener('click', async () => {
+            if (await deleteMediaItem()) { closeLightbox() }
         });
 
         document.addEventListener('keydown', (e) => {

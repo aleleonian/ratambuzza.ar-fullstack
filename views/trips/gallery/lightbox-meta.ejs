@@ -15,13 +15,9 @@
         <% } %>
     </div>
 
-    <div id="lightbox-metadata" 
-    data-media-id="<%=media.id%>" 
-    data-liked="<%=media.userLiked%>" 
-    data-like-count="<%=media.likesCount%>" 
-    data-media-url="<%=media.url%>" 
-    >
-    <!-- data-owner="true"> -->
+    <div id="lightbox-metadata" data-media-id="<%=media.id%>" data-liked="<%=media.userLiked%>"
+        data-like-count="<%=media.likesCount%>" data-media-url="<%=media.url%>" data-media-owner="<%=media.isOwner%>">
+        <!-- data-owner="true"> -->
     </div>
 
     <!-- <input type="hidden" id="lightbox-meta-userLiked" value="<%=media.userLiked%>">

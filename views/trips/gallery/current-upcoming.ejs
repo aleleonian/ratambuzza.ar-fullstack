@@ -178,7 +178,7 @@
     <% } else { %>
     <div class="media-grid">
         <% media.forEach((item, index) => { %>
-        <div class="media-item">
+        <div class="media-item" id="media-item-<%=item.id%>">
             <a href="<%= item.url %>" class="gallery-item" data-media-id="<%= item.id %>" data-index="<%= index %>">
                 <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
             </a>
@@ -200,7 +200,7 @@
                     <a href="<%-item.url%>" download class="download-link">
                         <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
                     </a>
-                    <% if (currentUser.id === item.user_id || currentUser.isAdmin) { %>
+                    <% if (currentUser.id === item.user_id || currentUser.role == 'admin') { %>
                     <button class="overlay-btn" onclick="event.stopPropagation();" title="Edit Tags"
                         hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
                         hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
@@ -244,6 +244,10 @@
                 <button class="lightbox-btn" title="Download">⬇️</button>
             </a>
             <button class="lightbox-btn" id="lightbox-like-button"></button>
+            <!-- 
+            this button has to be hidden or shown according to
+            document.getElementById('lightbox-metadata').dataset.isOwner
+            -->
             <button class="lightbox-btn" id="lightbox-delete-button">❌</button>
             <button class="lightbox-btn" id="lightbox-next">⏭</button>
         </div>
@@ -256,6 +260,14 @@
         const lightboxImg = document.getElementById('lightbox-img');
         let currentIndex = -1;
 
+        function stringNumberToBoolean(stringNumber) {
+            return Boolean(Number(stringNumber));
+        }
+
+        function stringToBoolean(string) {
+            return Boolean(string);
+        }
+
         async function openLightbox(index) {
             // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
             // Use hx-target to inject into a #lightbox-meta container
@@ -263,10 +275,9 @@
             await htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, { target: '#lightbox-meta' });
 
             const meta = document.getElementById('lightbox-metadata').dataset;
-            debugger;
             // now according to the data in #lightbox-container i must make some modifications
             // const userLiked = Boolean(Number(document.getElementById('lightbox-meta-userLiked').value));
-            const userLiked = Boolean(Number(meta.liked));
+            const userLiked = stringNumberToBoolean(meta.liked);
             const lightboxLikeButton = document.getElementById('lightbox-like-button');
             if (userLiked) {
                 lightboxLikeButton.innerHTML = "❤️"
@@ -274,9 +285,17 @@
             else {
                 lightboxLikeButton.innerHTML = "🤍"
             }
-            // const itemUrl = document.getElementById('lightbox-meta-itemUrl').value;
             const itemUrl = meta.mediaUrl;
             document.getElementById('lightbox-download').href = itemUrl;
+
+            // this comment is here to show the 'unrendered' version of the 'if'
+            // if (stringNumberToBoolean(meta.mediaOwner) || <%= currentUser.role === 'admin' %>) {
+            if (stringNumberToBoolean(meta.mediaOwner) || <%= currentUser.role === 'admin' %>) {
+                document.getElementById('lightbox-delete-button').style.display = 'block'
+            }
+            else {
+                document.getElementById('lightbox-delete-button').style.display = 'none'
+            }
 
             currentIndex = index;
             const link = mediaItems[currentIndex];
@@ -299,7 +318,16 @@
         }
 
         async function deleteMediaItem() {
-            debugger;
+            const meta = document.getElementById('lightbox-metadata').dataset;
+            const mediaId = meta.mediaId;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/delete`;
+            const options = { target: `#media-item-${mediaId}`, swap: 'outerHTML' };
+            try {
+                await htmx.ajax('DELETE', url, options);
+            }
+            catch (error) {
+                showToast('Error deleting media item: ' + error, 'error')
+            }
         }
 
         async function likeToggle() {
@@ -309,7 +337,7 @@
             const options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
             try {
                 await htmx.ajax('POST', url, options);
-                const userLiked = Boolean(Number(meta.liked));
+                const userLiked = stringNumberToBoolean(meta.liked);
                 const lightboxLikeButton = document.getElementById('lightbox-like-button');
                 if (userLiked) {
                     lightboxLikeButton.innerHTML = "🤍"
@@ -332,7 +360,10 @@
         document.getElementById('lightbox-next').addEventListener('click', showNext);
         document.getElementById('lightbox-prev').addEventListener('click', showPrev);
         document.getElementById('lightbox-like-button').addEventListener('click', likeToggle);
-        document.getElementById('lightbox-delete-button').addEventListener('click', deleteMediaItem);
+        document.getElementById('lightbox-delete-button').addEventListener('click', () => {
+            deleteMediaItem();
+            closeLightbox();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;

@@ -8,14 +8,8 @@
         <span><%= media.uploader_name %></span>
     </div> -->
 
-    <div class="lightbox-tags">
-        <% if (media.tags && media.tags.length) { %>
-        <% media.tags.split(',').forEach(tag => { %>
-        <span class="tag-pill"><%= tag.trim() %></span>
-        <% }) %>
-        <% } else { %>
-        <span>No tags</span>
-        <% } %>
+    <div class="lightbox-tags" data-media-id="<%= media.id %>">
+        <%- include('tag-pills', {currentTags: media.tags ? media.tags.split(',') : []}) %>
     </div>
 
     <div id="lightbox-metadata" data-media-id="<%=media.id%>" data-liked="<%=media.userLiked%>"

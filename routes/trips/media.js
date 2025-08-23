@@ -241,48 +241,56 @@ router.get('/gallery/:id/tags', async (req, res) => {
 
 router.post('/gallery/:id/tags', async (req, res, next) => {
 
-    const mediaId = req.params.id;
-    const user = req.session.user;
+    try {
 
-    const [rows] = await req.db.execute('SELECT user_id from media WHERE id = ?', [mediaId]);
-    const ownerId = rows[0]?.user_id;
+        const mediaId = req.params.id;
+        const user = req.session.user;
 
-    const isUploader = ownerId === user.id;
-    const isAdmin = user.role === 'admin';
+        const [rows] = await req.db.execute('SELECT user_id from media WHERE id = ?', [mediaId]);
+        const ownerId = rows[0]?.user_id;
 
-    if (!isUploader && !isAdmin) {
-        return res.status(403).send('Unauthorized');
+        const isUploader = ownerId === user.id;
+        const isAdmin = user.role === 'admin';
+
+        if (!isUploader && !isAdmin) {
+            return res.status(403).send('Unauthorized');
+        }
+
+        const tagsInput = req.body.tags || '';
+        const tagNames = tagsInput
+            .split(',')
+            .map(tag => tag.trim().toLowerCase())
+            .filter(tag => tag);
+
+        const conn = await req.db.getConnection();
+        await conn.beginTransaction();
+
+        // Delete old tags for this media
+        await conn.execute('DELETE FROM media_tags WHERE media_id = ?', [mediaId]);
+
+        for (const name of tagNames) {
+            // Insert tag if it doesn't exist. 
+            // We want unique values in this table
+            await conn.execute('INSERT IGNORE INTO tags (name) VALUES (?)', [name]);
+            const [tagRow] = await conn.execute('SELECT id FROM tags WHERE name = ?', [name]);
+            const tagId = tagRow[0].id;
+            await conn.execute('INSERT INTO media_tags (media_id, tag_id) VALUES (?, ?)', [mediaId, tagId]);
+        }
+
+        await conn.commit();
+        conn.release();
+
+        // Re-render editor with new tags
+        console.log("POST tag-pills");
+        res.setHeader('X-Toast', 'Tags actualizados!');
+        res.setHeader('X-Toast-Type', 'success');
+        res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
     }
-
-    const tagsInput = req.body.tags || '';
-    const tagNames = tagsInput
-        .split(',')
-        .map(tag => tag.trim().toLowerCase())
-        .filter(tag => tag);
-
-    const conn = await req.db.getConnection();
-    await conn.beginTransaction();
-
-    // Delete old tags for this media
-    await conn.execute('DELETE FROM media_tags WHERE media_id = ?', [mediaId]);
-
-    for (const name of tagNames) {
-        // Insert tag if it doesn't exist. 
-        // We want unique values in this table
-        await conn.execute('INSERT IGNORE INTO tags (name) VALUES (?)', [name]);
-        const [tagRow] = await conn.execute('SELECT id FROM tags WHERE name = ?', [name]);
-        const tagId = tagRow[0].id;
-        await conn.execute('INSERT INTO media_tags (media_id, tag_id) VALUES (?, ?)', [mediaId, tagId]);
+    catch (error) {
+        res.setHeader('X-Toast', error);
+        res.setHeader('X-Toast-Type', 'error');
+        res.status(500).send('Server error');
     }
-
-    await conn.commit();
-    conn.release();
-
-    // Re-render editor with new tags
-    console.log("POST tag-pills");
-    res.setHeader('X-Toast', 'Tags actualizados!');
-    res.setHeader('X-Toast-Type', 'success');
-    res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
 });
 
 router.get('/gallery/:id/lightbox-data', async (req, res) => {

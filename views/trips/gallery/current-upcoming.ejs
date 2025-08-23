@@ -239,16 +239,8 @@
                 <div id="tag-editor">
                     <!-- 🧩 Placeholder for tag editor form -->
                     <br>
-                    <div id="tag-editor-<%= item.id %>">
-                        <div class="tag-list" id="tag-editor-<%= item.id %>">
-                            <% if (item.tags && item.tags.length > 0) { %>
-                            <% item.tags.split(',').forEach(tag => { %>
-                            <span class="tag-pill"><%= tag.trim() %></span>
-                            <% }) %>
-                            <% } else { %>
-                            <span class="tag-pill empty">No tags</span>
-                            <% } %>
-                        </div>
+                    <div id="tag-editor-<%= item.id %>" data-media-id="<%= item.id %>">
+                        <%- include('tag-pills', {currentTags: item.tags ? item.tags.split(',') : []}) %>
                     </div>
                 </div>
             </div>

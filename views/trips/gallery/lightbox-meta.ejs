@@ -1,3 +1,6 @@
+<!-- This file is returned by /gallery/:id/lightbox-data -->
+<!-- This is for the lightbox -->
+
 <div class="lightbox-meta">
     <!-- <div class="uploader-info">
         <img src="/images/avatars/thumbs/<%= media.uploader_avatar %>" alt="<%= media.uploader_name %>"
@@ -15,15 +18,9 @@
         <% } %>
     </div>
 
-    <div id="lightbox-metadata" 
-        data-media-id="<%=media.id%>" 
-        data-liked="<%=media.userLiked%>"
-        data-likes-count="<%=media.likesCount%>" 
-        data-media-url="<%=media.url%>" 
-        data-media-owner="<%=media.isOwner%>"
-        data-media-uploader-name="<%= media.uploader_name %>"
-        data-media-uploader-avatar="<%= media.uploader_avatar %>"
-        >
+    <div id="lightbox-metadata" data-media-id="<%=media.id%>" data-liked="<%=media.userLiked%>"
+        data-likes-count="<%=media.likesCount%>" data-media-url="<%=media.url%>" data-media-owner="<%=media.isOwner%>"
+        data-media-uploader-name="<%= media.uploader_name %>" data-media-uploader-avatar="<%= media.uploader_avatar %>">
     </div>
 
 

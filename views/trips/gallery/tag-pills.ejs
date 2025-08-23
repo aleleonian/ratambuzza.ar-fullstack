@@ -1,3 +1,5 @@
+<!-- This is for the hover contextual menu in /gallery -->
+
 <div class="tag-list" id="tag-editor-<%= mediaId %>">
     <% if (currentTags && currentTags.length > 0) { %>
     <% currentTags.forEach(tag => { %>
@@ -10,13 +12,9 @@
 
 <script>
     document.body.addEventListener('tags-saved', function (e) {
-        debugger;
-        const form = e.target;
-        const mediaId = form.dataset.mediaId;
-
+        // hide the lightbox version of the tag editor
         const dialog = document.getElementById('lightbox-tag-editor-modal');
-        if (dialog) dialog.remove();
-
+        dialog.classList.add('hidden');
         // Refresh lightbox metadata
         const metaContainer = document.getElementById('lightbox-meta');
         if (metaContainer) {

@@ -235,7 +235,7 @@ router.get('/gallery/:id/tags', async (req, res) => {
         [mediaId]
     );
     const currentTags = tagRows.map(row => row.name);
-
+    console.log("GET tag-pills");
     res.render('trips/gallery/tag-pills', { currentTags, mediaId });
 });
 
@@ -279,7 +279,7 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
     conn.release();
 
     // Re-render editor with new tags
-    console.log('tagNames->', tagNames);
+    console.log("POST tag-pills");
     res.setHeader('X-Toast', 'Tags actualizados!');
     res.setHeader('X-Toast-Type', 'success');
     res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });

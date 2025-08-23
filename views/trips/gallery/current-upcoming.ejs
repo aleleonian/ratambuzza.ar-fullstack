@@ -174,7 +174,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.25rem;
-        justify-content: flex-start;
+        justify-content: center;
     }
 
     .tag-pill {
@@ -197,7 +197,7 @@
 </style>
 <main class="gallery-container">
     <% if (media.length === 0) { %>
-    <p>No hay imágenes todavía. ¡Sé el primero en subir una!</p>
+    <p>No hay imágenes todavía. ¡Que amargos son!</p>
     <% } else { %>
     <div class="media-grid">
         <% media.forEach((item, index) => { %>
@@ -262,11 +262,11 @@
 
         <img id="lightbox-img" class="lightbox-image" src="" alt="Expanded media" />
         <div class="lightbox-controls">
-            <button class="lightbox-btn" id="lightbox-prev">⏮</button>
+            <button class="lightbox-btn" title="Previous" id="lightbox-prev">⏮</button>
             <a id="lightbox-download" href="#" class="download-link" download>
                 <button class="lightbox-btn" title="Download">⬇️</button>
             </a>
-            <button class="lightbox-btn" id="lightbox-like-button"></button>
+            <button class="lightbox-btn" title="Like" id="lightbox-like-button"></button>
             <!-- 
             this button has to be hidden or shown according to
             document.getElementById('lightbox-metadata').dataset.isOwner
@@ -279,7 +279,7 @@
             -->
             <button class="lightbox-btn" title="Edit Tags" id="lightbox-edit-tags-button">🏷️</button>
 
-            <button class="lightbox-btn" id="lightbox-next">⏭</button>
+            <button class="lightbox-btn" title="Next" id="lightbox-next">⏭</button>
         </div>
         <div id="lightbox-meta"></div>
         <div class="lightbox-tag-editor-modal hidden" id="lightbox-tag-editor-modal"></div>

@@ -13,7 +13,7 @@ router.get('/signup', (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-    const ALLOWED_REDIRECTS = ['/', '/viajes', '/galeria', '/crew']
+    const ALLOWED_REDIRECTS = ['/', '/trips', '/gallery', '/crew']
 
     const { handle, password } = req.body
     const [rows] = await req.db.execute('SELECT * FROM users WHERE handle = ?', [handle])
@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash)
     if (!match) return res.render('login', { error: 'Invalid credentials' })
 
-    req.session.user = { id: user.id, handle: user.handle, email: user.email }
+    req.session.user = { id: user.id, handle: user.handle, email: user.email, role: user.role }
 
     const redirectTo = req.session.redirectTo
     delete req.session.redirectTo

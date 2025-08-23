@@ -1,1 +1,10 @@
-<!-- TODO -->
+<% if (tripMode === 'current' || tripMode === 'upcoming') { %>
+
+<%- include('gallery/current-upcoming',{ media }) %>
+
+<% } else { %>
+
+<%- include('gallery/past-trips', { media }) %>
+
+<% } %>
+

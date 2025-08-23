@@ -22,7 +22,7 @@
         <!-- Like button (HTMX) -->
         <%- include('like-button', { trip, post }) %>
         <!-- Delete button -->
-        <% if (post.user_id === user.id) { %>
+        <% if (post.user_id === currentUser.id) { %>
         <%- include('delete-button', { trip, post }) %>
         <% } %>
     </div>

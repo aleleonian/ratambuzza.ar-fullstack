@@ -1,0 +1,69 @@
+<div onclick="event.stopPropagation()">
+    <form hx-post="/trips/<%- currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/tags"
+        hx-target="#tag-editor-<%= mediaId %>" hx-swap="outerHTML" class="tag-edit-form" onsubmit="return false">
+
+        <label for="tag-input-<%= mediaId %>" style="display: block; margin-bottom: 0.25rem; font-size: x-small;">
+            Tags (separadas por coma):
+        </label>
+        <textarea id="tag-input-<%= mediaId %>" name="tags" rows="3"
+            style="width: 100%; margin-bottom: 0.5rem;"><%= currentTags.join(', ') %></textarea>
+
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="button" id="cancel-tags-<%= mediaId %>"
+                onclick="event.stopPropagation(); restoreTags(<%= mediaId %>)">Cancel</button>
+            <button onclick="event.stopPropagation();" id="save-tags-<%= mediaId %>" type="submit">Save</button>
+        </div>
+    </form>
+</div>
+<script>
+
+
+    function initTagEditor(mediaId, originalTags) {
+        const textarea = document.getElementById(`tag-input-${mediaId}`);
+        const saveBtn = document.getElementById(`save-tags-${mediaId}`);
+        const cancelBtn = document.getElementById(`cancel-tags-${mediaId}`);
+
+        // Disable save by default
+        saveBtn.disabled = true;
+
+        textarea.addEventListener('input', () => {
+            const changed = textarea.value.trim() !== originalTags.trim();
+            saveBtn.disabled = !changed;
+        });
+
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                restoreTags(mediaId);
+            }
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!saveBtn.disabled) {
+                    saveBtn.click();
+                }
+            }
+        });
+
+        textarea.focus(); // autofocus
+    }
+
+    initTagEditor(<%= mediaId %>, `<%= currentTags.join(', ') %>`);
+
+    function restoreTags(mediaId) {
+        const el = document.getElementById(`tag-editor-${mediaId}`);
+        htmx.ajax('GET', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/tags`, {
+            target: el,
+            swap: 'outerHTML'
+        });
+    }
+
+</script>
+
+<style>
+    .tag-edit-form {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem;
+        border-radius: 6px;
+        margin-top: 0.5rem;
+    }
+</style>

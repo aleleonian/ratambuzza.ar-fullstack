@@ -13,8 +13,8 @@ router.get('/feed', requireLogin, async (req, res, next) => {
 
         const [posts] = await req.db.execute(
             `SELECT p.*, u.handle, u.avatar_head_file_name,
-        EXISTS (SELECT 1 FROM likes WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
-        (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count
+        EXISTS (SELECT 1 FROM likes_posts WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
+        (SELECT COUNT(*) FROM likes_posts WHERE post_id = p.id) AS like_count
        FROM posts p
        JOIN users u ON u.id = p.user_id
        WHERE p.trip_id = ?
@@ -59,8 +59,8 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
 
         const [posts] = await req.db.execute(`
       SELECT p.*, u.handle, u.avatar_head_file_name,
-        EXISTS (SELECT 1 FROM likes WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
-        (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count
+        EXISTS (SELECT 1 FROM likes_posts WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
+        (SELECT COUNT(*) FROM likes_posts WHERE post_id = p.id) AS like_count
       FROM posts p
       JOIN users u ON u.id = p.user_id
       ${whereClause}

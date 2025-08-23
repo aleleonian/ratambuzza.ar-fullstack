@@ -1,0 +1,42 @@
+<!-- 
+ This is for the hover contextual menu in /gallery, but every time
+ it is rendered (due to an update or not) the metadata for the lightbox will be
+ re-fetched. 
+ A bit weird but let's move on, shall we?
+  -->
+
+
+<div class="tag-list" id="tag-editor-<%= mediaId %>">
+    <% if (currentTags && currentTags.length > 0) { %>
+    <% currentTags.forEach(tag => { %>
+    <span class="tag-pill"><%= tag.trim() %></span>
+    <% }) %>
+    <% } else { %>
+    <span class="tag-pill empty">No tags</span>
+    <% } %>
+</div>
+
+<script>
+    document.body.addEventListener('tags-saved', function (e) {
+        // hide the lightbox version of the tag editor
+        const dialog = document.getElementById('lightbox-tag-editor-modal');
+        dialog.classList.add('hidden');
+        // Refresh lightbox metadata
+        const metaContainer = document.getElementById('lightbox-meta');
+        if (metaContainer) {
+            htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/lightbox-data`, {
+                target:
+                    '#lightbox-meta'
+            });
+        }
+
+    });
+
+    // "Every time the server sends back this fragment — whether it's from a 
+    // form submission or a manual call — fire an event telling the page 
+    // that the tags were saved for this media item."
+
+    document.body.dispatchEvent(new CustomEvent('tags-saved', {
+        detail: { mediaId: '<%= mediaId %>' }
+    }));
+</script>

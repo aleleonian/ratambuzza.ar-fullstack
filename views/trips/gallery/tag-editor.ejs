@@ -53,7 +53,7 @@
         const el = document.getElementById(`tag-editor-${mediaId}`);
         htmx.ajax('GET', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/tags`, {
             target: el,
-            swap: 'outerHTML'
+            swap: 'innerHTML'
         });
     }
 

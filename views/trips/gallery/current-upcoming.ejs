@@ -209,19 +209,24 @@
     <div id="uploadModal" class="modal hidden">
         <div class="modal-content">
             <button id="closeUploadModalButton" class="modal-close">✖</button>
-            <div>
-                Subite unas fotis, rey (max 10).
+            <div style="margin-bottom: 1rem;">
+                Subite unas fotis, rey <span style="font-size: 0.85em;">(máximo 10)</span>.
             </div>
-            <br>
-            <form class="card" hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid"
-                hx-swap="afterbegin" hx-encoding="multipart/form-data">
-                <input type="file" name="media" multiple>
-                <br>
-                <button type="submit">Upload</button>
+
+            <form hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
+                hx-encoding="multipart/form-data">
+                <input type="file" name="media" accept="image/*" multiple onchange="toggleUploadButton(this)">
+                <button type="submit" disabled id="uploadButton">Subir</button>
             </form>
-            <br>
         </div>
     </div>
+
+    <script>
+        function toggleUploadButton(input) {
+            const btn = document.getElementById('uploadButton');
+            btn.disabled = input.files.length === 0;
+        }
+    </script>
 
     <% if (media.length === 0) { %>
     <p>No hay imágenes todavía. ¡Que amargos son!</p>

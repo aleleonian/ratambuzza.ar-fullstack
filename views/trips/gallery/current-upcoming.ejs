@@ -9,7 +9,7 @@
         max-width: 1024px;
         margin: 0 auto;
         padding: 2rem 1rem;
-        text-align: center;
+        /* text-align: center; */
     }
 
     .media-grid {
@@ -195,59 +195,58 @@
     a.download-link {
         display: contents;
     }
+
+    .controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        width: 100%;
+        margin: 10px 0;
+    }
 </style>
 
-</style>
 <main class="gallery-container">
+    <div id="uploadModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closeUploadModalButton" class="modal-close">✖</button>
+            <div>
+                Subite unas fotis, rey (max 10).
+            </div>
+            <br>
+            <form class="card" hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid"
+                hx-swap="afterbegin" hx-encoding="multipart/form-data">
+                <input type="file" name="media" multiple>
+                <br>
+                <button type="submit">Upload</button>
+            </form>
+            <br>
+        </div>
+    </div>
+
     <% if (media.length === 0) { %>
     <p>No hay imágenes todavía. ¡Que amargos son!</p>
-    <% } else { %>
-    <div class="media-grid">
+    <% } %>
+
+
+    <div class="controls">
+        <button class="button" id="showUploadModalButton">Agregar</button>
+    </div>
+
+    <script>
+        function hideUploadForm() {
+            document.getElementById('uploadModal')?.classList.add('hidden');
+        }
+        function showUploadForm() {
+            document.getElementById('uploadModal')?.classList.remove('hidden');
+        }
+        document.getElementById('closeUploadModalButton').addEventListener('click', hideUploadForm);
+        document.getElementById('showUploadModalButton').addEventListener('click', showUploadForm);
+    </script>
+
+    <div id="media-grid" class="media-grid">
+        <% if (media.length > 0 ) {%>
         <% media.forEach((item, index) => { %>
-        <div class="media-item" id="media-item-<%=item.id%>">
-            <a href="<%= item.url %>" class="gallery-item" data-media-id="<%= item.id %>" data-index="<%= index %>">
-                <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
-            </a>
-            <div class="overlay" onclick="openLightbox(<%-index%>)">
-                <!-- <div class="overlay-top">
-                    <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
-                        alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
-                </div> -->
-                <div class="overlay-bottom">
-                    <button onclick="event.stopPropagation();openLightbox(<%-index%>)" class="overlay-btn"
-                        title="Play">▶️</button>
-                    <div id="like-button-container-<%= item.id %>">
-                        <%- include('./like-button-gallery',{
-                        mediaId: item.id,
-                        liked: item.userLiked,
-                        count: item.likesCount
-                    })%>
-                    </div>
-                    <a href="<%-item.url%>" download class="download-link">
-                        <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
-                    </a>
-                    <% if (currentUser.id === item.user_id || currentUser.role == 'admin') { %>
-                    <button class="overlay-btn" onclick="event.stopPropagation();" title="Edit Tags"
-                        hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
-                        hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
-                        🏷️
-                    </button>
-                    <button class="overlay-btn" title="Delete Image" onclick="event.stopPropagation();"
-                        hx-delete="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/delete"
-                        hx-swap="outerHTML" hx-target="closest .media-item" hx-confirm="Seguro de borrar este item?">
-                        ❌
-                    </button>
-                    <% } %>
-                </div>
-                <div id="tag-editor">
-                    <!-- 🧩 Placeholder for tag editor form -->
-                    <br>
-                    <div id="tag-editor-<%= item.id %>" data-media-id="<%= item.id %>">
-                        <%- include('tag-pills', {currentTags: item.tags ? item.tags.split(',') : []}) %>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <%- include('media-item',{index, item}) %>
         <% }) %>
     </div>
 
@@ -421,23 +420,6 @@
             }
         }
 
-        // async function editTags() {
-        //     debugger;
-        //     const meta = document.getElementById('lightbox-metadata').dataset;
-        //     const mediaId = meta.mediaId;
-        //     const modal = document.getElementById('lightbox-tag-editor-modal');
-        //     const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/tags/edit`;
-        //     const options = { target: '#lightbox-tag-editor-modal', swap: 'innerHTML' };
-        //     try {
-        //         await htmx.ajax('GET', url, options);
-        //         modal.classList.remove('hidden');
-        //     }
-        //     catch (error) {
-        //         showToast('Error retrieving tags: ' + error, 'error');
-        //     }
-
-        // }
-
         async function likeToggle() {
             const meta = document.getElementById('lightbox-metadata').dataset;
             const mediaId = meta.mediaId;
@@ -484,6 +466,12 @@
         lightbox.addEventListener('click', (e) => {
             if (e.target === lightbox) closeLightbox();
         });
+
+        // this will be triggered when the upload is complete
+        document.body.addEventListener('upload-complete', () => {
+            document.getElementById('uploadModal')?.classList.add('hidden');
+        });
+
     </script>
     <% } %>
 </main>

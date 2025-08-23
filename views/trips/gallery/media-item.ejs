@@ -1,0 +1,44 @@
+<div class="media-item" id="media-item-<%=item.id%>">
+    <a href="<%= item.url %>" class="gallery-item" data-media-id="<%= item.id %>" data-index="<%= index %>">
+        <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
+    </a>
+    <div class="overlay" onclick="openLightbox(<%-index%>)">
+        <!-- <div class="overlay-top">
+                    <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
+                        alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
+                </div> -->
+        <div class="overlay-bottom">
+            <button onclick="event.stopPropagation();openLightbox(<%-index%>)" class="overlay-btn"
+                title="Play">▶️</button>
+            <div id="like-button-container-<%= item.id %>">
+                <%- include('./like-button-gallery',{
+                        mediaId: item.id,
+                        liked: item.userLiked,
+                        count: item.likesCount
+                    })%>
+            </div>
+            <a href="<%-item.url%>" download class="download-link">
+                <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
+            </a>
+            <% if (currentUser.id === item.user_id || currentUser.role == 'admin') { %>
+            <button class="overlay-btn" onclick="event.stopPropagation();" title="Edit Tags"
+                hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
+                hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
+                🏷️
+            </button>
+            <button class="overlay-btn" title="Delete Image" onclick="event.stopPropagation();"
+                hx-delete="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/delete" hx-swap="outerHTML"
+                hx-target="closest .media-item" hx-confirm="Seguro de borrar este item?">
+                ❌
+            </button>
+            <% } %>
+        </div>
+        <div id="tag-editor">
+            <!-- 🧩 Placeholder for tag editor form -->
+            <br>
+            <div id="tag-editor-<%= item.id %>" data-media-id="<%= item.id %>">
+                <%- include('tag-pills', {currentTags: item.tags ? item.tags.split(',') : []}) %>
+            </div>
+        </div>
+    </div>
+</div>

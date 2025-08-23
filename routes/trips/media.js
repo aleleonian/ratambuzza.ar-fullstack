@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { uploadDir, upload, createThumbnail, uploadMultiple } = require('../../lib/upload');
+const { error } = require('console');
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
     const width = 1600;
     const height = 1600;
     const quality = 80;
+    let newItems;
 
     try {
         const files = req.files; // ✅ Now an array
@@ -34,7 +36,8 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             return res.status(400).json({ error: 'No files uploaded.' });
         }
 
-        const resizedFiles = [];
+        // const resizedFiles = [];
+        const insertedIds = [];
 
         for (const file of files) {
             const resizedName = 'resized-' + file.filename;
@@ -52,18 +55,60 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             const thumbnailUrl = await createThumbnail(file.path, thumbName);
             fs.unlinkSync(originalPath);
             // Store info to respond or save to DB
-            resizedFiles.push({
-                resized: '/uploads/resized-' + file.filename,
-                thumb: '/uploads/' + thumbnailUrl
-            });
-            await req.db.execute(`
+            // resizedFiles.push({
+            //     resized: '/uploads/resized-' + file.filename,
+            //     thumb: '/uploads/' + thumbnailUrl
+            // });
+            try {
+                const [result] = await req.db.execute(`
             INSERT INTO media (trip_id, user_id, url, thumbnail_url, width, height, type)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             `, [req.trip.id, req.session.user.id, resizedUrl, thumbnailUrl, width, height, 'image']);
+
+                insertedIds.push(result.insertId);
+            }
+            catch (error) {
+                console.error("Upload insertion into media table failed: " + error);
+            }
+        }
+
+        console.log('insertedIds->', insertedIds);
+
+        try {
+            const placeholders = insertedIds.map(() => '?').join(', ');
+            [newItems] = await req.db.execute(`
+            SELECT 
+                m.*, 
+                u.handle AS uploader_name, 
+                u.avatar_head_file_name AS uploader_avatar,
+                GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
+                m.user_id = ? AS isOwner,
+                MAX(lm.user_id IS NOT NULL) AS userLiked,
+                (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
+            FROM media m
+            JOIN users u ON m.user_id = u.id
+            LEFT JOIN likes_media lm ON lm.media_id = m.id AND lm.user_id = ?
+            LEFT JOIN media_tags mt ON m.id = mt.media_id
+            LEFT JOIN tags ON mt.tag_id = tags.id
+            WHERE m.trip_id = ? AND m.id IN (${placeholders})
+            GROUP BY m.id
+            ORDER BY m.created_at DESC
+            `, [req.session.user.id, req.session.user.id, req.trip.id, ...insertedIds]);
+
+            console.log('uploaded media->', newItems);
+        }
+        catch (error) {
+            console.error("Error trying to read data for uploaded files:" + error);
         }
         // Return the public URL
-
-        res.json({ success: true, files: resizedFiles });
+        if (!newItems || newItems.length === 0) {
+            res.setHeader('X-Toast', 'Upload ok pero algo falló en la DB');
+            res.setHeader('X-Toast-Type', 'error');
+            return res.status(500).send("Upload succeeded, but failed to load new items.");
+        }
+        res.setHeader('X-Toast', 'Listo padrecito. ');
+        res.setHeader('X-Toast-Type', 'success');
+        res.render('trips/gallery/upload-return', { newItems });
     } catch (err) {
         next(err);
     }

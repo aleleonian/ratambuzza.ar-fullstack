@@ -1,4 +1,10 @@
-<!-- This is for the hover contextual menu in /gallery -->
+<!-- 
+ This is for the hover contextual menu in /gallery, but every time
+ it is rendered (due to an update or not) the metadata for the lightbox will be
+ re-fetched. 
+ A bit weird but let's move on, shall we?
+  -->
+
 
 <div class="tag-list" id="tag-editor-<%= mediaId %>">
     <% if (currentTags && currentTags.length > 0) { %>

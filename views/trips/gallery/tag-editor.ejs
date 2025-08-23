@@ -1,6 +1,6 @@
 <div onclick="event.stopPropagation()">
     <form hx-post="/trips/<%- currentOrUpcomingTrip.slug %>/gallery/<%= mediaId %>/tags"
-        hx-target="#tag-editor-<%= mediaId %>" hx-swap="outerHTML" class="tag-edit-form" onsubmit="return false">
+        hx-target="#tag-editor-<%= mediaId %>" hx-swap="innerHTML" class="tag-edit-form" onsubmit="return false">
 
         <label for="tag-input-<%= mediaId %>" style="display: block; margin-bottom: 0.25rem; font-size: x-small;">
             Tags (separadas por coma):
@@ -53,7 +53,7 @@
         const el = document.getElementById(`tag-editor-${mediaId}`);
         htmx.ajax('GET', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/tags`, {
             target: el,
-            swap: 'outerHTML'
+            swap: 'innerHTML'
         });
     }
 

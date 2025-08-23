@@ -8,3 +8,30 @@
 
 <% } %>
 
+<script>
+
+    document.body.addEventListener('htmx:afterSwap', function (e) {
+        const isTagEditorSwap = e.target.id?.startsWith?.('tag-editor-');
+        if (!isTagEditorSwap) return;
+
+        const mediaId = e.target.dataset.mediaId;
+        if (!mediaId) return;
+
+        const current = document.getElementById('lightbox-metadata');
+        if (!current) return;
+
+        // let's update the lightbox meta data for the media item that is
+        // actually being viewed and not another one.
+        // only refresh lightbox metadata if the swap came from editing tags
+        if (current.dataset.mediaId === mediaId) {
+            htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, {
+                target: '#lightbox-meta'
+            });
+            const dialog = document.getElementById('lightbox-tag-editor-modal');
+            dialog.classList.add('hidden');
+        }
+    });
+
+
+
+</script>

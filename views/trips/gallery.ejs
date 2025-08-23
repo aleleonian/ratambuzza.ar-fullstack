@@ -22,7 +22,7 @@
 
         // let's update the lightbox meta data for the media item that is
         // actually being viewed and not another one.
-        
+        // only refresh lightbox metadata if the swap came from editing tags
         if (current.dataset.mediaId === mediaId) {
             htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, {
                 target: '#lightbox-meta'

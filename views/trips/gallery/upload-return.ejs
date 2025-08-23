@@ -1,0 +1,7 @@
+<% newItems.forEach((item, index) => { %>
+<%- include('media-item',{index, item}) %>
+<% }) %>
+
+<script>
+    document.body.dispatchEvent(new CustomEvent('upload-complete'));
+</script>

@@ -1,14 +1,14 @@
 <div class="media-item" id="media-item-<%=item.id%>">
-    <a href="<%= item.url %>" class="gallery-item" data-media-id="<%= item.id %>" data-index="<%= index %>">
+    <a href="<%= item.url %>" class="gallery-item" data-media-id="<%= item.id %>">
         <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
     </a>
-    <div class="overlay" onclick="openLightbox(<%-index%>)">
+    <div class="overlay" onclick="openLightboxFromElement(this)">
         <!-- <div class="overlay-top">
                     <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                 </div> -->
         <div class="overlay-bottom">
-            <button onclick="event.stopPropagation();openLightbox(<%-index%>)" class="overlay-btn"
+            <button onclick="event.stopPropagation();openLightboxFromElement(this)" class="overlay-btn"
                 title="Play">▶️</button>
             <div id="like-button-container-<%= item.id %>">
                 <%- include('./like-button-gallery',{

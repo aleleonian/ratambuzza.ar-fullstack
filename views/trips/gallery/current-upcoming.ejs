@@ -397,11 +397,14 @@
 
         function showNext() {
             const mediaItems = getGalleryItems();
-            if (currentIndex < mediaItems.length - 1) openLightbox(currentIndex + 1);
+            const nextIndex = (currentIndex + 1) % mediaItems.length;
+            openLightbox(nextIndex);
         }
 
         function showPrev() {
-            if (currentIndex > 0) openLightbox(currentIndex - 1);
+            const mediaItems = getGalleryItems();
+            const prevIndex = (currentIndex - 1 + mediaItems.length) % mediaItems.length;
+            openLightbox(prevIndex);
         }
 
         function deleteMediaItem() {

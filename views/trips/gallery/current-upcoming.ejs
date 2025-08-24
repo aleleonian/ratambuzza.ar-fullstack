@@ -25,6 +25,7 @@
         position: relative;
         padding: 0;
         overflow: hidden;
+        border-radius: 6px;
     }
 
     .media-item-image {
@@ -33,6 +34,7 @@
         display: block;
         height: auto;
         object-fit: cover;
+        aspect-ratio: 1 / 1;
         border-radius: 6px;
         transition: transform 0.2s ease;
     }
@@ -197,6 +199,13 @@
         justify-content: flex-start;
         width: 100%;
         margin: 10px 0;
+    }
+
+    @media (max-width: 768px) {
+
+        .lightbox-controls {
+            gap: 0.5rem;
+        }
     }
 </style>
 

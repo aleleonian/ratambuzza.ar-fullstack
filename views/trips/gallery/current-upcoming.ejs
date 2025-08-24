@@ -209,19 +209,24 @@
     <div id="uploadModal" class="modal hidden">
         <div class="modal-content">
             <button id="closeUploadModalButton" class="modal-close">✖</button>
-            <div>
-                Subite unas fotis, rey (max 10).
+            <div style="margin-bottom: 1rem;">
+                Subite unas fotis, rey <span style="font-size: 0.85em;">(máximo 10)</span>.
             </div>
-            <br>
-            <form class="card" hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid"
-                hx-swap="afterbegin" hx-encoding="multipart/form-data">
-                <input type="file" name="media" multiple>
-                <br>
-                <button type="submit">Upload</button>
+
+            <form hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
+                hx-encoding="multipart/form-data">
+                <input type="file" name="media" accept="image/*" multiple onchange="toggleUploadButton(this)">
+                <button type="submit" disabled id="uploadButton">Subir</button>
             </form>
-            <br>
         </div>
     </div>
+
+    <script>
+        function toggleUploadButton(input) {
+            const btn = document.getElementById('uploadButton');
+            btn.disabled = input.files.length === 0;
+        }
+    </script>
 
     <% if (media.length === 0) { %>
     <p>No hay imágenes todavía. ¡Que amargos son!</p>
@@ -282,7 +287,10 @@
     </div>
 
     <script>
-        const mediaItems = Array.from(document.querySelectorAll('.gallery-item'));
+        // let mediaItems = Array.from(document.querySelectorAll('.gallery-item'));
+        function getGalleryItems() {
+            return Array.from(document.querySelectorAll('.gallery-item'));
+        }
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
         let currentIndex = -1;
@@ -327,6 +335,8 @@
 
 
         async function openLightbox(index) {
+            const mediaItems = getGalleryItems();
+            if (index < 0 || index >= mediaItems.length) return;
             // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
             // Use hx-target to inject into a #lightbox-meta container
             const mediaId = mediaItems[index].dataset.mediaId;
@@ -352,7 +362,6 @@
             const itemUrl = meta.mediaUrl;
             document.getElementById('lightbox-download').href = itemUrl;
 
-            // this comment is here to show the 'unrendered' version of the 'if'
             if (stringNumberToBoolean(meta.mediaOwner) || <%= currentUser.role === 'admin' %>) {
                 document.getElementById('lightbox-delete-button').style.display = 'block';
                 document.getElementById('lightbox-edit-tags-button').style.display = 'block';
@@ -369,17 +378,33 @@
             lightbox.classList.add('active');
         }
 
+        function openLightboxFromElement(trigger) {
+            const anchor = trigger.closest('.media-item')?.querySelector('.gallery-item');
+            if (!anchor) return;
+
+            const galleryItems = Array.from(document.querySelectorAll('#media-grid .gallery-item'));
+            const index = galleryItems.indexOf(anchor);
+
+            if (index === -1) return;
+
+            openLightbox(index);
+        }
+
         function closeLightbox() {
             lightbox.classList.remove('active');
             lightboxImg.src = '';
         }
 
         function showNext() {
-            if (currentIndex < mediaItems.length - 1) openLightbox(currentIndex + 1);
+            const mediaItems = getGalleryItems();
+            const nextIndex = (currentIndex + 1) % mediaItems.length;
+            openLightbox(nextIndex);
         }
 
         function showPrev() {
-            if (currentIndex > 0) openLightbox(currentIndex - 1);
+            const mediaItems = getGalleryItems();
+            const prevIndex = (currentIndex - 1 + mediaItems.length) % mediaItems.length;
+            openLightbox(prevIndex);
         }
 
         function deleteMediaItem() {
@@ -440,6 +465,7 @@
             }
         }
 
+        const mediaItems = getGalleryItems();
         mediaItems.forEach((item, idx) => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();

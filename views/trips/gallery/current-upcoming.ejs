@@ -96,16 +96,11 @@
         top: 1rem;
         right: 1rem;
         font-size: 2rem;
-    }
-
-    .lightbox-close {
         background: rgba(255, 255, 255, 0.1);
-        border: 2px solid white;
         color: white;
         padding: 0.5rem 1rem;
         font-size: 1.25rem;
         cursor: pointer;
-        border-radius: 6px;
     }
 
     .lightbox-overlay {
@@ -242,7 +237,7 @@
             document.getElementById('uploadModal')?.classList.add('hidden');
             document.querySelector('#uploadModal form')?.reset();
         }
-        
+
         function showUploadForm() {
             document.getElementById('uploadModal')?.classList.remove('hidden');
         }
@@ -475,6 +470,7 @@
             });
         });
 
+        document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
         document.getElementById('lightbox-next').addEventListener('click', showNext);
         document.getElementById('lightbox-prev').addEventListener('click', showPrev);
         document.getElementById('lightbox-like-button').addEventListener('click', likeToggle);

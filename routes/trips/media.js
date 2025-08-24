@@ -117,54 +117,65 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
 router.get('/test-upload', async (req, res, next) => {
     res.render('trips/test-upload')
 })
+async function getMediaForTrip(userId, tripId, sortCriteria, db) {
 
-router.get('/gallery', async (req, res, next) => {
-    const user = req.session.user;
-    const trip = req.trip;
-    const [media] = await req.db.execute(`
-    SELECT 
+    console.log('sortCriteria->', sortCriteria);
+
+    let query = `
+SELECT 
     m.*, 
     u.handle AS uploader_name, 
     u.avatar_head_file_name AS uploader_avatar,
     GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
     m.user_id = ? AS isOwner,
-    MAX(lm.user_id IS NOT NULL) AS userLiked, -- using MAX(lm.user_id IS NOT NULL) instead of lm.user_id IS NOT NULL, which satisfies strict SQL mode.
+    MAX(lm.user_id IS NOT NULL) AS userLiked,
     (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
-    FROM media m
-    JOIN users u ON m.user_id = u.id
-    LEFT JOIN likes_media lm ON lm.media_id = m.id AND lm.user_id = ? 
-    LEFT JOIN media_tags mt ON m.id = mt.media_id
-    LEFT JOIN tags ON mt.tag_id = tags.id
-    WHERE m.trip_id = ?
-    GROUP BY m.id
-    ORDER BY m.created_at DESC;
-`, [user.id, user.id, trip.id]);
+FROM media m
+JOIN users u ON m.user_id = u.id
+LEFT JOIN likes_media lm ON lm.media_id = m.id AND lm.user_id = ?
+LEFT JOIN media_tags mt ON m.id = mt.media_id
+LEFT JOIN tags ON mt.tag_id = tags.id
+WHERE m.trip_id = ?
+`;
+
+    const replacements = [userId, userId, tripId];
+
+    if (sortCriteria !== "-1") {
+        query += ` AND tags.id = ?`;
+        replacements.push(sortCriteria);
+    }
+
+    query += ` GROUP BY m.id ORDER BY m.created_at DESC`;
 
 
-    // TODO deprecated
-    // what media items did the user like?
-    // const [likes] = await req.db.execute(
-    //     'SELECT media_id FROM likes_media WHERE user_id = ?', [user.id]
-    // );
+    console.log('query->', query);
 
-    // const likedMediaIds = new Set(likes.map(l => l.media_id));
-    // media.forEach(item => {
-    //     item.userLiked = likedMediaIds.has(item.id);
-    // });
+    try {
+        const [media] = await db.execute(query, replacements);
+        return media;
+    }
+    catch (error) {
+        console.error("Error getting media for trip: " + error);
+        return null
+    }
+}
+router.get('/gallery', async (req, res, next) => {
+    const isHTMX = req.headers['hx-request'] === 'true';
 
-    // what is the like count for the media files for /gallery?
-    // const [likeCounts] = await req.db.execute(
-    //     'SELECT media_id, COUNT(*) AS count FROM likes_media GROUP BY media_id'
-    // );
+    const user = req.session.user;
+    const trip = req.trip;
+    const { sort = '-1' } = req.query;
 
-    // const countMap = Object.fromEntries(likeCounts.map(row => [row.media_id, row.count]));
+    const media = await getMediaForTrip(user.id, trip.id, sort, req.db);
 
-    // media.forEach(item => {
-    //     item.likesCount = countMap[item.id] || 0;
-    // });
-
-    console.log('media->', media);
-    res.render('trips/gallery', { media })
+    // is this a regular /gallery request or a HTMX request from /gallery
+    if (isHTMX) {
+        console.log("it's a HTMX request");
+        res.render('trips/gallery/media-grid', { media }); // just the grid partial
+    } else {
+        const [allTags] = await req.db.execute(`SELECT * FROM tags`);
+        res.render('trips/gallery', { media, allTags });
+    }
 })
 
 router.get('/gallery/page/:n', async (req, res, next) => {

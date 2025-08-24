@@ -1,0 +1,52 @@
+<style>
+    .sort-options {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .sort-pill {
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: black;
+        user-select: none;
+        border: 1px solid var(--accent-1);
+    }
+
+    .sort-pill.active {
+        background-color: rgba(255, 255, 255, 0.6);
+        color: red;
+    }
+
+    .sort-pill:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+</style>
+
+
+<div class="sort-options" style="margin-bottom: 1rem;">
+    <h5>Filtros:</h5>
+    <span class="sort-pill active" data-sort="-1">recientes</span>
+    <% allTags.forEach(tag=>{%>
+    <span class="sort-pill" data-sort="<%= tag.id%>"><%= tag.name%></span>
+    <%}) %>
+</div>
+
+<script>
+    document.querySelectorAll('.sort-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            // UI update
+            document.querySelectorAll('.sort-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+
+            const sort = pill.dataset.sort;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?sort=${sort}`;
+            htmx.ajax('GET', url, { target: '#media-grid', swap: 'innerHTML' });
+        });
+    });
+</script>

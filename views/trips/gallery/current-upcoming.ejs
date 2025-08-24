@@ -240,7 +240,9 @@
     <script>
         function hideUploadForm() {
             document.getElementById('uploadModal')?.classList.add('hidden');
+            document.querySelector('#uploadModal form')?.reset();
         }
+        
         function showUploadForm() {
             document.getElementById('uploadModal')?.classList.remove('hidden');
         }
@@ -496,6 +498,7 @@
         // this will be triggered when the upload is complete
         document.body.addEventListener('upload-complete', () => {
             document.getElementById('uploadModal')?.classList.add('hidden');
+            document.querySelector('#uploadModal form')?.reset();
         });
 
     </script>

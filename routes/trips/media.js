@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 
 const { uploadDir, upload, createThumbnail, uploadMultiple } = require('../../lib/upload');
-const { error } = require('console');
 
 const router = express.Router();
 
@@ -47,6 +46,7 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             const outputPath = path.join(uploadDir, resizedName);
 
             await sharp(file.path)
+                .rotate()
                 .resize({ width, height, fit: 'inside' })
                 .jpeg({ quality })
                 .toFile(outputPath);

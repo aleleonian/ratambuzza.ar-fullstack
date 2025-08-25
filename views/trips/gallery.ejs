@@ -35,7 +35,6 @@
     // fire this event to we can re-fetch the filter-pills
 
     document.body.addEventListener('htmx:afterOnLoad', function (evt) {
-        debugger;
         // Check if the target element is a tag editor that was just updated
         if (evt.target && evt.target.id && evt.target.id.startsWith('tag-editor-')) {
             document.body.dispatchEvent(new CustomEvent('tags-updated'));
@@ -43,7 +42,6 @@
     });
 
     document.body.addEventListener('tags-updated', () => {
-        debugger;
         // if tags were updated either on the hover menu or the lightbox
         // then we must update the pill-filters
         let url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/filter-pills`;

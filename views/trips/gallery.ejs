@@ -31,7 +31,34 @@
             dialog.classList.add('hidden');
         }
     });
+    // after the tags were edited, either in the hover menu or lightbox
+    // fire this event to we can re-fetch the filter-pills
+
+    document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+        // Check if the target element is a tag editor that was just updated
+        if (evt.target && evt.target.id && evt.target.id.startsWith('tag-editor-')) {
+            document.body.dispatchEvent(new CustomEvent('tags-updated'));
+        }
+    });
+
+    document.body.addEventListener('tags-updated', () => {
+        // if tags were updated either on the hover menu or the lightbox
+        // then we must update the pill-filters
+        let url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/filter-pills`;
+        let options = { target: `#filter-pills`, swap: 'innerHTML' };
+        htmx.ajax('GET', url, options);
 
 
-
+        // HTMX load new filtered media
+        // selectedTagId is a global variable
+        // if the tags were updated, then we might need to update the media items
+        // that are being filtered (if selectedTagId != -1)
+        if (selectedTagId != -1) {
+            url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?sort=${selectedTagId}`;
+            htmx.ajax('GET', url, {
+                target: '#media-grid',
+                swap: 'innerHTML'
+            });
+        }
+    });
 </script>

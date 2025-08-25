@@ -254,6 +254,8 @@
         document.getElementById('showUploadModalButton').addEventListener('click', showUploadForm);
     </script>
 
+    <%- include('filter')%>
+
     <div id="media-grid" class="media-grid">
         <% if (media.length > 0 ) {%>
         <% media.forEach((item, index) => { %>

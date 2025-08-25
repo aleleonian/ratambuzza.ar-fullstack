@@ -117,54 +117,71 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
 router.get('/test-upload', async (req, res, next) => {
     res.render('trips/test-upload')
 })
+async function getMediaForTrip(userId, tripId, sortCriteria, db) {
 
-router.get('/gallery', async (req, res, next) => {
-    const user = req.session.user;
-    const trip = req.trip;
-    const [media] = await req.db.execute(`
+    let query = `
     SELECT 
-    m.*, 
-    u.handle AS uploader_name, 
-    u.avatar_head_file_name AS uploader_avatar,
-    GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
-    m.user_id = ? AS isOwner,
-    MAX(lm.user_id IS NOT NULL) AS userLiked, -- using MAX(lm.user_id IS NOT NULL) instead of lm.user_id IS NOT NULL, which satisfies strict SQL mode.
-    (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
+        m.*, 
+        u.handle AS uploader_name, 
+        u.avatar_head_file_name AS uploader_avatar,
+        GROUP_CONCAT(tags.name ORDER BY tags.name) AS tags,
+        m.user_id = ? AS isOwner,
+        MAX(lm.user_id IS NOT NULL) AS userLiked,
+        (SELECT COUNT(*) FROM likes_media WHERE media_id = m.id) AS likesCount
     FROM media m
     JOIN users u ON m.user_id = u.id
-    LEFT JOIN likes_media lm ON lm.media_id = m.id AND lm.user_id = ? 
+    LEFT JOIN likes_media lm ON lm.media_id = m.id AND lm.user_id = ?
     LEFT JOIN media_tags mt ON m.id = mt.media_id
     LEFT JOIN tags ON mt.tag_id = tags.id
     WHERE m.trip_id = ?
-    GROUP BY m.id
-    ORDER BY m.created_at DESC;
-`, [user.id, user.id, trip.id]);
+    `;
 
+    const replacements = [userId, userId, tripId];
 
-    // TODO deprecated
-    // what media items did the user like?
-    // const [likes] = await req.db.execute(
-    //     'SELECT media_id FROM likes_media WHERE user_id = ?', [user.id]
-    // );
+    if (sortCriteria !== "-1") {
+        query += `
+        AND EXISTS (
+        SELECT 1
+        FROM media_tags mt2
+        WHERE mt2.media_id = m.id AND mt2.tag_id = ?) `;
+        replacements.push(sortCriteria);
+    }
 
-    // const likedMediaIds = new Set(likes.map(l => l.media_id));
-    // media.forEach(item => {
-    //     item.userLiked = likedMediaIds.has(item.id);
-    // });
+    query += ` GROUP BY m.id ORDER BY m.created_at DESC`;
 
-    // what is the like count for the media files for /gallery?
-    // const [likeCounts] = await req.db.execute(
-    //     'SELECT media_id, COUNT(*) AS count FROM likes_media GROUP BY media_id'
-    // );
+    console.log('sortCriteria->', sortCriteria);
+    console.log('query->', query);
 
-    // const countMap = Object.fromEntries(likeCounts.map(row => [row.media_id, row.count]));
+    try {
+        const [media] = await db.execute(query, replacements);
+        return media;
+    }
+    catch (error) {
+        console.error("Error getting media for trip: " + error);
+        return null
+    }
+}
+router.get('/gallery', async (req, res, next) => {
+    try {
+        const isHTMX = req.headers['hx-request'] === 'true';
+        const user = req.session.user;
+        const trip = req.trip;
+        const { sort = '-1' } = req.query;
 
-    // media.forEach(item => {
-    //     item.likesCount = countMap[item.id] || 0;
-    // });
+        const media = await getMediaForTrip(user.id, trip.id, sort, req.db);
+        if (!media) throw (new Error('Could not get media.'))
 
-    console.log('media->', media);
-    res.render('trips/gallery', { media })
+        // is this a regular /gallery request or a HTMX request from /gallery
+        if (isHTMX) {
+            res.render('trips/gallery/media-grid', { media }); // just the grid partial
+        } else {
+            const allTags = await getAllTagsForThisTrip(req.db, trip.id)
+            res.render('trips/gallery', { media, allTags });
+        }
+    }
+    catch (error) {
+        return return500Error(res, error);
+    }
 })
 
 router.get('/gallery/page/:n', async (req, res, next) => {
@@ -259,6 +276,13 @@ router.post('/gallery/:id/like', async (req, res, next) => {
     }
 });
 
+router.get('/gallery/filter-pills', async (req, res, next) => {
+    const trip = req.trip;
+    const allTags = await getAllTagsForThisTrip(req.db, trip.id)
+    res.render('trips/gallery/filter-pills', { allTags });
+});
+
+// GETs tags for a given media item and returns a template to edit them
 router.get('/gallery/:id/tags/edit', async (req, res, next) => {
     const mediaId = req.params.id;
     const [tagRows] = await req.db.execute(
@@ -271,6 +295,7 @@ router.get('/gallery/:id/tags/edit', async (req, res, next) => {
     res.render('trips/gallery/tag-editor', { mediaId, currentTags });
 });
 // GET /trips/:slug/gallery/:id/tags
+// GETs tags for a given media item
 router.get('/gallery/:id/tags', async (req, res) => {
     const mediaId = req.params.id;
     const [tagRows] = await req.db.execute(
@@ -284,6 +309,7 @@ router.get('/gallery/:id/tags', async (req, res) => {
     res.render('trips/gallery/tag-pills', { currentTags, mediaId });
 });
 
+// UPDATES tags for a given media item
 router.post('/gallery/:id/tags', async (req, res, next) => {
 
     try {
@@ -372,7 +398,15 @@ router.get('/gallery/:id/lightbox-data', async (req, res) => {
 });
 
 
-
+async function getAllTagsForThisTrip(db, tripId) {
+    const [allTags] = await db.execute(`
+                SELECT DISTINCT t.name, t.id FROM tags t
+                JOIN media_tags mt ON mt.tag_id = t.id
+                JOIN media m ON mt.media_id = m.id
+                where m.trip_id = ?
+                `, [tripId]);
+    return allTags;
+}
 module.exports = router;
 
 async function isAuthorized(db, userRole, userId, mediaId) {
@@ -381,4 +415,12 @@ async function isAuthorized(db, userRole, userId, mediaId) {
     if (rows.length === 0) return false;
     const ownerId = rows[0]?.user_id;
     return ownerId === userId;
+}
+
+
+function return500Error(res, errorMessage) {
+    console.log(errorMessage);
+    res.setHeader('X-Toast', errorMessage);
+    res.setHeader('X-Toast-Type', 'error');
+    return res.status(500).send('Internal Server Error:' + errorMessage);
 }

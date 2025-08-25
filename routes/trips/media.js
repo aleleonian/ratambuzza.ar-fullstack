@@ -166,9 +166,9 @@ router.get('/gallery', async (req, res, next) => {
         const isHTMX = req.headers['hx-request'] === 'true';
         const user = req.session.user;
         const trip = req.trip;
-        const { sort = '-1' } = req.query;
+        const { tag = '-1' } = req.query;
 
-        const media = await getMediaForTrip(user.id, trip.id, sort, req.db);
+        const media = await getMediaForTrip(user.id, trip.id, tag, req.db);
         if (!media) throw (new Error('Could not get media.'))
 
         // is this a regular /gallery request or a HTMX request from /gallery

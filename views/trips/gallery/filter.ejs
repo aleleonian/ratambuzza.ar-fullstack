@@ -43,14 +43,14 @@
         if (!e.target.classList.contains('sort-pill')) return;
 
         // Update selected tag
-        selectedTagId = e.target.dataset.sort;
+        selectedTagId = e.target.dataset.tag;
 
         // Update pill UI
         document.querySelectorAll('.sort-pill').forEach(p => p.classList.remove('active'));
         e.target.classList.add('active');
 
         // HTMX load new filtered media
-        const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?sort=${selectedTagId}`;
+        const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}`;
         htmx.ajax('GET', url, {
             target: '#media-grid',
             swap: 'innerHTML'
@@ -60,7 +60,7 @@
     // Re-apply active class after filter-pills update
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         if (evt.target.id === 'filter-pills') {
-            const activePill = document.querySelector(`.sort-pill[data-sort="${selectedTagId}"]`);
+            const activePill = document.querySelector(`.sort-pill[data-tag="${selectedTagId}"]`);
             if (activePill) {
                 activePill.classList.add('active');
             }

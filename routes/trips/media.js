@@ -176,6 +176,7 @@ router.get('/gallery', async (req, res, next) => {
             res.render('trips/gallery/media-grid', { media }); // just the grid partial
         } else {
             const allTags = await getAllTagsForThisTrip(req.db, trip.id)
+            allTags.sort((a, b) => a.name.localeCompare(b.name));
             res.render('trips/gallery', { media, allTags });
         }
     }
@@ -279,6 +280,7 @@ router.post('/gallery/:id/like', async (req, res, next) => {
 router.get('/gallery/filter-pills', async (req, res, next) => {
     const trip = req.trip;
     const allTags = await getAllTagsForThisTrip(req.db, trip.id)
+    allTags.sort((a, b) => a.name.localeCompare(b.name));
     res.render('trips/gallery/filter-pills', { allTags });
 });
 
@@ -331,6 +333,7 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
         const tagNames = tagsInput
             .split(',')
             .map(tag => tag.trim().toLowerCase())
+            .sort()
             .filter(tag => tag);
 
         const conn = await req.db.getConnection();

@@ -37,6 +37,8 @@
     // TODO: save this in the localStorage and not globally
     let selectedTagId = '-1'; // Default to "recientes"
 
+    document.getElementById('default-filter-pill').classList.add('active');
+
     document.getElementById('filter-pills')?.addEventListener('click', (e) => {
         if (!e.target.classList.contains('sort-pill')) return;
 

@@ -1,6 +1,6 @@
 <div class="sort-options" style="margin-bottom: 1rem;">
     <h5>Filtros:</h5>
-    <span class="sort-pill" data-sort="-1">recientes</span>
+    <span class="sort-pill" id="default-filter-pill" data-sort="-1">recientes</span>
     <% allTags.forEach(tag=>{%>
     <span class="sort-pill" data-sort="<%= tag.id%>"><%= tag.name%></span>
     <%}) %>

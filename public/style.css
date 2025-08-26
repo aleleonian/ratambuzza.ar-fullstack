@@ -163,6 +163,12 @@ footer.footer {
   border-color: var(--accent-1);
 }
 
+.button:active {
+  background: var(--nav-bg);
+  color: var(--fg);
+  border-color: var(--accent-1);
+}
+
 .danger {
   background-color: red;
   color: white;
@@ -337,10 +343,7 @@ h5 {
   .sidebar.right {
     display: none;
   }
-}
 
-
-@media (max-width: 768px) {
   .two-col {
     grid-template-columns: 1fr;
   }
@@ -387,5 +390,14 @@ h5 {
   .main-nav a,
   .user-nav a {
     font-size: 14px;
+  }
+}
+
+@media (hover: none) {
+  .button:hover {
+    background: var(--fg);
+    /* revert to non-hover */
+    color: var(--bg);
+    border-color: var(--fg);
   }
 }

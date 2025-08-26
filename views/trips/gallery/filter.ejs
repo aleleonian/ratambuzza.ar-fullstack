@@ -85,8 +85,6 @@
     document.getElementById('default-author-pill').classList.add('active');
 
     document.getElementById('filter-pills')?.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('sort-pill')) return;
-
         if (e.target.classList.contains('tag-pill')) {
             // Update selected tag
             selectedTagId = e.target.dataset.tag;
@@ -117,14 +115,22 @@
                 swap: 'innerHTML'
             });
         }
+        else if (e.target.id == 'toggle-filters') {
+            const filters = document.getElementsByClassName('filter-container')[0];
+            filters.classList.toggle('hidden');
+        }
     });
 
     // Re-apply active class after filter-pills update
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         if (evt.target.id === 'filter-pills') {
-            const activePill = document.querySelector(`.sort-pill[data-tag="${selectedTagId}"]`);
-            if (activePill) {
-                activePill.classList.add('active');
+            const activeTagPill = document.querySelector(`.sort-pill[data-tag="${selectedTagId}"]`);
+            if (activeTagPill) {
+                activeTagPill.classList.add('active');
+            }
+            const activeAuthorPill = document.querySelector(`.sort-pill[data-author="${selectedAuthor}"]`);
+            if (activeAuthorPill) {
+                activeAuthorPill.classList.add('active');
             }
         }
     });

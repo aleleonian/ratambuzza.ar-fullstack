@@ -4,7 +4,7 @@
     <div class="filter-row">
         <span class="filter-label">Tags:</span>
         <div class="pill-container">
-            <span class="sort-pill tag-pill" id="default-tag-pill" data-tag="-1">Recientes</span>
+            <span class="sort-pill tag-pill" id="default-tag-pill" data-tag="-1">Ninguno</span>
             <% tags.forEach(tag => { %>
             <span class="sort-pill tag-pill" data-tag="<%= tag.id %>"><%= tag.name %></span>
             <% }) %>
@@ -21,13 +21,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    const toggleBtn = document.getElementById('toggle-filters');
-    const filters = document.getElementsByClassName('filter-container')[0];
-
-    toggleBtn.addEventListener('click', () => {
-        filters.classList.toggle('hidden');
-        // toggleBtn.textContent = filters.classList.contains('hidden') ? 'Mostrar filtros' : 'Ocultar filtros';
-    });
-</script>

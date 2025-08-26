@@ -288,7 +288,7 @@ router.get('/gallery/:id/tags/edit', async (req, res, next) => {
      WHERE mt.media_id = ?`,
         [mediaId]
     );
-    const currentTags = tagRows.map(row => row.name);
+    const currentTags = tagRows.map(row => row.name).sort();
     res.render('trips/gallery/tag-editor', { mediaId, currentTags });
 });
 // GET /trips/:slug/gallery/:id/tags
@@ -301,7 +301,7 @@ router.get('/gallery/:id/tags', async (req, res) => {
      WHERE mt.media_id = ?`,
         [mediaId]
     );
-    const currentTags = tagRows.map(row => row.name);
+    const currentTags = tagRows.map(row => row.name).sort();
     console.log("GET tag-pills");
     res.render('trips/gallery/tag-pills', { currentTags, mediaId });
 });

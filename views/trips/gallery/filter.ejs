@@ -1,4 +1,4 @@
-<style>
+<!-- <style>
     .sort-options {
         display: flex;
         flex-direction: row;
@@ -26,8 +26,74 @@
     .sort-pill:hover {
         background-color: rgba(255, 255, 255, 0.4);
     }
-</style>
+</style> -->
 
+<style>
+    .filter-container {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .filter-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .pill-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .sort-pill {
+        font-size: 0.6rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+        background-color: rgba(255, 255, 255, 0.15);
+        border: 1px solid var(--accent-1);
+        color: black;
+        cursor: pointer;
+        font-weight: 600;
+        white-space: nowrap;
+        letter-spacing: 0.3px;
+        display: inline-block;
+        transition: background-color 0.2s;
+    }
+
+    .sort-pill.active {
+        background-color: rgba(255, 255, 255, 0.7);
+        color: red;
+        font-weight: bold;
+    }
+
+    .sort-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.4rem;
+        align-items: center;
+        margin-bottom: 0.4rem;
+        line-height: 1;
+    }
+
+    .sort-options span:first-child {
+        font-weight: bold;
+        font-size: 0.75rem;
+        margin-right: 0.4rem;
+    }
+
+    .sort-pill:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+</style>
 
 <div id="filter-pills">
     <%- include('filter-pills') %>

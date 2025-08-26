@@ -1,4 +1,4 @@
-<div style="margin-bottom: 1rem;">
+<!-- <div style="margin-bottom: 1rem;">
     <div class="sort-options">
         <span>Tags:</span>
         <span class="sort-pill tag-pill" id="default-tag-pill" data-tag="-1">recientes</span>
@@ -12,5 +12,27 @@
         <% authors.forEach(author=>{%>
         <span class="sort-pill author-pill" data-author="<%= author.id%>"><%= author.handle%></span>
         <%}) %>
+    </div>
+</div> -->
+
+<div class="filter-container">
+    <div class="filter-row">
+        <span class="filter-label">Tags:</span>
+        <div class="pill-container">
+            <span class="sort-pill tag-pill" id="default-tag-pill" data-tag="-1">Recientes</span>
+            <% tags.forEach(tag => { %>
+            <span class="sort-pill tag-pill" data-tag="<%= tag.id %>"><%= tag.name %></span>
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="filter-row">
+        <span class="filter-label">Autores:</span>
+        <div class="pill-container">
+            <span class="sort-pill author-pill" id="default-author-pill" data-author="-1">Todos</span>
+            <% authors.forEach(author => { %>
+            <span class="sort-pill author-pill" data-author="<%= author.id %>"><%= author.handle %></span>
+            <% }) %>
+        </div>
     </div>
 </div>

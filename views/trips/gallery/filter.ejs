@@ -80,9 +80,11 @@
     // TODO: save this in the localStorage and not globally
     let selectedTagId = '-1'; // Default to "recientes"
     let selectedAuthor = '-1';
+    let selectedSortCriteria = '-1';
 
     document.getElementById('default-tag-pill').classList.add('active');
     document.getElementById('default-author-pill').classList.add('active');
+    document.getElementById('default-sort-pill').classList.add('active');
 
     document.getElementById('filter-pills')?.addEventListener('click', (e) => {
         if (e.target.classList.contains('tag-pill')) {
@@ -94,7 +96,7 @@
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
@@ -109,12 +111,28 @@
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
             });
         }
+        else if (e.target.classList.contains('sort-pill')) {
+            // Update selected sort criteria
+            selectedSortCriteria = e.target.dataset.sort;
+
+            // Update pill UI
+            document.querySelectorAll('.sort-pill.sort-pill').forEach(p => p.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // HTMX load new filtered media
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
+            htmx.ajax('GET', url, {
+                target: '#media-grid',
+                swap: 'innerHTML'
+            });
+        }
+
         else if (e.target.id == 'toggle-filters') {
             const filters = document.getElementsByClassName('filter-container')[0];
             filters.classList.toggle('hidden');
@@ -131,6 +149,10 @@
             const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
             if (activeAuthorPill) {
                 activeAuthorPill.classList.add('active');
+            }
+            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
+            if (activeSortPill) {
+                activeSortPill.classList.add('active');
             }
         }
     });

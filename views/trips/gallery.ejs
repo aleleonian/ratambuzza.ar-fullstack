@@ -50,11 +50,11 @@
 
 
         // HTMX load new filtered media
-        // selectedTagId & selectedAuthor are global variables
+        // selectedTagId & selectedAuthor & selectedSortCriteria are global variables
         // if the tags were updated, then we might need to update the media items
         // that are being filtered (if selectedTagId != -1)
-        if (selectedTagId != -1 || selectedAuthor != -1) {
-            url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+        if (selectedTagId != -1 || selectedAuthor != -1 || selectedSortCriteria != -1) {
+            url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'

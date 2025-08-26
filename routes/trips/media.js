@@ -2,6 +2,7 @@ const express = require('express');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const MOST_LIKED_SORT_CRITERIA = 1;
 
 const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
 
@@ -102,7 +103,7 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
 router.get('/test-upload', async (req, res, next) => {
     res.render('trips/test-upload')
 })
-async function getMediaForTrip(userId, tripId, desiredTag, desiredAuthor, db) {
+async function getMediaForTrip(userId, tripId, desiredTag, desiredAuthor, sortCriteria, db) {
 
     let query = `
     SELECT 
@@ -137,7 +138,14 @@ async function getMediaForTrip(userId, tripId, desiredTag, desiredAuthor, db) {
         replacements.push(desiredTag);
     }
 
-    query += ` GROUP BY m.id ORDER BY m.created_at DESC`;
+    query += ` GROUP BY m.id `
+
+    if (sortCriteria == -1) {
+        query += ` ORDER BY m.created_at DESC `;
+    }
+    else if (sortCriteria == MOST_LIKED_SORT_CRITERIA) {
+        query += `ORDER BY likesCount DESC, m.created_at DESC`;
+    }
 
     try {
         const [media] = await db.execute(query, replacements);
@@ -158,8 +166,9 @@ router.get('/gallery', async (req, res, next) => {
         const trip = req.trip;
         const { tag = '-1' } = req.query;
         const { author = '-1' } = req.query;
+        const { sort = '-1' } = req.query;
 
-        const media = await getMediaForTrip(user.id, trip.id, tag, author, req.db);
+        const media = await getMediaForTrip(user.id, trip.id, tag, author, sort, req.db);
         if (!media) throw (new Error('Could not get media.'))
 
         // is this a regular /gallery request or a HTMX request from /gallery
@@ -168,9 +177,13 @@ router.get('/gallery', async (req, res, next) => {
         } else {
             const tags = await getAllTagsForThisTrip(req.db, trip.id);
             tags.sort((a, b) => a.name.localeCompare(b.name));
+
             const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
             authors.sort((a, b) => a.handle.localeCompare(b.handle));
-            res.render('trips/gallery', { media, tags, authors });
+
+            const sort = [{ name: 'Más likes', value: MOST_LIKED_SORT_CRITERIA }];
+
+            res.render('trips/gallery', { media, tags, authors, sort });
         }
     }
     catch (error) {

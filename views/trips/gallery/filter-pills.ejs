@@ -20,4 +20,14 @@
             <% }) %>
         </div>
     </div>
+
+    <div class="filter-row">
+        <span class="filter-label">Ordenar:</span>
+        <div class="pill-container">
+            <span class="sorting-pill sort-pill" id="default-sort-pill" data-sort="-1">Reciente</span>
+            <% sort.forEach(s => { %>
+            <span class="sorting-pill sort-pill" data-sort="<%= s.value %>"><%= s.name %></span>
+            <% }) %>
+        </div>
+    </div>
 </div>

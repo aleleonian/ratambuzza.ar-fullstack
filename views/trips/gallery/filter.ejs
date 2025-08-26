@@ -1,4 +1,4 @@
-<style>
+<!-- <style>
     .sort-options {
         display: flex;
         flex-direction: row;
@@ -26,8 +26,74 @@
     .sort-pill:hover {
         background-color: rgba(255, 255, 255, 0.4);
     }
-</style>
+</style> -->
 
+<style>
+    .filter-container {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .filter-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .pill-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .sort-pill {
+        font-size: 0.6rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+        background-color: rgba(255, 255, 255, 0.15);
+        border: 1px solid var(--accent-1);
+        color: black;
+        cursor: pointer;
+        font-weight: 600;
+        white-space: nowrap;
+        letter-spacing: 0.3px;
+        display: inline-block;
+        transition: background-color 0.2s;
+    }
+
+    .sort-pill.active {
+        background-color: rgba(255, 255, 255, 0.7);
+        color: red;
+        font-weight: bold;
+    }
+
+    .sort-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.4rem;
+        align-items: center;
+        margin-bottom: 0.4rem;
+        line-height: 1;
+    }
+
+    .sort-options span:first-child {
+        font-weight: bold;
+        font-size: 0.75rem;
+        margin-right: 0.4rem;
+    }
+
+    .sort-pill:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+</style>
 
 <div id="filter-pills">
     <%- include('filter-pills') %>
@@ -36,29 +102,50 @@
 <script>
     // TODO: save this in the localStorage and not globally
     let selectedTagId = '-1'; // Default to "recientes"
+    let selectedAuthor = '-1';
+
+    document.getElementById('default-tag-pill').classList.add('active');
+    document.getElementById('default-author-pill').classList.add('active');
 
     document.getElementById('filter-pills')?.addEventListener('click', (e) => {
         if (!e.target.classList.contains('sort-pill')) return;
 
-        // Update selected tag
-        selectedTagId = e.target.dataset.sort;
+        if (e.target.classList.contains('tag-pill')) {
+            // Update selected tag
+            selectedTagId = e.target.dataset.tag;
 
-        // Update pill UI
-        document.querySelectorAll('.sort-pill').forEach(p => p.classList.remove('active'));
-        e.target.classList.add('active');
+            // Update pill UI
+            document.querySelectorAll('.sort-pill.tag-pill').forEach(p => p.classList.remove('active'));
+            e.target.classList.add('active');
 
-        // HTMX load new filtered media
-        const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?sort=${selectedTagId}`;
-        htmx.ajax('GET', url, {
-            target: '#media-grid',
-            swap: 'innerHTML'
-        });
+            // HTMX load new filtered media
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+            htmx.ajax('GET', url, {
+                target: '#media-grid',
+                swap: 'innerHTML'
+            });
+        }
+        else if (e.target.classList.contains('author-pill')) {
+            // Update selected tag
+            selectedAuthor = e.target.dataset.author;
+
+            // Update pill UI
+            document.querySelectorAll('.sort-pill.author-pill').forEach(p => p.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // HTMX load new filtered media
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+            htmx.ajax('GET', url, {
+                target: '#media-grid',
+                swap: 'innerHTML'
+            });
+        }
     });
 
     // Re-apply active class after filter-pills update
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         if (evt.target.id === 'filter-pills') {
-            const activePill = document.querySelector(`.sort-pill[data-sort="${selectedTagId}"]`);
+            const activePill = document.querySelector(`.sort-pill[data-tag="${selectedTagId}"]`);
             if (activePill) {
                 activePill.classList.add('active');
             }

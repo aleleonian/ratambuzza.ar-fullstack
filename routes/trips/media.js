@@ -3,25 +3,10 @@ const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 
-const { uploadDir, upload, createThumbnail, uploadMultiple } = require('../../lib/upload');
+const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
 
 const router = express.Router();
 
-// use single image upload middleware
-// After upload.single('image') runs you get:
-// req.file: containing the uploaded file's info:
-// {
-//   fieldname: 'image',
-//   originalname: 'cat.png',
-//   encoding: '7bit',
-//   mimetype: 'image/png',
-//   destination: '/your/path/public/uploads',
-//   filename: '1692473123123-123456.png',
-//   path: '/your/path/public/uploads/1692473123123-123456.png',
-//   size: 84123
-// }
-
-// router.post('/upload', upload.single('image'), async (req, res, next) => {
 router.post('/upload', uploadMultiple, async (req, res, next) => {
     const width = 1600;
     const height = 1600;
@@ -117,7 +102,7 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
 router.get('/test-upload', async (req, res, next) => {
     res.render('trips/test-upload')
 })
-async function getMediaForTrip(userId, tripId, sortCriteria, db) {
+async function getMediaForTrip(userId, tripId, desiredTag, desiredAuthor, db) {
 
     let query = `
     SELECT 
@@ -138,22 +123,27 @@ async function getMediaForTrip(userId, tripId, sortCriteria, db) {
 
     const replacements = [userId, userId, tripId];
 
-    if (sortCriteria !== "-1") {
+    if (desiredAuthor != "-1") {
+        query += `AND u.id = ? `;
+        replacements.push(desiredAuthor);
+    }
+
+    if (desiredTag !== "-1") {
         query += `
         AND EXISTS (
         SELECT 1
         FROM media_tags mt2
         WHERE mt2.media_id = m.id AND mt2.tag_id = ?) `;
-        replacements.push(sortCriteria);
+        replacements.push(desiredTag);
     }
 
     query += ` GROUP BY m.id ORDER BY m.created_at DESC`;
 
-    console.log('sortCriteria->', sortCriteria);
-    console.log('query->', query);
-
     try {
         const [media] = await db.execute(query, replacements);
+        replacements.forEach(replacement => {
+            query = query.replace('?', replacement);
+        })
         return media;
     }
     catch (error) {
@@ -166,17 +156,21 @@ router.get('/gallery', async (req, res, next) => {
         const isHTMX = req.headers['hx-request'] === 'true';
         const user = req.session.user;
         const trip = req.trip;
-        const { sort = '-1' } = req.query;
+        const { tag = '-1' } = req.query;
+        const { author = '-1' } = req.query;
 
-        const media = await getMediaForTrip(user.id, trip.id, sort, req.db);
+        const media = await getMediaForTrip(user.id, trip.id, tag, author, req.db);
         if (!media) throw (new Error('Could not get media.'))
 
         // is this a regular /gallery request or a HTMX request from /gallery
         if (isHTMX) {
             res.render('trips/gallery/media-grid', { media }); // just the grid partial
         } else {
-            const allTags = await getAllTagsForThisTrip(req.db, trip.id)
-            res.render('trips/gallery', { media, allTags });
+            const tags = await getAllTagsForThisTrip(req.db, trip.id);
+            tags.sort((a, b) => a.name.localeCompare(b.name));
+            const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
+            authors.sort((a, b) => a.handle.localeCompare(b.handle));
+            res.render('trips/gallery', { media, tags, authors });
         }
     }
     catch (error) {
@@ -278,8 +272,11 @@ router.post('/gallery/:id/like', async (req, res, next) => {
 
 router.get('/gallery/filter-pills', async (req, res, next) => {
     const trip = req.trip;
-    const allTags = await getAllTagsForThisTrip(req.db, trip.id)
-    res.render('trips/gallery/filter-pills', { allTags });
+    const tags = await getAllTagsForThisTrip(req.db, trip.id)
+    tags.sort((a, b) => a.name.localeCompare(b.name));
+    const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
+    authors.sort((a, b) => a.handle.localeCompare(b.handle));
+    res.render('trips/gallery/filter-pills', { tags, authors });
 });
 
 // GETs tags for a given media item and returns a template to edit them
@@ -331,6 +328,7 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
         const tagNames = tagsInput
             .split(',')
             .map(tag => tag.trim().toLowerCase())
+            .sort()
             .filter(tag => tag);
 
         const conn = await req.db.getConnection();
@@ -397,15 +395,23 @@ router.get('/gallery/:id/lightbox-data', async (req, res) => {
     }
 });
 
+async function getAllAuthorsForThisTrip(db, tripId) {
+    const [authors] = await db.execute(
+        `SELECT DISTINCT users.handle, users.id FROM users
+    JOIN media ON media.user_id = users.id
+    WHERE media.trip_id = ?`, [tripId]);
 
+    return authors;
+
+}
 async function getAllTagsForThisTrip(db, tripId) {
-    const [allTags] = await db.execute(`
+    const [tags] = await db.execute(`
                 SELECT DISTINCT t.name, t.id FROM tags t
                 JOIN media_tags mt ON mt.tag_id = t.id
                 JOIN media m ON mt.media_id = m.id
                 where m.trip_id = ?
                 `, [tripId]);
-    return allTags;
+    return tags;
 }
 module.exports = router;
 

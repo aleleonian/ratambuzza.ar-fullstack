@@ -16,6 +16,14 @@
     document.body.addEventListener('htmx:afterRequest', () => {
         document.getElementById('loading-overlay').classList.add('hidden');
     });
+
+    // Let's simulate an active state in buttons with class .button:
+
+    document.querySelectorAll('.button').forEach(btn => {
+        btn.addEventListener('touchstart', () => btn.classList.add('active'));
+        btn.addEventListener('touchend', () => btn.classList.remove('active'));
+    });
+
 </script>
 
 <!-- Toaster  -->

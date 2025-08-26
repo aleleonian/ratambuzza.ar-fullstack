@@ -151,6 +151,12 @@ footer.footer {
   font-family: var(--font);
 }
 
+.button-smaller {
+  font-size: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
 .button:hover {
   background: var(--nav-bg);
   color: var(--fg);

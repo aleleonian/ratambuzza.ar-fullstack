@@ -1,21 +1,6 @@
-<!-- <div style="margin-bottom: 1rem;">
-    <div class="sort-options">
-        <span>Tags:</span>
-        <span class="sort-pill tag-pill" id="default-tag-pill" data-tag="-1">recientes</span>
-        <% tags.forEach(tag=>{%>
-        <span class="sort-pill tag-pill" data-tag="<%= tag.id%>"><%= tag.name%></span>
-        <%}) %>
-    </div>
-    <div class="sort-options">
-        <span>Autores:</span>
-        <span class="sort-pill author-pill" id="default-author-pill" data-author="-1">todos</span>
-        <% authors.forEach(author=>{%>
-        <span class="sort-pill author-pill" data-author="<%= author.id%>"><%= author.handle%></span>
-        <%}) %>
-    </div>
-</div> -->
+<button id="toggle-filters" class="button button-smaller mobile-only">Filtros</button>
 
-<div class="filter-container">
+<div class="filter-container hidden">
     <div class="filter-row">
         <span class="filter-label">Tags:</span>
         <div class="pill-container">
@@ -36,3 +21,13 @@
         </div>
     </div>
 </div>
+
+<script>
+    const toggleBtn = document.getElementById('toggle-filters');
+    const filters = document.getElementsByClassName('filter-container')[0];
+
+    toggleBtn.addEventListener('click', () => {
+        filters.classList.toggle('hidden');
+        // toggleBtn.textContent = filters.classList.contains('hidden') ? 'Mostrar filtros' : 'Ocultar filtros';
+    });
+</script>

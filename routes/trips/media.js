@@ -280,30 +280,31 @@ router.get('/gallery/filter-pills', async (req, res, next) => {
 });
 
 // GETs tags for a given media item and returns a template to edit them
-router.get('/gallery/:id/tags/edit', async (req, res, next) => {
+router.get('/gallery/:id/tags/edit', async (req, res) => {
     const mediaId = req.params.id;
-    const [tagRows] = await req.db.execute(
-        `SELECT t.name FROM media_tags mt
-     JOIN tags t ON mt.tag_id = t.id
-     WHERE mt.media_id = ?`,
-        [mediaId]
-    );
-    const currentTags = tagRows.map(row => row.name).sort();
-    res.render('trips/gallery/tag-editor', { mediaId, currentTags });
+
+    try {
+        const currentTags = await getAllTagsForThisMediaItem(req.db, mediaId);
+        res.render('trips/gallery/tag-editor', { mediaId, currentTags });
+    }
+    catch (error) {
+        return return500Error(res, error);
+    }
+
 });
 // GET /trips/:slug/gallery/:id/tags
 // GETs tags for a given media item
 router.get('/gallery/:id/tags', async (req, res) => {
     const mediaId = req.params.id;
-    const [tagRows] = await req.db.execute(
-        `SELECT t.name FROM media_tags mt
-     JOIN tags t ON mt.tag_id = t.id
-     WHERE mt.media_id = ?`,
-        [mediaId]
-    );
-    const currentTags = tagRows.map(row => row.name).sort();
-    console.log("GET tag-pills");
-    res.render('trips/gallery/tag-pills', { currentTags, mediaId });
+
+    try {
+        const currentTags = await getAllTagsForThisMediaItem(req.db, mediaId);
+
+        res.render('trips/gallery/tag-pills', { currentTags, mediaId });
+    }
+    catch (error) {
+        return return500Error(res, error);
+    }
 });
 
 // UPDATES tags for a given media item
@@ -404,6 +405,18 @@ async function getAllAuthorsForThisTrip(db, tripId) {
     return authors;
 
 }
+
+async function getAllTagsForThisMediaItem(db, mediaId) {
+    const [tagRows] = await db.execute(
+        `SELECT t.name FROM media_tags mt
+     JOIN tags t ON mt.tag_id = t.id
+     WHERE mt.media_id = ?`,
+        [mediaId]
+    );
+    const tags = tagRows.map(row => row.name).sort();
+    return tags;
+}
+
 async function getAllTagsForThisTrip(db, tripId) {
     const [tags] = await db.execute(`
                 SELECT DISTINCT t.name, t.id FROM tags t

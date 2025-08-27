@@ -58,8 +58,6 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             }
         }
 
-        console.log('insertedIds->', insertedIds);
-
         try {
             const placeholders = insertedIds.map(() => '?').join(', ');
             [newItems] = await req.db.execute(`

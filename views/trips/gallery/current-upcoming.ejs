@@ -556,6 +556,49 @@
         });
 
     </script>
+
+    <!-- This listener is for the form inside like-button-gallery.ejs -->
+    <script>
+        document.body.addEventListener('submit', async function (e) {
+            if (!e.target.matches('.like-form')) return;
+
+
+            e.preventDefault();
+            const form = e.target;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'HX-Request': 'true' }
+                });
+
+                if (!response.ok) throw new Error('Failed to like');
+
+                if (selectedSortCriteria == 1) {
+                    // Like sorting is active → reload the grid
+                    const params = new URLSearchParams();
+                    if (selectedTagId && selectedTagId !== "-1") params.append('tag', selectedTagId);
+                    if (selectedAuthor && selectedAuthor !== "-1") params.append('author', selectedAuthor);
+                    if (selectedSortCriteria && selectedSortCriteria !== "-1") params.append('sort', selectedSortCriteria);
+
+                    const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
+
+                    htmx.ajax('GET', galleryUrl, {
+                        target: '#media-grid',
+                        swap: 'innerHTML'
+                    });
+                } else {
+                    // Like sorting NOT active → only update this button
+                    const html = await response.text();
+                    form.outerHTML = html;
+                }
+            } catch (err) {
+                showToast('Error al dar like', 'error');
+                console.error(err);
+            }
+        });
+    </script>
+
     <% } %>
 </main>
 <%- include('../../partials/footer') %>

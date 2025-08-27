@@ -277,7 +277,8 @@ router.post('/gallery/:id/like', async (req, res, next) => {
             count,
         });
     } catch (err) {
-        next(err);
+        console.error(err);
+        return500Error(res, err);
     }
 });
 

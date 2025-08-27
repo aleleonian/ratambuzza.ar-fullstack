@@ -149,12 +149,18 @@ footer.footer {
   text-decoration: none;
   border: 2px solid var(--fg);
   font-family: var(--font);
+  cursor: pointer;
 }
 
 .button-smaller {
   font-size: 10px;
   padding: 6px 10px;
   border-radius: 6px;
+}
+
+.secondary-color {
+  background-color: var(--accent-1);
+  color: white;
 }
 
 .button:hover {
@@ -320,6 +326,11 @@ h1 {
 h5 {
   color: var(--label);
   margin: 0.5rem 0 0;
+}
+
+.menu-item {
+  width: 50px;
+  height: 50px;
 }
 
 /* Mobile tweak */

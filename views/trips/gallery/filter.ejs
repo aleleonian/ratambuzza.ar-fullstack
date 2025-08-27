@@ -7,6 +7,10 @@
         gap: 1rem;
     }
 
+    .filter-container.hidden {
+        display: none;
+    }
+
     .filter-row {
         display: flex;
         flex-direction: column;
@@ -25,7 +29,7 @@
         gap: 0.5rem;
     }
 
-    .sort-pill {
+    .sorting-pill {
         font-size: 0.6rem;
         padding: 0.25rem 0.55rem;
         border-radius: 999px;
@@ -40,7 +44,7 @@
         transition: background-color 0.2s;
     }
 
-    .sort-pill.active {
+    .sorting-pill.active {
         background-color: rgba(255, 255, 255, 0.7);
         color: red;
         font-weight: bold;
@@ -61,15 +65,15 @@
         margin-right: 0.4rem;
     }
 
-    .sort-pill:hover {
+    .sorting-pill:hover {
         background-color: rgba(255, 255, 255, 0.3);
     }
 
-    @media (max-width: 768px) {
+    /* @media (max-width: 768px) {
         .filter-container.hidden {
             display: none;
         }
-    }
+    } */
 </style>
 
 <div id="filter-pills">
@@ -80,23 +84,23 @@
     // TODO: save this in the localStorage and not globally
     let selectedTagId = '-1'; // Default to "recientes"
     let selectedAuthor = '-1';
+    let selectedSortCriteria = '-1';
 
     document.getElementById('default-tag-pill').classList.add('active');
     document.getElementById('default-author-pill').classList.add('active');
+    document.getElementById('default-sort-pill').classList.add('active');
 
     document.getElementById('filter-pills')?.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('sort-pill')) return;
-
         if (e.target.classList.contains('tag-pill')) {
             // Update selected tag
             selectedTagId = e.target.dataset.tag;
 
             // Update pill UI
-            document.querySelectorAll('.sort-pill.tag-pill').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sorting-pill.tag-pill').forEach(p => p.classList.remove('active'));
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
@@ -107,24 +111,52 @@
             selectedAuthor = e.target.dataset.author;
 
             // Update pill UI
-            document.querySelectorAll('.sort-pill.author-pill').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sorting-pill.author-pill').forEach(p => p.classList.remove('active'));
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
             });
+        }
+        else if (e.target.classList.contains('sort-pill')) {
+            // Update selected sort criteria
+            selectedSortCriteria = e.target.dataset.sort;
+
+            // Update pill UI
+            document.querySelectorAll('.sort-pill.sort-pill').forEach(p => p.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // HTMX load new filtered media
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
+            htmx.ajax('GET', url, {
+                target: '#media-grid',
+                swap: 'innerHTML'
+            });
+        }
+
+        else if (e.target.id == 'toggle-filters') {
+            const filters = document.getElementsByClassName('filter-container')[0];
+            filters.classList.toggle('hidden');
         }
     });
 
     // Re-apply active class after filter-pills update
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         if (evt.target.id === 'filter-pills') {
-            const activePill = document.querySelector(`.sort-pill[data-tag="${selectedTagId}"]`);
-            if (activePill) {
-                activePill.classList.add('active');
+            const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
+            if (activeTagPill) {
+                activeTagPill.classList.add('active');
+            }
+            const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
+            if (activeAuthorPill) {
+                activeAuthorPill.classList.add('active');
+            }
+            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
+            if (activeSortPill) {
+                activeSortPill.classList.add('active');
             }
         }
     });

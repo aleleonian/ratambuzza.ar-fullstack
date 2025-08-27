@@ -181,7 +181,7 @@ router.get('/gallery', async (req, res, next) => {
             const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
             authors.sort((a, b) => a.handle.localeCompare(b.handle));
 
-            const sort = [{ name: 'Más likes', value: MOST_LIKED_SORT_CRITERIA }];
+            const sort = getAllSortCriteria();
 
             res.render('trips/gallery', { media, tags, authors, sort });
         }
@@ -289,7 +289,8 @@ router.get('/gallery/filter-pills', async (req, res, next) => {
     tags.sort((a, b) => a.name.localeCompare(b.name));
     const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
     authors.sort((a, b) => a.handle.localeCompare(b.handle));
-    res.render('trips/gallery/filter-pills', { tags, authors });
+    const sort = getAllSortCriteria();
+    res.render('trips/gallery/filter-pills', { tags, authors, sort });
 });
 
 // GETs tags for a given media item and returns a template to edit them
@@ -409,6 +410,9 @@ router.get('/gallery/:id/lightbox-data', async (req, res) => {
     }
 });
 
+function getAllSortCriteria() {
+    return [{ name: 'Más likes', value: MOST_LIKED_SORT_CRITERIA }]
+}
 async function getAllAuthorsForThisTrip(db, tripId) {
     const [authors] = await db.execute(
         `SELECT DISTINCT users.handle, users.id FROM users

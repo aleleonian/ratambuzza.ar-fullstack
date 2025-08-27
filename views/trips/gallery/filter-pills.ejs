@@ -30,4 +30,20 @@
             <% }) %>
         </div>
     </div>
+
+    <button id="clean-filters-button" class="button button-smaller">Limpiar</button>
 </div>
+
+<script>
+    function resetFilters() {
+        // selectedTagId = '-1'; // Default to "recientes"
+        // selectedAuthor = '-1';
+        // selectedSortCriteria = '-1';
+
+        // document.getElementById('default-tag-pill').classList.add('active');
+        // document.getElementById('default-author-pill').classList.add('active');
+        // document.getElementById('default-sort-pill').classList.add('active');
+        location.href = "/trips/<%=currentOrUpcomingTrip.slug%>/gallery"
+    }
+    document.getElementById('clean-filters-button').addEventListener('click', resetFilters)
+</script>

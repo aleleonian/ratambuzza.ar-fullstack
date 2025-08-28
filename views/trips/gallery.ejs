@@ -44,14 +44,13 @@
 
     document.body.addEventListener('htmx:afterSwap', function (evt) {
         const el = evt.target;
-        // Only act if we just swapped into a tag editor container
-        if (el && el.id && el.id.startsWith('tag-editor-')) {
-            // Fire event
-            document.body.dispatchEvent(new CustomEvent('tags-updated', {
-                detail: { mediaId: el.id.replace('tag-editor-', '') }
-            }));
+        const updatedTagList = el.querySelector('.tag-list.just-updated');
+        if (updatedTagList) {
+            // const mediaId = updatedTagList.dataset.mediaId;
+            document.body.dispatchEvent(new CustomEvent('tags-updated'));
         }
     });
+
 
 
     document.body.addEventListener('tags-updated', () => {

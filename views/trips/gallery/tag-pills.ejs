@@ -1,4 +1,4 @@
-<div class="tag-list">
+<div class="tag-list <%= typeof justUpdated !== 'undefined' && justUpdated ? ' just-updated' : '' %>">
     <% if (currentTags && currentTags.length > 0) { %>
     <% currentTags.forEach(tag => { %>
     <span class="tag-pill"><%= tag.trim() %></span>

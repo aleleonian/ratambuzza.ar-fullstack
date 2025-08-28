@@ -142,30 +142,27 @@
     // Re-apply active class after filter-pills update
     // Update DOM after adding or removing tags
     // related to tags-updated
-    document.body.addEventListener('htmx:afterSwap', (evt) => {
-        setTimeout(() => {
-            if (evt.target.id === 'filter-pills') {
-                if (filterDivState) {
-                    console.log('Restoring active pills:', selectedTagId, selectedAuthor, selectedSortCriteria);
+    // htmx:afterSettle is the safest place to touch the DOM after a swap. It guarantees:
+    document.body.addEventListener('htmx:afterSettle', (evt) => {
+        if (evt.target.id === 'filter-pills') {
+            if (filterDivState) {
+                console.log('Restoring active pills:', selectedTagId, selectedAuthor, selectedSortCriteria);
 
-                    const filters = document.getElementsByClassName('filter-container')[0];
-                    filters.classList.toggle('hidden');
-
-                    const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
-                    if (activeTagPill) {
-                        activeTagPill.classList.add('active');
-                    }
-                    const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
-                    if (activeAuthorPill) {
-                        activeAuthorPill.classList.add('active');
-                    }
-                    const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
-                    if (activeSortPill) {
-                        activeSortPill.classList.add('active');
-                    }
-                }
+                const filters = document.getElementsByClassName('filter-container')[0];
+                filters.classList.toggle('hidden');
             }
-        }, 100)
-
+            const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
+            if (activeTagPill) {
+                activeTagPill.classList.add('active');
+            }
+            const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
+            if (activeAuthorPill) {
+                activeAuthorPill.classList.add('active');
+            }
+            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
+            if (activeSortPill) {
+                activeSortPill.classList.add('active');
+            }
+        }
     });
 </script>

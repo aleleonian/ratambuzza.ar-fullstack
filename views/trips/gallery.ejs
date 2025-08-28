@@ -36,6 +36,7 @@
 
     document.body.addEventListener('htmx:afterOnLoad', function (evt) {
         // Check if the target element is a tag editor that was just updated
+        debugger;
         if (evt.target && evt.target.id && evt.target.id.startsWith('tag-editor-')) {
             document.body.dispatchEvent(new CustomEvent('tags-updated'));
         }

@@ -362,6 +362,12 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
             await conn.execute('INSERT INTO media_tags (media_id, tag_id) VALUES (?, ?)', [mediaId, tagId]);
         }
 
+        // ✅ Purge unused tags
+        await conn.execute(`
+        DELETE FROM tags
+        WHERE id NOT IN (SELECT DISTINCT tag_id FROM media_tags)
+        `);
+
         await conn.commit();
         conn.release();
 

@@ -2,6 +2,8 @@ const express = require('express');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const { randomUploadMessage } = require("../../lib/tools");
+
 const MOST_LIKED_SORT_CRITERIA = 1;
 
 const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
@@ -90,7 +92,7 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             res.setHeader('X-Toast-Type', 'error');
             return res.status(500).send("Upload succeeded, but failed to load new items.");
         }
-        res.setHeader('X-Toast', 'Listo padrecito. ');
+        res.setHeader('X-Toast', randomUploadMessage());
         res.setHeader('X-Toast-Type', 'success');
         res.render('trips/gallery/upload-return', { newItems });
     } catch (err) {

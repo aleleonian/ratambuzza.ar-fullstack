@@ -85,6 +85,7 @@
     let selectedTagId = '-1'; // Default to "recientes"
     let selectedAuthor = '-1';
     let selectedSortCriteria = '-1';
+    let filterDivState = false // filter section closed
 
     document.getElementById('default-tag-pill').classList.add('active');
     document.getElementById('default-author-pill').classList.add('active');
@@ -139,24 +140,32 @@
 
         else if (e.target.id == 'toggle-filters') {
             const filters = document.getElementsByClassName('filter-container')[0];
+            filterDivState = !filterDivState;
             filters.classList.toggle('hidden');
         }
     });
 
     // Re-apply active class after filter-pills update
+    // Update DOM after adding or removing tags
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         if (evt.target.id === 'filter-pills') {
-            const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
-            if (activeTagPill) {
-                activeTagPill.classList.add('active');
-            }
-            const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
-            if (activeAuthorPill) {
-                activeAuthorPill.classList.add('active');
-            }
-            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
-            if (activeSortPill) {
-                activeSortPill.classList.add('active');
+
+            if (filterDivState) {
+                const filters = document.getElementsByClassName('filter-container')[0];
+                filters.classList.toggle('hidden');
+
+                const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
+                if (activeTagPill) {
+                    activeTagPill.classList.add('active');
+                }
+                const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
+                if (activeAuthorPill) {
+                    activeAuthorPill.classList.add('active');
+                }
+                const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
+                if (activeSortPill) {
+                    activeSortPill.classList.add('active');
+                }
             }
         }
     });

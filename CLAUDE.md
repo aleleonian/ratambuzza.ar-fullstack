@@ -21,11 +21,16 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - Post creation with image uploads via HTMX
 - Infinite scroll pagination using Intersection Observer API
 - Avatar system with thumbnails
+- Media gallery system with multiple file uploads, tagging, and filtering
+- Lightbox viewing with metadata display
+- Like system for media items
 
 **Key Components:**
 - **Server Entry Point:** `server.js` - Express app with MySQL session store. Note: some routes (feed, posts, likes) are currently commented out
 - **Authentication:** `routes/auth.js` - Handle-based login with secure redirects, auto-generated avatar filenames
-- **Trips:** `routes/trips.js` - Main trip functionality with slug-based routing, post creation, and infinite scroll
+- **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting
+- **Media System:** `routes/trips/media.js` - Gallery system with multiple upload, tagging, filtering, and like functionality
+- **Feed System:** `routes/trips/feed.js` - Post creation and infinite scroll for trip feeds
 - **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
 - **Middleware:** `middleware/requireLogin.js` - Authentication guard with redirect handling
 
@@ -34,10 +39,13 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Router param middleware:** `router.param('slug')` handles trip lookup by slug
 - **Post creation:** `/trips/:slug/posts/new` with HTMX integration
 - **Infinite scroll:** `/trips/:slug/feed/more` for pagination
+- **Media gallery:** `/trips/:slug/gallery` with filtering, tagging, and lightbox functionality
+- **Media uploads:** `/trips/:slug/upload` with multiple file support and image processing
 
 **Template System:**
 - **Organized by feature:** `views/trips/` for trip-specific templates
 - **EJS partials:** Modular components in `views/partials/`
+- **Gallery templates:** Comprehensive set in `views/trips/gallery/` including media grid, lightbox, tag editor, and filter components
 - **HTMX integration:** Forms use `hx-post` with `hx-target` for dynamic updates
 - **No layout engine:** Uses include() partials for composition
 
@@ -52,6 +60,10 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **trips:** id, name, slug, start_date
 - **posts:** id, user_id, trip_id, content, image_filename, created_at
 - **likes:** id, user_id, post_id (if still active)
+- **media:** id, trip_id, user_id, url, thumbnail_url, width, height, type, created_at
+- **tags:** id, name (for media tagging)
+- **media_tags:** media_id, tag_id (many-to-many relationship)
+- **likes_media:** user_id, media_id (media like system)
 
 **Session Management:**
 - MySQL-backed sessions via `express-mysql-session`
@@ -60,9 +72,11 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 
 **File Organization:**
 - `public/images/avatars/thumbs/` - Avatar thumbnails for UI
-- `public/uploads/` - User-uploaded post images
+- `public/uploads/` - User-uploaded post images and media files
 - `views/trips/` - Trip-specific templates (feed, gallery, members)
+- `views/trips/gallery/` - Gallery-specific templates (media grid, lightbox, tag editor, filters)
 - `views/partials/` - Reusable EJS components
+- `routes/trips/` - Modular trip route handlers (feed, media, posts, likes, crew)
 - `noupload/` - Development assets not committed
 
 **Environment Variables Required:**
@@ -83,3 +97,6 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Legacy code:** Some routes in server.js are commented out, indicating ongoing refactoring
 - **Debug output:** Templates include debug comments for development
 - **HTMX migration:** Moving from HTMX triggers to Intersection Observer for infinite scroll
+- **Media processing:** Sharp library handles image resizing (1600x1600 max, 80% quality) and thumbnail generation
+- **Authorization system:** Role-based access control for media deletion and tag editing (owner or admin)
+- **Custom toast system:** Uses X-Toast headers for user feedback on HTMX requests

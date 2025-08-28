@@ -2,6 +2,8 @@ const express = require('express');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const { randomUploadMessage } = require("../../lib/tools");
+
 const MOST_LIKED_SORT_CRITERIA = 1;
 
 const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
@@ -58,8 +60,6 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             }
         }
 
-        console.log('insertedIds->', insertedIds);
-
         try {
             const placeholders = insertedIds.map(() => '?').join(', ');
             [newItems] = await req.db.execute(`
@@ -92,7 +92,7 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             res.setHeader('X-Toast-Type', 'error');
             return res.status(500).send("Upload succeeded, but failed to load new items.");
         }
-        res.setHeader('X-Toast', 'Listo padrecito. ');
+        res.setHeader('X-Toast', randomUploadMessage());
         res.setHeader('X-Toast-Type', 'success');
         res.render('trips/gallery/upload-return', { newItems });
     } catch (err) {
@@ -181,7 +181,7 @@ router.get('/gallery', async (req, res, next) => {
             const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
             authors.sort((a, b) => a.handle.localeCompare(b.handle));
 
-            const sort = [{ name: 'Más likes', value: MOST_LIKED_SORT_CRITERIA }];
+            const sort = getAllSortCriteria();
 
             res.render('trips/gallery', { media, tags, authors, sort });
         }
@@ -279,7 +279,8 @@ router.post('/gallery/:id/like', async (req, res, next) => {
             count,
         });
     } catch (err) {
-        next(err);
+        console.error(err);
+        return500Error(res, err);
     }
 });
 
@@ -289,7 +290,8 @@ router.get('/gallery/filter-pills', async (req, res, next) => {
     tags.sort((a, b) => a.name.localeCompare(b.name));
     const authors = await getAllAuthorsForThisTrip(req.db, trip.id);
     authors.sort((a, b) => a.handle.localeCompare(b.handle));
-    res.render('trips/gallery/filter-pills', { tags, authors });
+    const sort = getAllSortCriteria();
+    res.render('trips/gallery/filter-pills', { tags, authors, sort });
 });
 
 // GETs tags for a given media item and returns a template to edit them
@@ -360,11 +362,16 @@ router.post('/gallery/:id/tags', async (req, res, next) => {
             await conn.execute('INSERT INTO media_tags (media_id, tag_id) VALUES (?, ?)', [mediaId, tagId]);
         }
 
+        // ✅ Purge unused tags
+        await conn.execute(`
+        DELETE FROM tags
+        WHERE id NOT IN (SELECT DISTINCT tag_id FROM media_tags)
+        `);
+
         await conn.commit();
         conn.release();
 
         // Re-render editor with new tags
-        console.log("POST tag-pills");
         res.setHeader('X-Toast', 'Tags actualizados!');
         res.setHeader('X-Toast-Type', 'success');
         res.render('trips/gallery/tag-pills', { currentTags: tagNames, mediaId });
@@ -409,6 +416,9 @@ router.get('/gallery/:id/lightbox-data', async (req, res) => {
     }
 });
 
+function getAllSortCriteria() {
+    return [{ name: 'Más likes', value: MOST_LIKED_SORT_CRITERIA }]
+}
 async function getAllAuthorsForThisTrip(db, tripId) {
     const [authors] = await db.execute(
         `SELECT DISTINCT users.handle, users.id FROM users

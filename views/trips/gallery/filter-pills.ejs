@@ -30,4 +30,14 @@
             <% }) %>
         </div>
     </div>
+
+    <button id="clean-filters-button" class="button button-smaller">Limpiar</button>
 </div>
+
+<script>
+    function resetFilters() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+        location.href = "/trips/<%=currentOrUpcomingTrip.slug%>/gallery"
+    }
+    document.getElementById('clean-filters-button').addEventListener('click', resetFilters)
+</script>

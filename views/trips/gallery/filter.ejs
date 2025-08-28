@@ -68,12 +68,6 @@
     .sorting-pill:hover {
         background-color: rgba(255, 255, 255, 0.3);
     }
-
-    /* @media (max-width: 768px) {
-        .filter-container.hidden {
-            display: none;
-        }
-    } */
 </style>
 
 <div id="filter-pills">
@@ -85,6 +79,7 @@
     let selectedTagId = '-1'; // Default to "recientes"
     let selectedAuthor = '-1';
     let selectedSortCriteria = '-1';
+    let filterDivState = false // filter section closed
 
     document.getElementById('default-tag-pill').classList.add('active');
     document.getElementById('default-author-pill').classList.add('active');
@@ -139,13 +134,23 @@
 
         else if (e.target.id == 'toggle-filters') {
             const filters = document.getElementsByClassName('filter-container')[0];
+            filterDivState = !filterDivState;
             filters.classList.toggle('hidden');
         }
     });
 
     // Re-apply active class after filter-pills update
-    document.body.addEventListener('htmx:afterSwap', (evt) => {
+    // Update DOM after adding or removing tags
+    // related to tags-updated
+    // htmx:afterSettle is the safest place to touch the DOM after a swap. It guarantees:
+    document.body.addEventListener('htmx:afterSettle', (evt) => {
         if (evt.target.id === 'filter-pills') {
+            if (filterDivState) {
+                console.log('Restoring active pills:', selectedTagId, selectedAuthor, selectedSortCriteria);
+
+                const filters = document.getElementsByClassName('filter-container')[0];
+                filters.classList.toggle('hidden');
+            }
             const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
             if (activeTagPill) {
                 activeTagPill.classList.add('active');

@@ -34,12 +34,25 @@
     // after the tags were edited, either in the hover menu or lightbox
     // fire this event to we can re-fetch the filter-pills
 
-    document.body.addEventListener('htmx:afterOnLoad', function (evt) {
-        // Check if the target element is a tag editor that was just updated
-        if (evt.target && evt.target.id && evt.target.id.startsWith('tag-editor-')) {
-            document.body.dispatchEvent(new CustomEvent('tags-updated'));
+    // document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+    //     // Check if the target element is a tag editor that was just updated
+    //     if (evt.target && evt.target.id && evt.target.id.startsWith('tag-editor-')) {
+    //         document.body.dispatchEvent(new CustomEvent('tags-updated'));
+    //     }
+
+    // });
+
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        const el = evt.target;
+        // Only act if we just swapped into a tag editor container
+        if (el && el.id && el.id.startsWith('tag-editor-')) {
+            // Fire event
+            document.body.dispatchEvent(new CustomEvent('tags-updated', {
+                detail: { mediaId: el.id.replace('tag-editor-', '') }
+            }));
         }
     });
+
 
     document.body.addEventListener('tags-updated', () => {
         // if tags were updated either on the hover menu or the lightbox
@@ -47,7 +60,6 @@
         let url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/filter-pills`;
         let options = { target: `#filter-pills`, swap: 'innerHTML' };
         htmx.ajax('GET', url, options);
-
 
         // HTMX load new filtered media
         // selectedTagId & selectedAuthor & selectedSortCriteria are global variables
@@ -61,4 +73,5 @@
             });
         }
     });
+
 </script>

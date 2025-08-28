@@ -218,7 +218,7 @@
                 Subite unas fotis, Rey 👑 <span style="font-size: 0.85em;">(máximo 5)</span>.
             </div>
 
-            <form hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
+            <form action="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
                 hx-encoding="multipart/form-data">
                 <input type="file" name="media" accept="image/*" multiple onchange="toggleUploadButton(this)">
                 <button type="submit" disabled id="uploadButton">Subir</button>
@@ -243,6 +243,52 @@
     </div>
 
     <script>
+
+        function filtersAreActive() {
+            const activeTag = document.querySelector('.tag-pill.active');
+            const activeAuthor = document.querySelector('.author-pill.active');
+            const activeSort = document.querySelector('.sort-pill.sort-order-pill.active');
+            return (
+                selectedTagId !== "-1" ||
+                selectedAuthor !== "-1" ||
+                selectedSortCriteria !== "-1"
+            );
+        }
+
+
+        const form = document.querySelector('#uploadModal form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'HX-Request': 'true', // Optional: for server to send X-Toast
+                }
+            });
+
+            const toast = response.headers.get('X-Toast');
+            if (toast) showToast(toast, 'success');
+
+            if (filtersAreActive()) {
+                // Reset everything
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').classList.remove('hidden');
+                    window.location.href = '/trips/<%-currentOrUpcomingTrip.slug%>/gallery';
+                }, 1000);
+
+            } else {
+                const html = await response.text();
+                document.querySelector('#media-grid').insertAdjacentHTML('afterbegin', html);
+            }
+
+            form.reset();
+            document.getElementById('uploadModal').classList.add('hidden');
+        });
+
+
         function hideUploadForm() {
             document.getElementById('uploadModal')?.classList.add('hidden');
             document.querySelector('#uploadModal form')?.reset();
@@ -510,6 +556,49 @@
         });
 
     </script>
+
+    <!-- This listener is for the form inside like-button-gallery.ejs -->
+    <script>
+        document.body.addEventListener('submit', async function (e) {
+            if (!e.target.matches('.like-form')) return;
+
+
+            e.preventDefault();
+            const form = e.target;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'HX-Request': 'true' }
+                });
+
+                if (!response.ok) throw new Error('Failed to like');
+
+                if (selectedSortCriteria == 1) {
+                    // Like sorting is active → reload the grid
+                    const params = new URLSearchParams();
+                    if (selectedTagId && selectedTagId !== "-1") params.append('tag', selectedTagId);
+                    if (selectedAuthor && selectedAuthor !== "-1") params.append('author', selectedAuthor);
+                    if (selectedSortCriteria && selectedSortCriteria !== "-1") params.append('sort', selectedSortCriteria);
+
+                    const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
+
+                    htmx.ajax('GET', galleryUrl, {
+                        target: '#media-grid',
+                        swap: 'innerHTML'
+                    });
+                } else {
+                    // Like sorting NOT active → only update this button
+                    const html = await response.text();
+                    form.outerHTML = html;
+                }
+            } catch (err) {
+                showToast('Error al dar like', 'error');
+                console.error(err);
+            }
+        });
+    </script>
+
     <% } %>
 </main>
 <%- include('../../partials/footer') %>

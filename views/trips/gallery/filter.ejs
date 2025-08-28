@@ -68,12 +68,6 @@
     .sorting-pill:hover {
         background-color: rgba(255, 255, 255, 0.3);
     }
-
-    /* @media (max-width: 768px) {
-        .filter-container.hidden {
-            display: none;
-        }
-    } */
 </style>
 
 <div id="filter-pills">
@@ -147,26 +141,31 @@
 
     // Re-apply active class after filter-pills update
     // Update DOM after adding or removing tags
+    // related to tags-updated
     document.body.addEventListener('htmx:afterSwap', (evt) => {
-        if (evt.target.id === 'filter-pills') {
+        setTimeout(() => {
+            if (evt.target.id === 'filter-pills') {
+                if (filterDivState) {
+                    console.log('Restoring active pills:', selectedTagId, selectedAuthor, selectedSortCriteria);
 
-            if (filterDivState) {
-                const filters = document.getElementsByClassName('filter-container')[0];
-                filters.classList.toggle('hidden');
+                    const filters = document.getElementsByClassName('filter-container')[0];
+                    filters.classList.toggle('hidden');
 
-                const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
-                if (activeTagPill) {
-                    activeTagPill.classList.add('active');
-                }
-                const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
-                if (activeAuthorPill) {
-                    activeAuthorPill.classList.add('active');
-                }
-                const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
-                if (activeSortPill) {
-                    activeSortPill.classList.add('active');
+                    const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
+                    if (activeTagPill) {
+                        activeTagPill.classList.add('active');
+                    }
+                    const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
+                    if (activeAuthorPill) {
+                        activeAuthorPill.classList.add('active');
+                    }
+                    const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
+                    if (activeSortPill) {
+                        activeSortPill.classList.add('active');
+                    }
                 }
             }
-        }
+        }, 100)
+
     });
 </script>

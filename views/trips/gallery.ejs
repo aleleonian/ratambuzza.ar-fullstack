@@ -48,26 +48,6 @@
         let options = { target: `#filter-pills`, swap: 'innerHTML' };
         htmx.ajax('GET', url, options);
 
-        // // now we gotta open it if necessary and re-paint the selected
-        // if (filterDivState) {
-        //     const filters = document.getElementsByClassName('filter-container')[0];
-        //     filters.classList.toggle('hidden');
-        //     // filter-pills if necessary
-        //     const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
-        //     if (activeTagPill) {
-        //         activeTagPill.classList.add('active');
-        //     }
-        //     const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
-        //     if (activeAuthorPill) {
-        //         activeAuthorPill.classList.add('active');
-        //     }
-        //     const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
-        //     if (activeSortPill) {
-        //         activeSortPill.classList.add('active');
-        //     }
-        // }
-
-
         // HTMX load new filtered media
         // selectedTagId & selectedAuthor & selectedSortCriteria are global variables
         // if the tags were updated, then we might need to update the media items
@@ -80,31 +60,5 @@
             });
         }
     });
-
-    // DOM logic after the tags were edited
-    // document.body.addEventListener('htmx:afterSwap', function (evt) {
-    //     if (evt.detail.target.id === 'filter-pills') {
-    //         // Your DOM logic here — only runs after #filter-pills is updated
-
-    //         // if (filterDivState) {
-    //         //     const filters = document.getElementsByClassName('filter-container')[0];
-    //         //     filters.classList.toggle('hidden');
-
-    //         //     // const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
-    //         //     // if (activeTagPill) {
-    //         //     //     activeTagPill.classList.add('active');
-    //         //     // }
-    //         //     // const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
-    //         //     // if (activeAuthorPill) {
-    //         //     //     activeAuthorPill.classList.add('active');
-    //         //     // }
-    //         //     // const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
-    //         //     // if (activeSortPill) {
-    //         //     //     activeSortPill.classList.add('active');
-    //         //     // }
-    //         // }
-    //     }
-    // });
-
 
 </script>

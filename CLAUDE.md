@@ -100,3 +100,4 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Media processing:** Sharp library handles image resizing (1600x1600 max, 80% quality) and thumbnail generation
 - **Authorization system:** Role-based access control for media deletion and tag editing (owner or admin)
 - **Custom toast system:** Uses X-Toast headers for user feedback on HTMX requests
+- **Tag cleanup:** Automatic cleanup of unused tags when updating media item tags

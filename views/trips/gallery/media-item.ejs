@@ -26,7 +26,7 @@
                 hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
                 🏷️
             </button>
-            <button class="overlay-btn" title="Delete Image" onclick="event.stopPropagation();"
+            <button class="overlay-btn" title="Delete" onclick="event.stopPropagation();"
                 hx-delete="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/delete" hx-swap="outerHTML"
                 hx-target="closest .media-item" hx-confirm="Seguro de borrar este item?">
                 ❌
@@ -42,3 +42,35 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    // voy por aqui: este código es para hookear el delete button y luego de borrar
+    // si no hay más items, pintar un mensaje
+    document.body.addEventListener('click', async function (e) {
+        if (!e.target.matches('.delete-btn')) return;
+
+        const mediaId = e.target.dataset.id;
+        const mediaItem = e.target.closest('.media-item');
+
+        if (!confirm('Seguro de borrar este item?')) return;
+
+        try {
+            await htmxAjaxPromise('DELETE', `/trips/rio-2025/gallery/${mediaId}/delete`, {
+                target: mediaItem,
+                swap: 'outerHTML'
+            });
+
+            // After the swap, check if any media items remain
+            const remaining = document.querySelectorAll('.media-item').length;
+            if (remaining === 0) {
+                document.querySelector('#media-grid').innerHTML = '<p class="empty-msg">No hay imágenes con estos filtros.</p>';
+            }
+
+        } catch (err) {
+            console.error('Error deleting media:', err);
+            showToast('Error al borrar el item', 'error');
+        }
+    });
+
+</script>

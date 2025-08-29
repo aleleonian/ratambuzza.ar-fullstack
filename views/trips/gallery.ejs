@@ -60,12 +60,6 @@
         // if the tags were updated, then we might need to update the media items
         // that are being filtered (if selectedTagId != -1)
 
-        // VOY POR ACA
-        // REVISAR ESTE ALGORITMO:
-        // If the tag modification does not alter the current filtering, do not reload
-        // If no tags are modifying the current display, do not reload 
-
-
         const updatedTagSet = new Set(updatedTags.map(t => t.toLowerCase()));
 
         // selectedTagName is a global var holding the current filter, like 'food'

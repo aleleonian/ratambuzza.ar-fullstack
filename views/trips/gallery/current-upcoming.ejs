@@ -494,8 +494,6 @@
             const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/delete`;
             const options = { target: `#media-item-${mediaId}`, swap: 'outerHTML' };
             try {
-
-                //VOY POR ACA, TENGO QUE PROMISIFIEAR ESTE REQUEST Y LUEGO
                 await htmxAjaxPromise('DELETE', url, options);
                 const mediaItems = getGalleryItems();
                 if (mediaItems.length === 0) {

@@ -1,4 +1,7 @@
-<div class="tag-list <%= typeof justUpdated !== 'undefined' && justUpdated ? ' just-updated' : '' %>">
+<div 
+class="tag-list <%= typeof justUpdated !== 'undefined' && justUpdated ? ' just-updated' : '' %>"
+data-tags='<%- JSON.stringify(currentTags) %>'
+>
     <% if (currentTags && currentTags.length > 0) { %>
     <% currentTags.forEach(tag => { %>
     <span class="tag-pill"><%= tag.trim() %></span>

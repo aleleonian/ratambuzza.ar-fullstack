@@ -210,7 +210,7 @@
     }
 </style>
 
-<main class="gallery-container">
+<main class="gallery-container" id="gallery-container">
     <div id="uploadModal" class="modal hidden">
         <div class="modal-content">
             <button id="closeUploadModalButton" class="modal-close">✖</button>
@@ -236,7 +236,6 @@
     <% if (media.length === 0) { %>
     <p>No hay imágenes todavía. ¡Que amargos son!</p>
     <% } %>
-
 
     <div class="controls">
         <button class="button" id="showUploadModalButton">Agregar Fotis</button>
@@ -309,6 +308,8 @@
         <%- include('media-item',{index, item}) %>
         <% }) %>
     </div>
+    <div id="no-images-message"></div>
+
 
     <!-- Lightbox -->
     <div class="lightbox-overlay" id="lightbox">
@@ -358,6 +359,36 @@
             return Boolean(string);
         }
 
+        // function htmxAjaxPromise(method, url, options = {}) {
+        //     return new Promise((resolve, reject) => {
+        //         const targetSelector = options.target;
+        //         if (!targetSelector) {
+        //             reject(new Error("htmxAjaxPromise requires a { target } option"));
+        //             return;
+        //         }
+
+        //         const targetId = targetSelector.startsWith('#')
+        //             ? targetSelector.slice(1)
+        //             : targetSelector;
+
+        //         const handler = (evt) => {
+        //             if (evt.target.id === targetId) {
+        //                 document.body.removeEventListener('htmx:afterSwap', handler);
+        //                 resolve(evt);
+        //             }
+        //         };
+
+        //         document.body.addEventListener('htmx:afterSwap', handler);
+
+        //         try {
+        //             htmx.ajax(method, url, options);
+        //         } catch (err) {
+        //             document.body.removeEventListener('htmx:afterSwap', handler);
+        //             reject(err);
+        //         }
+        //     });
+        // }
+
         function htmxAjaxPromise(method, url, options = {}) {
             return new Promise((resolve, reject) => {
                 const targetSelector = options.target;
@@ -366,28 +397,22 @@
                     return;
                 }
 
-                const targetId = targetSelector.startsWith('#')
-                    ? targetSelector.slice(1)
-                    : targetSelector;
-
-                const handler = (evt) => {
-                    if (evt.target.id === targetId) {
-                        document.body.removeEventListener('htmx:afterSwap', handler);
-                        resolve(evt);
-                    }
-                };
-
-                document.body.addEventListener('htmx:afterSwap', handler);
-
                 try {
+                    const listener = (evt) => {
+                        const req = evt.detail?.requestConfig;
+                        if (req?.verb.toUpperCase() === method.toUpperCase() && req.path === url) {
+                            document.body.removeEventListener('htmx:afterRequest', listener);
+                            resolve(evt);
+                        }
+                    };
+
+                    document.body.addEventListener('htmx:afterRequest', listener);
                     htmx.ajax(method, url, options);
                 } catch (err) {
-                    document.body.removeEventListener('htmx:afterSwap', handler);
                     reject(err);
                 }
             });
         }
-
 
         async function openLightbox(index) {
             const mediaItems = getGalleryItems();
@@ -462,14 +487,18 @@
             openLightbox(prevIndex);
         }
 
-        function deleteMediaItem() {
+        async function deleteMediaItem() {
             if (!confirm('Seguro de borrar este item?')) return false;
             const meta = document.getElementById('lightbox-metadata').dataset;
             const mediaId = meta.mediaId;
             const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/delete`;
             const options = { target: `#media-item-${mediaId}`, swap: 'outerHTML' };
             try {
-                htmx.ajax('DELETE', url, options);
+                await htmxAjaxPromise('DELETE', url, options);
+                const mediaItems = getGalleryItems();
+                if (mediaItems.length === 0) {
+                    document.getElementById('no-images-message').textContent = 'Nada que ver aquí :/'
+                }
                 return true;
             }
             catch (error) {
@@ -561,8 +590,6 @@
     <script>
         document.body.addEventListener('submit', async function (e) {
             if (!e.target.matches('.like-form')) return;
-
-
             e.preventDefault();
             const form = e.target;
 

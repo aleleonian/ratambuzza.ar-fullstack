@@ -34,26 +34,21 @@
     // after the tags were edited, either in the hover menu or lightbox
     // fire this event to we can re-fetch the filter-pills
 
-    // document.body.addEventListener('htmx:afterOnLoad', function (evt) {
-    //     // Check if the target element is a tag editor that was just updated
-    //     if (evt.target && evt.target.id && evt.target.id.startsWith('tag-editor-')) {
-    //         document.body.dispatchEvent(new CustomEvent('tags-updated'));
-    //     }
-
-    // });
-
     document.body.addEventListener('htmx:afterSwap', function (evt) {
         const el = evt.target;
         const updatedTagList = el.querySelector('.tag-list.just-updated');
         if (updatedTagList) {
+            const tagsJson = updatedTagList.dataset.tags;
+            const updatedTags = JSON.parse(tagsJson || '[]');
             // const mediaId = updatedTagList.dataset.mediaId;
-            document.body.dispatchEvent(new CustomEvent('tags-updated'));
+            document.body.dispatchEvent(new CustomEvent('tags-updated', { detail: { updatedTags } }));
         }
     });
 
 
 
-    document.body.addEventListener('tags-updated', () => {
+    document.body.addEventListener('tags-updated', (e) => {
+        const { updatedTags } = e.detail;
         // if tags were updated either on the hover menu or the lightbox
         // then we must update the pill-filters
         let url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/filter-pills`;
@@ -64,13 +59,38 @@
         // selectedTagId & selectedAuthor & selectedSortCriteria are global variables
         // if the tags were updated, then we might need to update the media items
         // that are being filtered (if selectedTagId != -1)
-        if (selectedTagId != -1 || selectedAuthor != -1 || selectedSortCriteria != -1) {
-            url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
-            htmx.ajax('GET', url, {
-                target: '#media-grid',
-                swap: 'innerHTML'
-            });
+
+        const updatedTagSet = new Set(updatedTags.map(t => t.toLowerCase()));
+
+        // selectedTagName is a global var holding the current filter, like 'food'
+        if (selectedTagId !== '-1') {
+            const selectedTagPill = document.querySelector(`.tag-pill[data-tag="${selectedTagId}"]`);
+            const selectedTagName = selectedTagPill?.textContent?.trim()?.toLowerCase?.();
+
+            if (!updatedTagSet.has(selectedTagName.toLowerCase())) {
+                console.log(`Tag '${selectedTagName}' removed from tags, refreshing grid`);
+
+                const params = new URLSearchParams();
+                if (selectedTagId && selectedTagId !== "-1") params.append('tag', selectedTagId);
+                if (selectedAuthor && selectedAuthor !== "-1") params.append('author', selectedAuthor);
+                if (selectedSortCriteria && selectedSortCriteria !== "-1") params.append('sort', selectedSortCriteria);
+
+                const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
+                htmx.ajax('GET', galleryUrl, {
+                    target: '#media-grid',
+                    swap: 'innerHTML'
+                });
+            }
         }
+
+        // if (selectedTagId == -1) return;
+        // if (selectedTagId != -1 || selectedAuthor != -1 || selectedSortCriteria != -1) {
+        //     url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
+        //     htmx.ajax('GET', url, {
+        //         target: '#media-grid',
+        //         swap: 'innerHTML'
+        //     });
+        // }
     });
 
 </script>

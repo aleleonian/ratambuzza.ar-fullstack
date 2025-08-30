@@ -75,11 +75,6 @@
 </div>
 
 <script>
-    // TODO: save this in the localStorage and not globally
-    let selectedTagId = '-1'; // Default to "recientes"
-    let selectedAuthor = '-1';
-    let selectedSortCriteria = '-1';
-    let filterDivState = false // filter section closed
 
     document.getElementById('default-tag-pill').classList.add('active');
     document.getElementById('default-author-pill').classList.add('active');
@@ -88,14 +83,14 @@
     document.getElementById('filter-pills')?.addEventListener('click', (e) => {
         if (e.target.classList.contains('tag-pill')) {
             // Update selected tag
-            selectedTagId = e.target.dataset.tag;
+            galleryState.selectedTagId = e.target.dataset.tag;
 
             // Update pill UI
             document.querySelectorAll('.sorting-pill.tag-pill').forEach(p => p.classList.remove('active'));
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${galleryState.selectedTagId}&author=${galleryState.selectedAuthor}&sort=${galleryState.selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
@@ -103,14 +98,14 @@
         }
         else if (e.target.classList.contains('author-pill')) {
             // Update selected tag
-            selectedAuthor = e.target.dataset.author;
+            galleryState.selectedAuthor = e.target.dataset.author;
 
             // Update pill UI
             document.querySelectorAll('.sorting-pill.author-pill').forEach(p => p.classList.remove('active'));
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${galleryState.selectedTagId}&author=${galleryState.selectedAuthor}&sort=${galleryState.selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
@@ -118,14 +113,14 @@
         }
         else if (e.target.classList.contains('sort-pill')) {
             // Update selected sort criteria
-            selectedSortCriteria = e.target.dataset.sort;
+            galleryState.selectedSortCriteria = e.target.dataset.sort;
 
             // Update pill UI
             document.querySelectorAll('.sort-pill.sort-pill').forEach(p => p.classList.remove('active'));
             e.target.classList.add('active');
 
             // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${selectedTagId}&author=${selectedAuthor}&sort=${selectedSortCriteria}`;
+            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${galleryState.selectedTagId}&author=${galleryState.selectedAuthor}&sort=${galleryState.selectedSortCriteria}`;
             htmx.ajax('GET', url, {
                 target: '#media-grid',
                 swap: 'innerHTML'
@@ -134,7 +129,7 @@
 
         else if (e.target.id == 'toggle-filters') {
             const filters = document.getElementsByClassName('filter-container')[0];
-            filterDivState = !filterDivState;
+            galleryState.filterDivState = !galleryState.filterDivState;
             filters.classList.toggle('hidden');
         }
     });
@@ -145,21 +140,21 @@
     // htmx:afterSettle is the safest place to touch the DOM after a swap. It guarantees:
     document.body.addEventListener('htmx:afterSettle', (evt) => {
         if (evt.target.id === 'filter-pills') {
-            if (filterDivState) {
-                console.log('Restoring active pills:', selectedTagId, selectedAuthor, selectedSortCriteria);
+            if (galleryState.filterDivState) {
+                console.log('Restoring active pills:', galleryState.selectedTagId, galleryState.selectedAuthor, galleryState.selectedSortCriteria);
 
                 const filters = document.getElementsByClassName('filter-container')[0];
                 filters.classList.toggle('hidden');
             }
-            const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${selectedTagId}"]`);
+            const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${galleryState.selectedTagId}"]`);
             if (activeTagPill) {
                 activeTagPill.classList.add('active');
             }
-            const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${selectedAuthor}"]`);
+            const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${galleryState.selectedAuthor}"]`);
             if (activeAuthorPill) {
                 activeAuthorPill.classList.add('active');
             }
-            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${selectedSortCriteria}"]`);
+            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${galleryState.selectedSortCriteria}"]`);
             if (activeSortPill) {
                 activeSortPill.classList.add('active');
             }

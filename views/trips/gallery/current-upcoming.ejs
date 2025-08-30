@@ -221,7 +221,7 @@
             <form action="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
                 hx-encoding="multipart/form-data">
                 <input type="file" name="media" accept="image/*" multiple onchange="toggleUploadButton(this)">
-                <button type="submit" disabled id="uploadButton">Subir</button>
+                <button type="submit" class="button" disabled id="uploadButton">Súbele</button>
             </form>
         </div>
     </div>
@@ -243,6 +243,17 @@
 
     <script>
 
+        function isTheUserAnAuthor() {
+            let authors = document.getElementsByClassName('author-pill');
+            let userFound = false;
+            for (let i = 0; i < authors.length; i++) {
+                if (authors[i].textContent.toLocaleLowerCase() === '<%=currentUser.handle%>'.toLocaleLowerCase()) {
+                    userFound = true;
+                    break;
+                }
+            }
+            return userFound;
+        }
         function filtersAreActive() {
             const activeTag = document.querySelector('.tag-pill.active');
             const activeAuthor = document.querySelector('.author-pill.active');
@@ -271,14 +282,20 @@
             const toast = response.headers.get('X-Toast');
             if (toast) showToast(toast, 'success');
 
-            if (filtersAreActive()) {
+            // VOY POR AQUI
+            // Unhandled edge case:
+            // si el usuario borra su último o único media item, su nombre debería desaparecer
+            // de los authors filter pills
+            
+            if (filtersAreActive() || !isTheUserAnAuthor()) {
                 // Reset everything
                 setTimeout(() => {
                     document.getElementById('loading-overlay').classList.remove('hidden');
                     window.location.href = '/trips/<%-currentOrUpcomingTrip.slug%>/gallery';
                 }, 1000);
 
-            } else {
+            }
+            else {
                 const html = await response.text();
                 document.querySelector('#media-grid').insertAdjacentHTML('afterbegin', html);
             }

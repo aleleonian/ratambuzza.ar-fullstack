@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve('./.env.test') });
 import mysql from 'mysql2/promise';
 
 console.log("process.env.DB_HOST:", process.env.DB_HOST);

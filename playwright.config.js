@@ -25,4 +25,5 @@ export default defineConfig({
         },
     },
     globalSetup: './globalSetup.js',
+    globalTeardown: './globalTeardown.js',
 });

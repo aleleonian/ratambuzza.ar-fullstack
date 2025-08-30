@@ -1,7 +1,8 @@
-// globalSetup.js
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.test' }); // Ensure test env is loaded
+// global-setup.js
+import { insertUser } from './tests/utils/seed/helpers/userHelpers.js';
+import { initDb } from './tests/utils/seed/helpers/db.js';
 
 export default async () => {
-  console.log("Starting tests...")
+  await initDb();
+  await insertUser('test-user-1', '12345', 'admin');
 };

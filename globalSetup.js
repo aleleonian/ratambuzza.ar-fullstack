@@ -1,6 +1,7 @@
 // globalSetup.js
-import { execSync } from 'child_process';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.test' }); // Ensure test env is loaded
 
 export default async () => {
-  execSync('node tests/utils/seedTestDB.js', { stdio: 'inherit' });
+  console.log("Starting tests...")
 };

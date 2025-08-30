@@ -1,6 +1,7 @@
 // playwright.config.js
 import { defineConfig } from '@playwright/test';
 
+
 export default defineConfig({
     testDir: './tests/e2e',
     timeout: 30 * 1000,
@@ -8,7 +9,7 @@ export default defineConfig({
     use: {
         baseURL: 'http://localhost:3001',
         browserName: 'chromium',
-        headless: true,
+        headless: false,
         viewport: { width: 1280, height: 720 },
         ignoreHTTPSErrors: true,
         video: 'off',
@@ -19,6 +20,9 @@ export default defineConfig({
         url: 'http://localhost:3001',
         reuseExistingServer: !process.env.CI,
         timeout: 20 * 1000,
+        env: {
+            NODE_ENV: 'test'
+        },
     },
-    // globalSetup: './globalSetup.js',
+    globalSetup: './globalSetup.js',
 });

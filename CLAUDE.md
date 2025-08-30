@@ -5,11 +5,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 **Development:**
-- `node server.js` - Start the Express server (default port 3000)
+- `npm start` or `node server.js` - Start the Express server (default port 3000)
+- `npm run start:test` - Start server with test environment (.env.test)
 - `npm install` - Install dependencies
 - `node scripts/resize.js` - Process avatar images (resize utility)
 
-**Note:** Test infrastructure exists but package.json test script is currently disabled.
+**Testing:**
+- Playwright test framework available (@playwright/test)
+- Environment-specific configs: `.env` for development, `.env.test` for testing
 
 ## Architecture
 
@@ -92,6 +95,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - multer - File upload handling
 - sharp - Image processing
 - ejs - Templating system
+- @playwright/test - End-to-end testing framework
 
 **Development Notes:**
 - **Legacy code:** Some routes in server.js are commented out, indicating ongoing refactoring
@@ -101,3 +105,4 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Authorization system:** Role-based access control for media deletion and tag editing (owner or admin)
 - **Custom toast system:** Uses X-Toast headers for user feedback on HTMX requests
 - **Tag cleanup:** Automatic cleanup of unused tags when updating media item tags
+- **Gallery state management:** Uses `galleryState` object for filter persistence and `htmx:afterSettle` for reliable DOM updates

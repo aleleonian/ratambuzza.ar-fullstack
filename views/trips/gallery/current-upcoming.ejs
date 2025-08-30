@@ -210,6 +210,26 @@
     }
 </style>
 
+<script>
+    // TODO: save this in the localStorage and not globally
+    // gallery globals
+    const DEFAULT_TAG_ID = -1;
+    const DEFAULT_AUTHOR = -1;
+    const DEFAULT_SORT_CRITERIA = -1;
+    const MOST_LIKES_SORT_CRITERIA = 1;
+    const CLOSED = false;
+
+    const DEFAULT_FILTER_DIV_STATE = CLOSED;
+
+    const galleryState = {
+        selectedTagId: DEFAULT_TAG_ID,
+        selectedAuthor: DEFAULT_AUTHOR,
+        selectedSortCriteria: DEFAULT_SORT_CRITERIA,
+        filterDivState: DEFAULT_FILTER_DIV_STATE
+    };
+
+</script>
+
 <main class="gallery-container" id="gallery-container">
     <div id="uploadModal" class="modal hidden">
         <div class="modal-content">
@@ -259,9 +279,9 @@
             const activeAuthor = document.querySelector('.author-pill.active');
             const activeSort = document.querySelector('.sort-pill.sort-order-pill.active');
             return (
-                selectedTagId !== "-1" ||
-                selectedAuthor !== "-1" ||
-                selectedSortCriteria !== "-1"
+                galleryState.selectedTagId !== "-1" ||
+                galleryState.selectedAuthor !== "-1" ||
+                galleryState.selectedSortCriteria !== "-1"
             );
         }
 
@@ -286,7 +306,7 @@
             // Unhandled edge case:
             // si el usuario borra su último o único media item, su nombre debería desaparecer
             // de los authors filter pills
-            
+
             if (filtersAreActive() || !isTheUserAnAuthor()) {
                 // Reset everything
                 setTimeout(() => {
@@ -376,35 +396,6 @@
             return Boolean(string);
         }
 
-        // function htmxAjaxPromise(method, url, options = {}) {
-        //     return new Promise((resolve, reject) => {
-        //         const targetSelector = options.target;
-        //         if (!targetSelector) {
-        //             reject(new Error("htmxAjaxPromise requires a { target } option"));
-        //             return;
-        //         }
-
-        //         const targetId = targetSelector.startsWith('#')
-        //             ? targetSelector.slice(1)
-        //             : targetSelector;
-
-        //         const handler = (evt) => {
-        //             if (evt.target.id === targetId) {
-        //                 document.body.removeEventListener('htmx:afterSwap', handler);
-        //                 resolve(evt);
-        //             }
-        //         };
-
-        //         document.body.addEventListener('htmx:afterSwap', handler);
-
-        //         try {
-        //             htmx.ajax(method, url, options);
-        //         } catch (err) {
-        //             document.body.removeEventListener('htmx:afterSwap', handler);
-        //             reject(err);
-        //         }
-        //     });
-        // }
 
         function htmxAjaxPromise(method, url, options = {}) {
             return new Promise((resolve, reject) => {
@@ -547,6 +538,7 @@
         }
 
         async function likeToggle() {
+
             const meta = document.getElementById('lightbox-metadata').dataset;
             const mediaId = meta.mediaId;
             const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/like`;
@@ -560,6 +552,23 @@
                 }
                 else {
                     lightboxLikeButton.innerHTML = "❤️"
+                }
+                //VOY POR AQUI
+                // en esta función debería haber un comportamiento similar al que hay en 
+                // la linea 617
+                if (galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
+                    // Like sorting is active → reload the grid
+                    const params = new URLSearchParams();
+                    if (galleryState.selectedTagId && galleryState.selectedTagId !== "-1") params.append('tag', galleryState.selectedTagId);
+                    if (galleryState.selectedAuthor && galleryState.selectedAuthor !== "-1") params.append('author', galleryState.selectedAuthor);
+                    if (galleryState.selectedSortCriteria && galleryState.selectedSortCriteria !== "-1") params.append('sort', galleryState.selectedSortCriteria);
+
+                    const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
+
+                    htmx.ajax('GET', galleryUrl, {
+                        target: '#media-grid',
+                        swap: 'innerHTML'
+                    });
                 }
             } catch (err) {
                 showToast('Error toggling like', 'error');
@@ -618,12 +627,12 @@
 
                 if (!response.ok) throw new Error('Failed to like');
 
-                if (selectedSortCriteria == 1) {
+                if (galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
                     // Like sorting is active → reload the grid
                     const params = new URLSearchParams();
-                    if (selectedTagId && selectedTagId !== "-1") params.append('tag', selectedTagId);
-                    if (selectedAuthor && selectedAuthor !== "-1") params.append('author', selectedAuthor);
-                    if (selectedSortCriteria && selectedSortCriteria !== "-1") params.append('sort', selectedSortCriteria);
+                    if (galleryState.selectedTagId && galleryState.selectedTagId !== "-1") params.append('tag', galleryState.selectedTagId);
+                    if (galleryState.selectedAuthor && galleryState.selectedAuthor !== "-1") params.append('author', galleryState.selectedAuthor);
+                    if (galleryState.selectedSortCriteria && galleryState.selectedSortCriteria !== "-1") params.append('sort', galleryState.selectedSortCriteria);
 
                     const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
 

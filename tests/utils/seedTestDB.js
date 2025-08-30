@@ -55,21 +55,13 @@ seed().catch(console.error);
 
 async function insertUsers() {
 
-
-    // await req.db.execute(
-    //     'INSERT INTO users (email, password_hash, handle, avatar_file_name, avatar_head_file_name) VALUES (?, ?, ?, ?, ?)',
-    //     [email, hash, handle, avatar_file_name, avatar_head_file_name]
-    // )
-
+    insertUser('test-user-1', '12345', 'admin');
 
 }
 
 async function insertUser(handle, password, role) {
 
     const hash = await bcrypt.hash(password, 10)
-
-    const user_avatar_head_file_name = `${handle}_head_file_name`;
-    const user_avatar_file_name = `${handle}_head_file_name_file_name`;
 
     const [userResult] = await db.execute(
         'INSERT INTO users (handle, email, password_hash, avatar_file_name, avatar_head_file_name, role) VALUES (?, ?, ?, ?, ?, ?)',
@@ -78,7 +70,31 @@ async function insertUser(handle, password, role) {
 
     console.log(userResult);
 
-    const sourceHeadImage = path.join(__dirname, `../fixtures/images/avatars/${handle}.head.jpg`);
-    const targetHeadImage = path.join(__dirname, `../../public/images/avatars/${handle}.head.jpg`);
+    const sourceHeadImage = path.join(__dirname, `../fixtures/images/avatars/thumbs/${handle}.head.jpg`);
+    const targetHeadImage = path.join(__dirname, `../../public/images/avatars/thumbs/${handle}.head.jpg`);
+    fs.copyFileSync(sourceHeadImage, targetHeadImage);
 
+    const sourceAvatarImage = path.join(__dirname, `../fixtures/images/avatars/${handle}.jpg`);
+    const targetAvatarImage = path.join(__dirname, `../../public/images/avatars/${handle}.head.jpg`);
+    fs.copyFileSync(sourceAvatarImage, targetAvatarImage);
+
+}
+
+async function removeUser(handle) {
+    // Delete from DB
+    await db.execute('DELETE FROM users WHERE handle = ?', [handle]);
+
+    // Construct image paths
+    const avatarPath = path.join(__dirname, `../../public/images/avatars/${handle}.jpg`);
+    const headPath = path.join(__dirname, `../../public/images/avatars/thumbs/${handle}.head.jpg`);
+
+    // Delete images if they exist
+    [avatarPath, headPath].forEach(filePath => {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`Deleted: ${filePath}`);
+        } else {
+            console.warn(`Not found: ${filePath}`);
+        }
+    });
 }

@@ -20,5 +20,5 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         timeout: 20 * 1000,
     },
-    globalSetup: './globalSetup.js',
+    // globalSetup: './globalSetup.js',
 });

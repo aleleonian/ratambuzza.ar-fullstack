@@ -1,5 +1,8 @@
-// server.js
-require('dotenv').config()
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+require('dotenv').config({ path: envFile });
+
+console.log("process.env.DB_NAME:", process.env.DB_NAME);
+
 const express = require('express')
 const session = require('express-session')
 const path = require('path')

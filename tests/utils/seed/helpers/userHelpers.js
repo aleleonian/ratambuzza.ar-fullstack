@@ -31,6 +31,7 @@ export async function removeUser(handle) {
   await db.execute('DELETE FROM users WHERE handle = ?', [handle]);
 
   const avatarPath = path.join('public/images/avatars', `${handle}.png`);
+
   const headPath = path.join('public/images/avatars/thumbs', `${handle}.head.png`);
 
   [avatarPath, headPath].forEach(filePath => {

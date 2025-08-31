@@ -3,9 +3,20 @@ import path from 'path';
 dotenv.config({ path: path.resolve('./.env.test') });
 import mysql from 'mysql2/promise';
 
-console.log("process.env.DB_HOST:", process.env.DB_HOST);
-
 let db;
+
+export async function cleanDb() {
+    await db.execute('DELETE FROM media');
+    await db.execute('DELETE FROM users');
+    await db.execute('DELETE FROM likes_media');
+    await db.execute('DELETE FROM likes_posts');
+    await db.execute('DELETE FROM media_tags');
+    await db.execute('DELETE FROM posts');
+    await db.execute('DELETE FROM sessions');
+    await db.execute('DELETE FROM tags');
+    await db.execute('DELETE FROM trips');
+    await db.execute('DELETE FROM trip_members');
+}
 
 export async function initDb() {
     db = await mysql.createPool({

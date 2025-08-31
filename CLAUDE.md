@@ -11,8 +11,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `node scripts/resize.js` - Process avatar images (resize utility)
 
 **Testing:**
-- Playwright test framework available (@playwright/test)
+- `npx playwright test` - Run all Playwright tests
+- `npx playwright test login.spec.js` - Run specific test file
+- Playwright test framework with global setup handling authentication via `storageState.json`
 - Environment-specific configs: `.env` for development, `.env.test` for testing
+- Test database seeding and cleanup utilities in `tests/utils/seed/helpers/`
 
 ## Architecture
 
@@ -86,6 +89,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` - MySQL connection details
 - `SESSION_SECRET` - Express session secret
 - `PORT` - Server port (optional, defaults to 3000)
+- `APP_HOST` - Application host for testing (localhost)
+- `NODE_ENV` - Environment mode (test/development/production)
 
 **Key Dependencies:**
 - express - Web framework
@@ -106,3 +111,5 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Custom toast system:** Uses X-Toast headers for user feedback on HTMX requests
 - **Tag cleanup:** Automatic cleanup of unused tags when updating media item tags
 - **Gallery state management:** Uses `galleryState` object for filter persistence and `htmx:afterSettle` for reliable DOM updates
+- **Test setup:** Global setup handles database seeding, trip creation, and authenticated session storage
+- **Session security:** Cookies set to non-secure in development/test environments

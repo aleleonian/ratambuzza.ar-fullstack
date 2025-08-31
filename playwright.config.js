@@ -9,11 +9,12 @@ export default defineConfig({
     use: {
         baseURL: 'http://localhost:3001',
         browserName: 'chromium',
-        headless: false,
+        headless: true,
         viewport: { width: 1280, height: 720 },
         ignoreHTTPSErrors: true,
         video: 'off',
         screenshot: 'only-on-failure',
+        storageState: 'storageState.json',
     },
     webServer: {
         command: 'npm run start:test',

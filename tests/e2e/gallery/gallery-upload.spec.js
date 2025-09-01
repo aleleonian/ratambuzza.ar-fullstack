@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import path from 'path';
 import { insertMedia } from '../../utils/seed/helpers/mediaHelpers.js';
 import { getUserId } from '../../utils/seed/helpers/userHelpers.js';
 import { getTripId } from '../../utils/seed/helpers/tripHelpers.js';
+import { getDb, initDb } from '../../utils/seed/helpers/db.js';
 
 test.describe('Gallery Upload', () => {
 
@@ -25,18 +27,6 @@ test.describe('Gallery Upload', () => {
         // Adjust this based on your actual upload flow
 
         await expect(page.locator('.media-item')).toHaveCount(1, { timeout: 5000 });
-
-        // // Verify the image was uploaded by checking gallery items
-        // const galleryItemsCount = await page.evaluate(async () => {
-        //     if (typeof getGalleryItems === 'function') {
-        //         const items = await getGalleryItems();
-        //         return items.length;
-        //     }
-        //     // Alternative: count actual DOM elements
-        //     return document.querySelectorAll('.media-item, .gallery-item').length;
-        // });
-
-        // expect(galleryItemsCount).toBe(1);
     });
     test('should upload two more images to gallery', async ({ page }) => {
 
@@ -58,28 +48,35 @@ test.describe('Gallery Upload', () => {
         await expect(page.locator('.media-item')).toHaveCount(3, { timeout: 5000 });
 
     });
-    // test('will add media but not uploading', async ({ page }) => {
+    test.only('will add media but not uploading', async ({ page }) => {
 
-    //     const userId = await getUserId(process.env.FIRST_TEST_USER_NAME);
-    //     const tripId = await getTripId(process.env.FIRST_TRIP_NAME)
-    //     await insertMedia(null, tripId, userId, )
+        await initDb();
 
-    //     await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
+        const mediaPath = path.resolve(__dirname, '../fixtures/images/image4.jpeg');
+        const thumbPath = path.resolve(__dirname, '../fixtures/images/image4-thumb.jpg');
 
-    //     // Click the upload modal button
-    //     await page.click('#showUploadModalButton');
+        const userId = await getUserId(process.env.FIRST_TEST_USER_NAME);
+        const tripId = await getTripId(process.env.FIRST_TRIP_NAME);
 
-    //     // Verify modal opens with expected text
-    //     await expect(page.locator('text=Subite unas fotis, Rey')).toBeVisible();
+        await insertMedia(null, tripId, userId, mediaPath, thumbPath, 480, 360, 'image')
 
-    //     // Upload the test image
-    //     const fileInput = page.locator('input[type="file"]');
-    //     await fileInput.setInputFiles(['tests/e2e/fixtures/images/image2.jpeg', 'tests/e2e/fixtures/images/image3.jpeg']);
-    //     // await fileInput.setInputFiles('tests/e2e/fixtures/images/image3.jpeg');
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
-    //     await page.getByRole('button', { name: 'Súbele' }).click();
+        // Click the upload modal button
+        // await page.click('#showUploadModalButton');
 
-    //     await expect(page.locator('.media-item')).toHaveCount(3, { timeout: 5000 });
+        // Verify modal opens with expected text
+        // await expect(page.locator('text=Subite unas fotis, Rey')).toBeVisible();
 
-    // });
+        // Upload the test image
+        // const fileInput = page.locator('input[type="file"]');
+        // await fileInput.setInputFiles(['tests/e2e/fixtures/images/image2.jpeg', 'tests/e2e/fixtures/images/image3.jpeg']);
+        // await fileInput.setInputFiles('tests/e2e/fixtures/images/image3.jpeg');
+
+        // await page.getByRole('button', { name: 'Súbele' }).click();
+
+        // await expect(page.locator('.media-item')).toHaveCount(3, { timeout: 5000 });
+        const db = await getDb();
+        await db.end();
+    });
 });

@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 import { removeUser } from './tests/utils/seed/helpers/userHelpers.js';
 import { getDb } from './tests/utils/seed/helpers/db.js';
 import { getAllMedia } from './tests/utils/seed/helpers/mediaHelpers.js';
@@ -11,9 +11,6 @@ export default async () => {
     rows.forEach(row => {
         const mediaPath = path.join(process.cwd(), 'public', row.url);             // e.g. /full/path/to/project/public/uploads/xxx.jpeg
         const thumbPath = path.join(process.cwd(), 'public', row.thumbnail_url);   // same here
-
-        console.log('mediaPath->', mediaPath);
-        console.log('thumbPath->', thumbPath);
 
         try {
             if (fs.existsSync(mediaPath)) fs.unlinkSync(mediaPath);

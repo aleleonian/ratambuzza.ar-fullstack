@@ -1,18 +1,14 @@
 // global-setup.js
-import { chromium, expect } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import { insertUser } from './tests/utils/seed/helpers/userHelpers.js';
 import { insertTrip } from './tests/utils/seed/helpers/tripHelpers.js';
 import { initDb, cleanDb } from './tests/utils/seed/helpers/db.js';
 
-const USER = 'test-user-1';
-const PASS = '12345';
-const ADMIN_ROLE = 'admin';
-
 export default async () => {
   await initDb();
   await cleanDb();
-  await insertUser(USER, PASS, ADMIN_ROLE);
-  await insertTrip('RIO 2025', 'rio-2025', '2025-10-08', '2025-10-12', 'copa.jpg')
+  await insertUser(process.env.FIRST_TEST_USER_NAME, process.env.FIRST_TEST_USER_PASS, process.env.ADMIN_ROLE);
+  await insertTrip(process.env.FIRST_TRIP_NAME, process.env.FIRST_TRIP_SLUG, process.env.FIRST_TRIP_START_DATE, process.env.FIRST_TRIP_END_DATE, process.env.FIRST_TRIP_LANDSCAPE_IMAGE)
 
 
   // 2. Create browser and login
@@ -22,8 +18,8 @@ export default async () => {
   page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
   await page.goto(`http://${process.env.APP_HOST}:${process.env.PORT}/login`); // adjust to your app URL
-  await page.fill('input[name="handle"]', USER);
-  await page.fill('input[name="password"]', PASS);
+  await page.fill('input[name="handle"]', process.env.FIRST_TEST_USER_NAME);
+  await page.fill('input[name="password"]', process.env.FIRST_TEST_USER_PASS);
   await page.click('button[type="submit"]');
 
   const cookies = await page.context().cookies();
@@ -34,8 +30,6 @@ export default async () => {
     throw new Error('Session cookie not set after login!');
   }
   await page.screenshot({ path: 'test-results/screenshots/after-login.png' });
-
-  // await expect(page.getByText('Ratambuzza.ar', { exact: false })).toBeVisible();
 
   await page.waitForSelector('a.logo', { timeout: 5000 });
 

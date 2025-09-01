@@ -1,11 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { initDb, getDb } from '../../utils/seed/helpers/db.js';
+import { insertMedia } from '../../utils/seed/helpers/mediaHelpers.js';
+import { getUserId } from '../../utils/seed/helpers/userHelpers.js';
+import { getTripId } from '../../utils/seed/helpers/tripHelpers.js';
 
 test.describe('Gallery Upload', () => {
 
     test('should upload an image to gallery', async ({ page }) => {
         // Navigate to gallery page
-        await page.goto('/trips/rio-2025/gallery');
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
         // Click the upload modal button
         await page.click('#showUploadModalButton');
@@ -38,7 +40,7 @@ test.describe('Gallery Upload', () => {
     });
     test('should upload two more images to gallery', async ({ page }) => {
 
-        await page.goto('/trips/rio-2025/gallery');
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
         // Click the upload modal button
         await page.click('#showUploadModalButton');
@@ -56,4 +58,28 @@ test.describe('Gallery Upload', () => {
         await expect(page.locator('.media-item')).toHaveCount(3, { timeout: 5000 });
 
     });
+    // test('will add media but not uploading', async ({ page }) => {
+
+    //     const userId = await getUserId(process.env.FIRST_TEST_USER_NAME);
+    //     const tripId = await getTripId(process.env.FIRST_TRIP_NAME)
+    //     await insertMedia(null, tripId, userId, )
+
+    //     await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
+
+    //     // Click the upload modal button
+    //     await page.click('#showUploadModalButton');
+
+    //     // Verify modal opens with expected text
+    //     await expect(page.locator('text=Subite unas fotis, Rey')).toBeVisible();
+
+    //     // Upload the test image
+    //     const fileInput = page.locator('input[type="file"]');
+    //     await fileInput.setInputFiles(['tests/e2e/fixtures/images/image2.jpeg', 'tests/e2e/fixtures/images/image3.jpeg']);
+    //     // await fileInput.setInputFiles('tests/e2e/fixtures/images/image3.jpeg');
+
+    //     await page.getByRole('button', { name: 'Súbele' }).click();
+
+    //     await expect(page.locator('.media-item')).toHaveCount(3, { timeout: 5000 });
+
+    // });
 });

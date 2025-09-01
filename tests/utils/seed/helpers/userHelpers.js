@@ -38,3 +38,17 @@ export async function removeUser(handle) {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   });
 }
+
+export async function getUserId(handle) {
+  const db = getDb();
+  const [rows] = await db.execute(
+    'SELECT id FROM users WHERE handle = ?',
+    [handle]
+  );
+
+  if (rows.length === 0) {
+    throw new Error(`User not found with handle: ${handle}`);
+  }
+
+  return rows[0].id;
+}

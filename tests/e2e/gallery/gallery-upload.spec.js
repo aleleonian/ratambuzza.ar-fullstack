@@ -85,5 +85,55 @@ test.describe('Gallery Upload', () => {
             await secondAuthorPill.first().click();
         }
         await expect(page.locator('.media-item')).toHaveCount(1, { timeout: 5000 });
-    })
+    });
+
+    test('should tag first media item using hover menu', async ({ page }) => {
+        // Go to gallery page
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
+
+        await page.click('#toggle-filters');
+
+        // Hover over first media item
+        let firstMediaItem = page.locator('.media-item').first();
+        await firstMediaItem.hover();
+
+        // Click the 🏷️ "Edit Tags" button inside the overlay
+        const tagButton = firstMediaItem.locator('button[title="Edit Tags"]');
+        await tagButton.click();
+
+        // Wait for tag input form to load
+        const tagTextarea = firstMediaItem.locator('textarea[name="tags"]');
+        await expect(tagTextarea).toBeVisible();
+        // Fill in the tag
+        await tagTextarea.fill('prize');
+        await tagTextarea.press('Enter');
+
+        // Click the save button (assumes it's inside the same editor block)
+        // const saveButton = firstMediaItem.locator('button', { hasText: 'Save' });
+        // await saveButton.click();
+
+        // ✅ Assert tag is shown in the item's tag list
+        const tagPill = firstMediaItem.locator('.tag-list .tag-pill', { hasText: 'prize' });
+        await expect(tagPill).toBeVisible();
+
+        // ✅ Assert tag appears in the filter container
+        const filterPill = page.locator('.filter-container .sorting-pill.tag-pill', { hasText: 'prize' });
+        await expect(filterPill).toBeVisible();
+
+        await filterPill.click()
+        await expect(page.locator('.media-item')).toHaveCount(1, { timeout: 5000 });
+
+
+        // Click the 🏷️ "Edit Tags" button inside the overlay
+        firstMediaItem = page.locator('.media-item').first();
+        await firstMediaItem.hover();
+        const playButton = firstMediaItem.locator('button[title="Play"]');
+        await playButton.click();
+
+        const lightbox = page.locator('#lightbox');
+        await expect(lightbox).toBeVisible();
+
+        const lightboxEditTagsButton = page.locator('#lightbox-edit-tags-button');
+        lightboxEditTagsButton.click();
+    });
 });

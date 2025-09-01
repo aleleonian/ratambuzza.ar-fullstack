@@ -8,6 +8,7 @@ export default async () => {
   await initDb();
   await cleanDb();
   await insertUser(process.env.FIRST_TEST_USER_NAME, process.env.FIRST_TEST_USER_PASS, process.env.ADMIN_ROLE);
+  await insertUser(process.env.SECOND_TEST_USER_NAME, process.env.SECOND_TEST_USER_PASS, process.env.USER_ROLE);
   await insertTrip(process.env.FIRST_TRIP_NAME, process.env.FIRST_TRIP_SLUG, process.env.FIRST_TRIP_START_DATE, process.env.FIRST_TRIP_END_DATE, process.env.FIRST_TRIP_LANDSCAPE_IMAGE)
 
 

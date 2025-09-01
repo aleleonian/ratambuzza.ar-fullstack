@@ -24,12 +24,12 @@ export async function insertMedia(postId = null, tripId, userId, mediaPath, thum
     let fileName = path.basename(mediaPath);
     let destinationPath = path.join(uploadsDir, fileName);
     // Copy the file
-    console.log("Gonna copy " + mediaPath + " to " + destinationPath);
+    if (fs.existsSync(destinationPath)) throw Error(`${destinationPath} already exists.`)
     await fs.promises.copyFile(mediaPath, destinationPath);
 
     let thumbFileName = path.basename(thumbPath);
     destinationPath = path.join(uploadsDir, thumbFileName);
-    console.log("Gonna copy " + thumbPath + " to " + destinationPath);
+    if (fs.existsSync(destinationPath)) throw Error(`${destinationPath} already exists.`)
     await fs.promises.copyFile(thumbPath, destinationPath);
 
     const url = "/uploads/" + fileName;

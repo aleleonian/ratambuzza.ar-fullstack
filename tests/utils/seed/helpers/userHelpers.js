@@ -14,14 +14,20 @@ export async function insertUser(handle, password, role) {
     [handle, `${handle}@example.com`, hash, `${handle}.jpg`, `${handle}.head.jpg`, 'some description', role]
   );
 
+  const avatarDestinationPath = path.join('public/images/avatars', `${handle}.png`);
+  if (fs.existsSync(avatarDestinationPath)) throw Error(`${avatarDestinationPath} exists!`)
+
+  const avatarThumbDestinationPath = path.join('public/images/avatars/thumbs', `${handle}.head.png`);
+  if (fs.existsSync(avatarThumbDestinationPath)) throw Error(`${avatarThumbDestinationPath} exists!`)
+
   // Copy avatar files (adjust paths as needed)
   fs.copyFileSync(
     path.join('tests/e2e/fixtures/images/avatars', `${handle}.png`),
-    path.join('public/images/avatars', `${handle}.png`)
+    avatarDestinationPath
   );
   fs.copyFileSync(
     path.join('tests/e2e/fixtures/images/avatars/thumbs', `${handle}.head.png`),
-    path.join('public/images/avatars/thumbs', `${handle}.head.png`)
+    avatarThumbDestinationPath
   );
 }
 

@@ -35,7 +35,14 @@ router.post('/login', async (req, res) => {
         }
     }
 
-    res.redirect(safeRedirect)
+    req.session.save(err => {
+        if (err) {
+            console.error('❌ Session save error:', err);
+            return res.status(500).send('Internal error');
+        }
+        res.redirect(safeRedirect);
+    });
+
 })
 
 router.post('/signup', async (req, res) => {

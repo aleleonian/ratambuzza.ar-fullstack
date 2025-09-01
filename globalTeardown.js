@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { removeUser } from './tests/utils/seed/helpers/userHelpers.js';
-import { getDb } from './tests/utils/seed/helpers/db.js';
+import { getDb, cleanDb } from './tests/utils/seed/helpers/db.js';
 import { getAllMedia } from './tests/utils/seed/helpers/mediaHelpers.js';
+import { removeUser } from './tests/utils/seed/helpers/userHelpers.js';
 
 export default async () => {
 
+    // clean files
     const rows = await getAllMedia();
 
     rows.forEach(row => {
@@ -21,8 +22,11 @@ export default async () => {
         }
     });
 
+    //clean db
     const db = getDb();
     await removeUser('test-user-1');
+    await removeUser('test-user-2');
+    await cleanDb()
 
     // TODO: add code to delete images.
     await db.end(); // Optional: close pool if needed

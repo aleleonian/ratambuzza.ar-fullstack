@@ -89,6 +89,8 @@ test.describe('Gallery Upload', () => {
 
     test('should tag first media item using hover menu and lightbox', async ({ page }) => {
         // Go to gallery page
+        const FIRST_TAG = 'yanzi';
+        const SECOND_TAG = 'crack'
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
         await page.click('#toggle-filters');
@@ -105,7 +107,7 @@ test.describe('Gallery Upload', () => {
         const tagTextarea = firstMediaItem.locator('textarea[name="tags"]');
         await expect(tagTextarea).toBeVisible();
         // Fill in the tag
-        await tagTextarea.fill('prize');
+        await tagTextarea.fill(FIRST_TAG);
         await tagTextarea.press('Enter');
 
         // Click the save button (assumes it's inside the same editor block)
@@ -113,11 +115,11 @@ test.describe('Gallery Upload', () => {
         // await saveButton.click();
 
         // ✅ Assert tag is shown in the item's tag list
-        const tagPill = firstMediaItem.locator('.tag-list .tag-pill', { hasText: 'prize' });
+        const tagPill = firstMediaItem.locator('.tag-list .tag-pill', { hasText: FIRST_TAG });
         await expect(tagPill).toBeVisible();
 
         // ✅ Assert tag appears in the filter container
-        const filterPill = page.locator('.filter-container .sorting-pill.tag-pill', { hasText: 'prize' });
+        let filterPill = page.locator('.filter-container .sorting-pill.tag-pill', { hasText: FIRST_TAG });
         await expect(filterPill).toBeVisible();
 
         await filterPill.click()
@@ -140,7 +142,7 @@ test.describe('Gallery Upload', () => {
         await expect(textarea).toBeVisible();
 
         // Fill it
-        await textarea.fill('prize, winner');
+        await textarea.fill('yanzi, crack');
 
         // Press Enter to trigger the submit handler
         await textarea.press('Enter');
@@ -148,7 +150,13 @@ test.describe('Gallery Upload', () => {
         // let's check the lightbox tags are updated:
 
         // ✅ Assert tag is shown in the item's tag list
-        const lightboxTagPill = lightbox.locator('.tag-list .tag-pill', { hasText: 'winner' });
+        const lightboxTagPill = lightbox.locator('.tag-list .tag-pill', { hasText: SECOND_TAG });
         await expect(lightboxTagPill).toBeVisible();
+
+        await textarea.press('Escape');
+
+        filterPill = page.locator('.filter-container .sorting-pill.tag-pill', { hasText: SECOND_TAG });
+        await expect(filterPill).toBeVisible();
+
     });
 });

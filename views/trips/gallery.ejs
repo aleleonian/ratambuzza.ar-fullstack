@@ -63,7 +63,7 @@
         const updatedTagSet = new Set(updatedTags.map(t => t.toLowerCase()));
 
         // selectedTagName is a global var holding the current filter, like 'food'
-        if (galleryState.selectedTagId !== '-1') {
+        if (galleryState.selectedTagId !== -1) {
             const selectedTagPill = document.querySelector(`.tag-pill[data-tag="${galleryState.selectedTagId}"]`);
             const selectedTagName = selectedTagPill?.textContent?.trim()?.toLowerCase?.();
 

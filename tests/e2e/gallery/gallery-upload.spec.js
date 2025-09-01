@@ -87,7 +87,7 @@ test.describe('Gallery Upload', () => {
         await expect(page.locator('.media-item')).toHaveCount(1, { timeout: 5000 });
     });
 
-    test('should tag first media item using hover menu', async ({ page }) => {
+    test('should tag first media item using hover menu and lightbox', async ({ page }) => {
         // Go to gallery page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
@@ -135,5 +135,20 @@ test.describe('Gallery Upload', () => {
 
         const lightboxEditTagsButton = page.locator('#lightbox-edit-tags-button');
         lightboxEditTagsButton.click();
+
+        const textarea = page.locator('#lightbox-tag-editor-modal textarea[name="tags"]');
+        await expect(textarea).toBeVisible();
+
+        // Fill it
+        await textarea.fill('prize, winner');
+
+        // Press Enter to trigger the submit handler
+        await textarea.press('Enter');
+
+        // let's check the lightbox tags are updated:
+
+        // ✅ Assert tag is shown in the item's tag list
+        const lightboxTagPill = lightbox.locator('.tag-list .tag-pill', { hasText: 'winner' });
+        await expect(lightboxTagPill).toBeVisible();
     });
 });

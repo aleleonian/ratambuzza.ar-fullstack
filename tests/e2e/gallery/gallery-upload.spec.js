@@ -86,7 +86,6 @@ test.describe('Gallery Upload', () => {
         }
         await expect(page.locator('.media-item')).toHaveCount(1, { timeout: 5000 });
     });
-
     test('should tag first media item using hover menu and lightbox', async ({ page }) => {
         // Go to gallery page
         const FIRST_TAG = 'yanzi';
@@ -159,8 +158,7 @@ test.describe('Gallery Upload', () => {
         await expect(filterPill).toBeVisible();
 
     });
-
-    test('likes last item then sorts by most liked', async ({ page }) => {
+    test('Likes last item then sorts by most liked', async ({ page }) => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
         await page.click('#toggle-filters');
@@ -206,17 +204,77 @@ test.describe('Gallery Upload', () => {
         await lightboxLikeButton.click();
         await lightbox.press('Escape');
         await expect(lightbox).toBeHidden();
-        
+
         // the liked/unliked item should have gone back to the last position
         // since we're still filtering by most liked
-        items = page.locator('.media-grid .media-item');
-        lastItem = items.nth(total - 1);
-        const mediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
-        expect(originalLastItemMediaId).toEqual(mediaId);
-        likeBtn = lastItem.locator('form.like-form button[title="Like"]');
-        buttonText = await likeBtn.innerText();
-        expect(buttonText).toContain('0');
+        // items = page.locator('.media-grid .media-item');
+        // lastItem = items.nth(total - 1);
+        // const mediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
+        // expect(originalLastItemMediaId).toEqual(mediaId);
+        // likeBtn = lastItem.locator('form.like-form button[title="Like"]');
+        // buttonText = await likeBtn.innerText();
+        // expect(buttonText).toContain('0');
+
+        await expect(
+            page.locator('.media-grid .media-item')
+                .nth(total - 1)
+                .locator(`a.gallery-item[data-media-id="${originalLastItemMediaId}"]`)
+        ).toBeVisible();
+
+        likeBtn = page.locator('.media-grid .media-item')
+            .nth(total - 1)
+            .locator('form.like-form button[title="Like"]');
+        await expect(likeBtn).toHaveText(/0/);
+
 
     });
+    test('deletes media items via hover and lightbox', async ({ page }) => {
+        // 1. Go to gallery
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
+        // 2. Delete first media item via hover menu
+        let items = page.locator('.media-grid .media-item');
+        await expect(items).toHaveCount(4);
+
+        const firstItem = items.first();
+        await firstItem.hover();
+
+        // Confirm the browser confirm dialog (Playwright auto-accepts by default)
+        page.once('dialog', dialog => dialog.accept());
+
+        const deleteButton = firstItem.locator('button[title="Delete"]');
+        await deleteButton.click();
+
+        // 3. Wait for the 'item eliminado!' toast
+        await expect(page.locator('#toast-container', { hasText: 'item eliminado!' })).toBeVisible();
+
+        // 4. Confirm 3 items remain
+        await expect(items).toHaveCount(3);
+
+        // 5. Delete new first media item via lightbox
+        const newFirst = items.first();
+        await newFirst.hover();
+
+        const playBtn = newFirst.locator('button[title="Play"]');
+        await playBtn.click();
+
+        const lightbox = page.locator('#lightbox');
+        await expect(lightbox).toBeVisible();
+
+        // Accept the confirm prompt
+        page.once('dialog', dialog => dialog.accept());
+
+        const lightboxDelete = lightbox.locator('#lightbox-delete-button');
+        await lightboxDelete.click();
+
+        // Wait for the toast again
+        await expect(page.locator('#toast-container', { hasText: 'item eliminado!' })).toBeVisible();
+
+        // Wait for lightbox to close
+        await lightbox.press('Escape');
+        await expect(lightbox).toBeHidden();
+        
+        // 6. Confirm 2 items remain
+        await expect(items).toHaveCount(2);
+    });
 });

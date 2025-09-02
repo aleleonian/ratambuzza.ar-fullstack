@@ -6,16 +6,16 @@ import mysql from 'mysql2/promise';
 let db;
 
 export async function cleanDb() {
-    await db.execute('DELETE FROM media');
-    await db.execute('DELETE FROM users');
     await db.execute('DELETE FROM likes_media');
     await db.execute('DELETE FROM likes_posts');
     await db.execute('DELETE FROM media_tags');
     await db.execute('DELETE FROM posts');
     await db.execute('DELETE FROM sessions');
     await db.execute('DELETE FROM tags');
-    await db.execute('DELETE FROM trips');
     await db.execute('DELETE FROM trip_members');
+    await db.execute('DELETE FROM trips');
+    await db.execute('DELETE FROM media');
+    await db.execute('DELETE FROM users');
 }
 
 export async function initDb() {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { getDb, cleanDb } from './tests/utils/seed/helpers/db.js';
-import { getAllMedia } from './tests/utils/seed/helpers/mediaHelpers.js';
+import { getAllMedia, deleteMediaLikes } from './tests/utils/seed/helpers/mediaHelpers.js';
 import { removeUser } from './tests/utils/seed/helpers/userHelpers.js';
 
 export default async () => {
@@ -24,6 +24,7 @@ export default async () => {
 
     //clean db
     const db = getDb();
+    await deleteMediaLikes();
     await removeUser('test-user-1');
     await removeUser('test-user-2');
     await cleanDb()

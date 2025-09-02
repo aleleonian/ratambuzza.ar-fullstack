@@ -44,6 +44,16 @@ export async function insertMedia(postId = null, tripId, userId, mediaPath, thum
 
 }
 
+export async function deleteMediaLikes() {
+    const db = getDb();
+
+    // delete the actual files
+
+    await db.execute(
+        'DELETE FROM likes_media'
+    );
+
+}
 export async function removeMedia(mediaId) {
     const db = getDb();
 

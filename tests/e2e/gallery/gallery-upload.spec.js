@@ -159,4 +159,43 @@ test.describe('Gallery Upload', () => {
         await expect(filterPill).toBeVisible();
 
     });
+
+    test('likes last item then sorts by most liked', async ({ page }) => {
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
+
+        await page.click('#toggle-filters');
+
+        // Grab all media items and pick the last one
+        const items = page.locator('.media-grid .media-item');
+        const total = await items.count();
+        expect(total).toEqual(4);
+
+        const lastItem = items.nth(total - 1);
+
+        // Get its media-id so we can assert ordering later
+        const mediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
+        expect(mediaId).toBeTruthy();
+
+        // Hover so overlay buttons are visible, then like it
+        await lastItem.hover();
+        const likeBtn = lastItem.locator('form.like-form button[title="Like"]');
+        let buttonText = await likeBtn.innerText();
+        expect(buttonText).toContain('0');
+        await likeBtn.click();
+
+        // Wait for like to register (aria-pressed toggles to "1" or count updates)
+        await expect(likeBtn).toHaveAttribute('aria-pressed', 'true');
+        buttonText = await likeBtn.innerText();
+        expect(buttonText).toContain('1');
+
+        // Click the "Más likes" sort pill
+        // data-sort="1" == 'Mas likeados'
+        await page.locator('.sorting-pill.sort-pill[data-sort="1"]').click();
+
+        // Assert the previously liked item is now the FIRST in the grid
+        const firstItem = page.locator('.media-grid .media-item').first();
+        await expect(firstItem.locator(`a.gallery-item[data-media-id="${mediaId}"]`)).toBeVisible();
+
+    });
+
 });

@@ -153,7 +153,7 @@ test.describe('Gallery Upload', () => {
         const lightboxTagPill = lightbox.locator('.tag-list .tag-pill', { hasText: SECOND_TAG });
         await expect(lightboxTagPill).toBeVisible();
 
-        await textarea.press('Escape');
+        await lightbox.press('Escape');
 
         filterPill = page.locator('.filter-container .sorting-pill.tag-pill', { hasText: SECOND_TAG });
         await expect(filterPill).toBeVisible();
@@ -166,23 +166,23 @@ test.describe('Gallery Upload', () => {
         await page.click('#toggle-filters');
 
         // Grab all media items and pick the last one
-        const items = page.locator('.media-grid .media-item');
+        let items = page.locator('.media-grid .media-item');
         const total = await items.count();
         expect(total).toEqual(4);
 
-        const lastItem = items.nth(total - 1);
+        let lastItem = items.nth(total - 1);
 
         // Get its media-id so we can assert ordering later
-        const mediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
-        expect(mediaId).toBeTruthy();
+        const originalLastItemMediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
+        expect(originalLastItemMediaId).toBeTruthy();
 
         // Hover so overlay buttons are visible, then like it
         await lastItem.hover();
-        const likeBtn = lastItem.locator('form.like-form button[title="Like"]');
+        let likeBtn = lastItem.locator('form.like-form button[title="Like"]');
         let buttonText = await likeBtn.innerText();
         expect(buttonText).toContain('0');
-        await likeBtn.click();
 
+        await likeBtn.click();
         // Wait for like to register (aria-pressed toggles to "1" or count updates)
         await expect(likeBtn).toHaveAttribute('aria-pressed', 'true');
         buttonText = await likeBtn.innerText();
@@ -194,7 +194,28 @@ test.describe('Gallery Upload', () => {
 
         // Assert the previously liked item is now the FIRST in the grid
         const firstItem = page.locator('.media-grid .media-item').first();
-        await expect(firstItem.locator(`a.gallery-item[data-media-id="${mediaId}"]`)).toBeVisible();
+        await expect(firstItem.locator(`a.gallery-item[data-media-id="${originalLastItemMediaId}"]`)).toBeVisible();
+        await firstItem.hover();
+        // add a lightbox like test too
+        const playButton = firstItem.locator('button[title="Play"]');
+        await playButton.click();
+
+        const lightbox = page.locator('#lightbox');
+        await expect(lightbox).toBeVisible();
+        const lightboxLikeButton = page.locator('#lightbox-like-button');
+        await lightboxLikeButton.click();
+        await lightbox.press('Escape');
+        await expect(lightbox).toBeHidden();
+        
+        // the liked/unliked item should have gone back to the last position
+        // since we're still filtering by most liked
+        items = page.locator('.media-grid .media-item');
+        lastItem = items.nth(total - 1);
+        const mediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
+        expect(originalLastItemMediaId).toEqual(mediaId);
+        likeBtn = lastItem.locator('form.like-form button[title="Like"]');
+        buttonText = await likeBtn.innerText();
+        expect(buttonText).toContain('0');
 
     });
 

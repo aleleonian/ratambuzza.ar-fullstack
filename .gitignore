@@ -1,5 +1,7 @@
-.env
+.env*
 node_modules/
 noupload/
 public/uploads
 scripts/pupGPT
+test-results/
+storageState.json

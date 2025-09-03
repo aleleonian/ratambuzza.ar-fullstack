@@ -1,5 +1,8 @@
-// server.js
-require('dotenv').config()
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+require('dotenv').config({ path: envFile });
+
+console.log("process.env.DB_NAME:", process.env.DB_NAME);
+
 const express = require('express')
 const session = require('express-session')
 const path = require('path')
@@ -40,7 +43,10 @@ app.use(session({
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        // secure: process.env.NODE_ENV === 'production', // 🛑 false in dev/test
+        sameSite: 'lax',
+        secure: false,
     }
 }))
 

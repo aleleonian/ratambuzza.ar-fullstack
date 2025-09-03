@@ -4,11 +4,18 @@ import { getDb } from './db.js';
 
 export async function getAllMedia() {
     const db = getDb();
-
     const [rows] = await db.execute('SELECT * FROM media');
     return rows;
+}
+
+export async function changeAllMediaOwnership(newUserId) {
+
+    const db = getDb();
+
+    await db.execute('UPDATE media SET user_id = ?', [newUserId])
 
 }
+
 export async function insertMedia(postId = null, tripId, userId, mediaPath, thumbPath, width, height, type) {
 
     const db = getDb();

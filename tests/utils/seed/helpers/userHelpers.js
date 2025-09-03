@@ -3,6 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { getDb } from './db.js';
 
+export async function changeUserType(userId, newRole) {
+  const db = getDb();
+  await db.execute(`UPDATE users SET role = ? WHERE id = ? `, [newRole, userId])
+}
+
 export async function insertUser(handle, password, role) {
 
   const db = getDb();

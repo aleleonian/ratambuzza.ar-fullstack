@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
-import { insertMedia } from '../../utils/seed/helpers/mediaHelpers.js';
-import { getUserId } from '../../utils/seed/helpers/userHelpers.js';
+import { insertMedia, changeAllMediaOwnership } from '../../utils/seed/helpers/mediaHelpers.js';
+import { changeUserType, getUserId } from '../../utils/seed/helpers/userHelpers.js';
 import { getTripId } from '../../utils/seed/helpers/tripHelpers.js';
 import { getDb, initDb } from '../../utils/seed/helpers/db.js';
 
@@ -63,10 +63,6 @@ test.describe('Gallery Upload', () => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
 
         await expect(page.locator('.media-item')).toHaveCount(4, { timeout: 5000 });
-
-        const db = await getDb();
-
-        await db.end();
     });
     test('Will make use of the pill filters to discriminate media items', async ({ page }) => {
 
@@ -205,16 +201,6 @@ test.describe('Gallery Upload', () => {
         await lightbox.press('Escape');
         await expect(lightbox).toBeHidden();
 
-        // the liked/unliked item should have gone back to the last position
-        // since we're still filtering by most liked
-        // items = page.locator('.media-grid .media-item');
-        // lastItem = items.nth(total - 1);
-        // const mediaId = await lastItem.locator('a.gallery-item').getAttribute('data-media-id');
-        // expect(originalLastItemMediaId).toEqual(mediaId);
-        // likeBtn = lastItem.locator('form.like-form button[title="Like"]');
-        // buttonText = await likeBtn.innerText();
-        // expect(buttonText).toContain('0');
-
         await expect(
             page.locator('.media-grid .media-item')
                 .nth(total - 1)
@@ -243,6 +229,7 @@ test.describe('Gallery Upload', () => {
         page.once('dialog', dialog => dialog.accept());
 
         const deleteButton = firstItem.locator('button[title="Delete"]');
+
         await deleteButton.click();
 
         // 3. Wait for the 'item eliminado!' toast
@@ -273,8 +260,53 @@ test.describe('Gallery Upload', () => {
         // Wait for lightbox to close
         await lightbox.press('Escape');
         await expect(lightbox).toBeHidden();
-        
+
         // 6. Confirm 2 items remain
         await expect(items).toHaveCount(2);
+    });
+    test('makes sure only the owner or admin can delete media items', async ({ page }) => {
+
+        const adminUserId = await getUserId(process.env.FIRST_TEST_USER_NAME);
+
+        const normalUserid = await getUserId(process.env.SECOND_TEST_USER_NAME);
+
+        await changeUserType(adminUserId, 'user');
+
+        await changeAllMediaOwnership(normalUserid)
+
+        //logout and re log-in
+        await page.goto('/logout'); // if your app has it
+        // Then log in again via UI
+        await page.goto('/login');
+        await page.fill('input[name="handle"]', process.env.FIRST_TEST_USER_NAME);
+        await page.fill('input[name="password"]', '12345');
+        await page.click('button[type="submit"]');
+        await expect(page).toHaveURL('/'); // or wherever it redirects
+
+        const cookies = await page.context().cookies();
+        console.log('Cookies after login:', cookies.map(c => c.name));
+        const sessionCookie = cookies.find(c => c.name === 'connect.sid');
+
+        if (!sessionCookie) {
+            throw new Error('Session cookie not set after login!');
+        }
+
+        // 1. Go to gallery
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
+
+        // 2. Delete first media item via hover menu
+        let items = page.locator('.media-grid .media-item');
+
+        await expect(items).toHaveCount(2);
+
+        const firstItem = items.first();
+
+        await firstItem.hover();
+
+        await expect(firstItem.locator('button[title="Delete"]')).not.toBeVisible();
+
+        const db = await getDb();
+
+        await db.end();
     });
 });

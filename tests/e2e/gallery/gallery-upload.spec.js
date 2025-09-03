@@ -64,7 +64,58 @@ test.describe('Gallery Upload', () => {
 
         await expect(page.locator('.media-item')).toHaveCount(4, { timeout: 5000 });
     });
-    test('Will make use of the pill filters to discriminate media items', async ({ page }) => {
+    test('navigates forward and backward in lightbox', async ({ page }) => {
+        // Go to gallery
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
+
+        // Make sure there are at least 2 media items
+        const items = page.locator('.media-grid .media-item');
+        await expect(items).toHaveCount(4); // or >1 if dynamic
+
+        // Open the first image in the lightbox
+        const firstItem = items.first();
+        await firstItem.hover();
+        await firstItem.locator('button[title="Play"]').click();
+
+        const lightbox = page.locator('#lightbox');
+        const image = lightbox.locator('#lightbox-img');
+
+        // Wait for lightbox to be visible
+        await expect(lightbox).toBeVisible();
+
+        // Save current image src
+        const firstSrc = await image.getAttribute('src');
+        expect(firstSrc).toBeTruthy();
+
+        // Click "Next"
+        await page.locator('#lightbox-next').click();
+        await expect(image).toBeVisible();
+        // Wait until image src changes
+        await expect(image).not.toHaveAttribute('src', firstSrc);
+        const secondSrc = await image.getAttribute('src');
+        // expect(secondSrc).not.toEqual(firstSrc);
+
+        // Now go back to previous image
+        await page.locator('#lightbox-prev').click();
+        await expect(image).toBeVisible();
+        // Expect src to go back to the original one
+        await expect(image).toHaveAttribute('src', firstSrc);
+
+        await page.locator('#lightbox-next').click();
+        await expect(image).toBeVisible();
+        await page.locator('#lightbox-next').click();
+        await expect(image).toBeVisible();
+
+        const thirdSrc = await image.getAttribute('src');
+        await expect(image).not.toHaveAttribute('src', secondSrc);
+
+        await page.locator('#lightbox-next').click();
+        await expect(image).toBeVisible();
+        // const fourthSrc = await image.getAttribute('src');
+        await expect(image).not.toHaveAttribute('src', thirdSrc);
+
+    });
+    test('will make use of the pill filters to discriminate media items', async ({ page }) => {
 
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/gallery`);
         await page.waitForSelector('#toggle-filters', { state: 'visible' });

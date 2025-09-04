@@ -27,7 +27,7 @@
                 🏷️
             </button>
             <button class="overlay-btn" data-media-id="<%= item.id %>" title="Delete"
-                onclick="event.stopPropagation();deleteThisItem(this)">
+                onclick="event.stopPropagation();window.deleteThisItem(this)">
                 ❌
             </button>
             <% } %>
@@ -44,31 +44,32 @@
 
 
 <script>
-    // voy por aqui: este código es para hookear el delete button y luego de borrar
+    // este código es para hookear el delete button y luego de borrar
     // si no hay más items, pintar un mensaje
-    async function deleteThisItem(e) {
+    (() => {
+        window.deleteThisItem = async function (e) {
 
-        const mediaId = e.dataset.mediaId;
-        const mediaItem = e.closest('.media-item');
+            const mediaId = e.dataset.mediaId;
+            const mediaItem = e.closest('.media-item');
 
-        if (!confirm('Seguro de borrar este item?')) return;
+            if (!confirm('Seguro de borrar este item?')) return;
 
-        try {
-            await window.htmxAjaxPromise('DELETE', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/delete`, {
-                target: mediaItem,
-                swap: 'outerHTML'
-            });
+            try {
+                await window.htmxAjaxPromise('DELETE', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/delete`, {
+                    target: mediaItem,
+                    swap: 'outerHTML'
+                });
 
-            // After the swap, check if any media items remain
-            const remaining = document.querySelectorAll('.media-item').length;
-            if (remaining === 0) {
-                document.getElementById('no-images-message').textContent = 'Nada que ver aquí :/'
+                // After the swap, check if any media items remain
+                const remaining = document.querySelectorAll('.media-item').length;
+                if (remaining === 0) {
+                    document.getElementById('no-images-message').textContent = 'Nada que ver aquí :/'
+                }
+
+            } catch (err) {
+                console.error('Error deleting media:', err);
+                showToast('Error al borrar el item', 'error');
             }
-
-        } catch (err) {
-            console.error('Error deleting media:', err);
-            showToast('Error al borrar el item', 'error');
-        }
-    };
-
+        };
+    })()
 </script>

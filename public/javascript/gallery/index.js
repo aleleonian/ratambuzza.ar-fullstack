@@ -1,5 +1,6 @@
 // TODO: save this in the localStorage and not globally
 import './events.js';
+import './lightbox.js';
 
 // gallery globals
 const DEFAULT_TAG_ID = -1;

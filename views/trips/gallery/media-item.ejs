@@ -8,7 +8,7 @@
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                 </div> -->
         <div class="overlay-bottom">
-            <button onclick="event.stopPropagation();openLightboxFromElement(this)" class="overlay-btn"
+            <button onclick="event.stopPropagation();window.openLightboxFromElement(this)" class="overlay-btn"
                 title="Play">▶️</button>
             <div id="like-button-container-<%= item.id %>">
                 <%- include('./like-button-gallery',{

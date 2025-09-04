@@ -37,3 +37,76 @@ document.body.addEventListener('submit', async function (e) {
         console.error(err);
     }
 });
+
+document.body.addEventListener('tags-updated', (e) => {
+    const { updatedTags } = e.detail;
+    // if tags were updated either on the hover menu or the lightbox
+    // then we must update the pill-filters
+    let url = `/trips/${window.galleryState.tripSlug}/gallery/filter-pills`;
+    let options = { target: `#filter-pills`, swap: 'innerHTML' };
+    htmx.ajax('GET', url, options);
+
+    // HTMX load new filtered media
+    // window.galleryState.selectedTagId & window.galleryState.selectedAuthor & window.galleryState.selectedSortCriteria are global variables
+    // if the tags were updated, then we might need to update the media items
+    // that are being filtered (if window.galleryState.selectedTagId != -1)
+
+    const updatedTagSet = new Set(updatedTags.map(t => t.toLowerCase()));
+
+    // selectedTagName is a global var holding the current filter, like 'food'
+    if (window.galleryState.selectedTagId !== -1) {
+        const selectedTagPill = document.querySelector(`.tag-pill[data-tag="${window.galleryState.selectedTagId}"]`);
+        const selectedTagName = selectedTagPill?.textContent?.trim()?.toLowerCase?.();
+
+        if (!updatedTagSet.has(selectedTagName.toLowerCase())) {
+            console.log(`Tag '${selectedTagName}' removed from tags, refreshing grid`);
+
+            const params = new URLSearchParams();
+            if (window.galleryState.selectedTagId && window.galleryState.selectedTagId !== "-1") params.append('tag', window.galleryState.selectedTagId);
+            if (window.galleryState.selectedAuthor && window.galleryState.selectedAuthor !== "-1") params.append('author', window.galleryState.selectedAuthor);
+            if (window.galleryState.selectedSortCriteria && window.galleryState.selectedSortCriteria !== "-1") params.append('sort', window.galleryState.selectedSortCriteria);
+
+            const galleryUrl = `/trips/${window.galleryState.tripSlug}/gallery?` + params.toString();
+            htmx.ajax('GET', galleryUrl, {
+                target: '#media-grid',
+                swap: 'innerHTML'
+            });
+        }
+    }
+});
+
+
+document.body.addEventListener('htmx:afterSwap', function (e) {
+    const isTagEditorSwap = e.target.id?.startsWith?.('tag-editor-');
+    if (!isTagEditorSwap) return;
+
+    const mediaId = e.target.dataset.mediaId;
+    if (!mediaId) return;
+
+    const current = document.getElementById('lightbox-metadata');
+    if (!current) return;
+
+    // let's update the lightbox meta data for the media item that is
+    // actually being viewed and not another one.
+    // only refresh lightbox metadata if the swap came from editing tags
+    if (current.dataset.mediaId === mediaId) {
+        htmx.ajax('GET', `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/lightbox-data`, {
+            target: '#lightbox-meta'
+        });
+        const dialog = document.getElementById('lightbox-tag-editor-modal');
+        dialog.classList.add('hidden');
+    }
+});
+// after the tags were edited, either in the hover menu or lightbox
+// fire this event to we can re-fetch the filter-pills
+
+document.body.addEventListener('htmx:afterSwap', function (evt) {
+    const el = evt.target;
+    const updatedTagList = el.querySelector('.tag-list.just-updated');
+    if (updatedTagList) {
+        const tagsJson = updatedTagList.dataset.tags;
+        const updatedTags = JSON.parse(tagsJson || '[]');
+        // const mediaId = updatedTagList.dataset.mediaId;
+        document.body.dispatchEvent(new CustomEvent('tags-updated', { detail: { updatedTags } }));
+    }
+});

@@ -1,5 +1,6 @@
 
 window.currentIndexLightbox = -1;
+window.enableLightboxKeyboardNavigation = true;
 
 window.openLightbox = async function (index) {
     const lightboxDiv = document.getElementById('lightbox');
@@ -63,14 +64,19 @@ window.closeLightbox = function () {
     lightboxImg.src = '';
 }
 window.showNextLightbox = function () {
-    const mediaItems = window.getGalleryItems();
-    const nextIndex = (window.currentIndexLightbox + 1) % mediaItems.length;
-    window.openLightbox(nextIndex);
+    if (window.enableLightboxKeyboardNavigation) {
+        const mediaItems = window.getGalleryItems();
+        const nextIndex = (window.currentIndexLightbox + 1) % mediaItems.length;
+        window.openLightbox(nextIndex);
+    }
 }
 window.showPrevLightbox = function () {
-    const mediaItems = window.getGalleryItems();
-    const prevIndex = (window.currentIndexLightbox - 1 + mediaItems.length) % mediaItems.length;
-    window.openLightbox(prevIndex);
+    if (window.enableLightboxKeyboardNavigation) {
+
+        const mediaItems = window.getGalleryItems();
+        const prevIndex = (window.currentIndexLightbox - 1 + mediaItems.length) % mediaItems.length;
+        window.openLightbox(prevIndex);
+    }
 }
 window.editTagsLightbox = function () {
     const meta = document.getElementById('lightbox-metadata').dataset;
@@ -128,7 +134,6 @@ window.likeToggleLightbox = async function () {
             });
         }
     } catch (err) {
-        debugger;
         showToast('Error toggling like', 'error');
     }
 }

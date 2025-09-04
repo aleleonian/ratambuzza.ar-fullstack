@@ -8,7 +8,7 @@
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
                 </div> -->
         <div class="overlay-bottom">
-            <button onclick="event.stopPropagation();window.openLightboxFromElement(this)" class="overlay-btn"
+            <button onclick="window.openLightboxFromElement(this)" class="overlay-btn"
                 title="Play">▶️</button>
             <div id="like-button-container-<%= item.id %>">
                 <%- include('./like-button-gallery',{
@@ -18,16 +18,16 @@
                     })%>
             </div>
             <a href="<%-item.url%>" download class="download-link">
-                <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
+                <button class="overlay-btn" title="Download">⬇️</button>
             </a>
             <% if (currentUser.id === item.user_id || currentUser.role == 'admin') { %>
-            <button class="overlay-btn" onclick="event.stopPropagation();" title="Edit Tags"
+            <button class="overlay-btn" title="Edit Tags"
                 hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
                 hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
                 🏷️
             </button>
             <button class="overlay-btn" data-media-id="<%= item.id %>" title="Delete"
-                onclick="event.stopPropagation();window.deleteThisItem(this)">
+                onclick="window.deleteThisItem(this)">
                 ❌
             </button>
             <% } %>

@@ -1,6 +1,6 @@
 // TODO: save this in the localStorage and not globally
 import './events.js';
-import './lightbox.js';
+import '../lightbox/index.js';
 
 // gallery globals
 const DEFAULT_TAG_ID = -1;
@@ -52,7 +52,3 @@ window.getGalleryItems = function () {
 window.stringNumberToBoolean = function (stringNumber) {
     return Boolean(Number(stringNumber));
 }
-
-// window.stringToBoolean = function (string) {
-//     return Boolean(string);
-// }

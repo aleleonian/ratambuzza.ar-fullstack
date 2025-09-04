@@ -78,6 +78,7 @@ document.body.addEventListener('tags-updated', (e) => {
 
 // lightbox stuff
 document.body.addEventListener('htmx:afterSwap', function (e) {
+
     const isTagEditorSwap = e.target.id?.startsWith?.('tag-editor-');
     if (!isTagEditorSwap) return;
 
@@ -96,6 +97,9 @@ document.body.addEventListener('htmx:afterSwap', function (e) {
         });
         const dialog = document.getElementById('lightbox-tag-editor-modal');
         dialog.classList.add('hidden');
+
+        // ✅ Re-enable lightbox keyboard nav now that tag editor is gone
+        window.enableLightboxKeyboardNavigation = true;
     }
 });
 

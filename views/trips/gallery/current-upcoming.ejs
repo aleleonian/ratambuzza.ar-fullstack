@@ -9,10 +9,7 @@
         tripSlug: "<%= currentOrUpcomingTrip.slug %>",
         currentUserRole: "<%= currentUser.role %>",
     };
-</script>
-
-<script>
-    // set the tripSlug property for other files outside this one to use
+    
     (() => {
         window.toggleUploadButton = function (input) {
             const btn = document.getElementById('uploadButton');

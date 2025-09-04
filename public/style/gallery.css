@@ -43,17 +43,23 @@
 }
 
 .overlay {
+    pointer-events: none;
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.65);
     color: white;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     padding: 0.5rem;
     opacity: 0;
     transition: opacity 200ms ease-in-out;
     pointer-events: none;
+}
+
+.overlay[data-active="true"] {
+    pointer-events: auto;
+    opacity: 1;
 }
 
 .media-item:hover .overlay {
@@ -73,7 +79,7 @@
     border-radius: 50%;
 }
 
-.overlay-bottom {
+.overlay-middle {
     display: flex;
     justify-content: space-evenly;
     gap: 0.5rem;

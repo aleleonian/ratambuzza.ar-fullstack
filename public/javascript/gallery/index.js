@@ -1,6 +1,7 @@
 // TODO: save this in the localStorage and not globally
 import './events.js';
 import '../lightbox/index.js';
+import './mobile-overlay.js';
 
 // gallery globals
 const DEFAULT_TAG_ID = -1;

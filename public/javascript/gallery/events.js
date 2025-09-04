@@ -14,14 +14,14 @@ document.body.addEventListener('submit', async function (e) {
 
         if (!response.ok) throw new Error('Failed to like');
 
-        if (galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
+        if (window.galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
             // Like sorting is active → reload the grid
             const params = new URLSearchParams();
-            if (galleryState.selectedTagId && galleryState.selectedTagId !== "-1") params.append('tag', galleryState.selectedTagId);
-            if (galleryState.selectedAuthor && galleryState.selectedAuthor !== "-1") params.append('author', galleryState.selectedAuthor);
-            if (galleryState.selectedSortCriteria && galleryState.selectedSortCriteria !== "-1") params.append('sort', galleryState.selectedSortCriteria);
+            if (window.galleryState.selectedTagId && window.galleryState.selectedTagId !== "-1") params.append('tag', window.galleryState.selectedTagId);
+            if (window.galleryState.selectedAuthor && window.galleryState.selectedAuthor !== "-1") params.append('author', window.galleryState.selectedAuthor);
+            if (window.galleryState.selectedSortCriteria && window.galleryState.selectedSortCriteria !== "-1") params.append('sort', window.galleryState.selectedSortCriteria);
 
-            const galleryUrl = `/trips/${galleryState.tripSlug}/gallery?` + params.toString();
+            const galleryUrl = `/trips/${window.galleryState.tripSlug}/gallery?` + params.toString();
 
             htmx.ajax('GET', galleryUrl, {
                 target: '#media-grid',

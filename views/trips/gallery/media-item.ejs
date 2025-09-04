@@ -54,7 +54,7 @@
         if (!confirm('Seguro de borrar este item?')) return;
 
         try {
-            await htmxAjaxPromise('DELETE', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/delete`, {
+            await window.htmxAjaxPromise('DELETE', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/delete`, {
                 target: mediaItem,
                 swap: 'outerHTML'
             });

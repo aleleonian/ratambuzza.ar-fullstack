@@ -62,9 +62,9 @@
                     const activeAuthor = document.querySelector('.author-pill.active');
                     const activeSort = document.querySelector('.sort-pill.sort-order-pill.active');
                     return (
-                        galleryState.selectedTagId !== "-1" ||
-                        galleryState.selectedAuthor !== "-1" ||
-                        galleryState.selectedSortCriteria !== "-1"
+                        window.galleryState.selectedTagId !== "-1" ||
+                        window.galleryState.selectedAuthor !== "-1" ||
+                        window.galleryState.selectedSortCriteria !== "-1"
                     );
                 }
                 const form = document.querySelector('#uploadModal form');

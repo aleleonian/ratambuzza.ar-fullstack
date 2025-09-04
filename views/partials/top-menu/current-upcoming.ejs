@@ -4,11 +4,43 @@
     <div class="nav-bar">
         <a class="logo desktop-only" href="/">Ratambuzza.ar</a>
         <nav class="main-nav">
-            <a href="/trips/<%-currentOrUpcomingTrip.slug%>/feed"><img class="menu-item" src="/images/feed.png"></a>
-            <a href="/trips/<%-currentOrUpcomingTrip.slug%>/gallery"><img class="menu-item" src="/images/pix.png"></a>
-            <a href="/trips/<%-currentOrUpcomingTrip.slug%>/prizes"><img class="menu-item" src="/images/awards.png"></a>
-            <a href="/logout"><img class="menu-item" src="/images/logout.png"></a>
+            <a href="/"><img title="Home" alt="Feed" class="mobile-only menu-item" src="/images/home.png"></a>
+            <a href="/trips/<%-currentOrUpcomingTrip.slug%>/feed"><img class="menu-item" title="Feed" alt="Feed"
+                    src="/images/feed.png"></a>
+            <a href="/trips/<%-currentOrUpcomingTrip.slug%>/gallery"><img class="menu-item" title="Gallery"
+                    alt="Gallery" src="/images/gallery.png"></a>
+            <a href="/trips/<%-currentOrUpcomingTrip.slug%>/playground"><img class="menu-item" title="Playground"
+                    alt="Playground" src="/images/playground.png"></a>
+            <!-- User dropdown menu -->
+            <div class="user-dropdown">
+                <button class="avatar-button" id="userMenuButton">
+                    <img class="menu-item" src="/images/avatars/thumbs/<%= currentUser.avatarHeadFileName %>"
+                        alt="<%= currentUser.handle %>" style="object-fit:cover;" />
+                </button>
+
+                <div class="user-menu" id="userMenu">
+                    <a href="/logout">Log out</a>
+                </div>
+            </div>
         </nav>
     </div>
 </header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const avatarBtn = document.getElementById('userMenuButton');
+        const menu = document.getElementById('userMenu');
+
+        avatarBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Don't let it bubble to body
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Hide menu when clicking outside
+        document.body.addEventListener('click', () => {
+            menu.style.display = 'none';
+        });
+    });
+
+</script>
 <% } %>

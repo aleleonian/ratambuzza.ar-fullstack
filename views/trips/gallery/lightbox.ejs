@@ -1,0 +1,226 @@
+<div class="lightbox-overlay" id="lightbox">
+    <button id="lightbox-close" class="lightbox-close" aria-label="Cerrar">&times;</button>
+
+    <img id="lightbox-img" class="lightbox-image" src="" alt="Expanded media" />
+    <div class="lightbox-controls">
+        <button class="lightbox-btn" title="Previous" id="lightbox-prev">⏮</button>
+        <a id="lightbox-download" href="#" class="download-link" download>
+            <button class="lightbox-btn" title="Download">⬇️</button>
+        </a>
+        <button class="lightbox-btn" title="Like" id="lightbox-like-button"></button>
+        <!-- 
+            this button has to be hidden or shown according to
+            document.getElementById('lightbox-metadata').dataset.isOwner
+            -->
+        <button class="lightbox-btn" title="Delete item" id="lightbox-delete-button">❌</button>
+
+        <!-- 
+            this button has to be hidden or shown according to
+            document.getElementById('lightbox-metadata').dataset.isOwner
+            -->
+        <button class="lightbox-btn" title="Edit Tags" id="lightbox-edit-tags-button">🏷️</button>
+
+        <button class="lightbox-btn" title="Next" id="lightbox-next">⏭</button>
+    </div>
+    <!-- This next div is the 'state' for the current media item's metadata for the lightbox -->
+    <div id="lightbox-meta"></div>
+    <div class="lightbox-tag-editor-modal hidden" id="lightbox-tag-editor-modal"></div>
+
+</div>
+
+<script>
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    let currentIndex = -1;
+
+    async function openLightbox(index) {
+        const mediaItems = getGalleryItems();
+        if (index < 0 || index >= mediaItems.length) return;
+        // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
+        // Use hx-target to inject into a #lightbox-meta container
+        const mediaId = mediaItems[index].dataset.mediaId;
+        // htmx.ajax('GET', `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`, { target: '#lightbox-meta' });
+
+        await htmxAjaxPromise(
+            'GET',
+            `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/lightbox-data`,
+            { target: '#lightbox-meta' }
+        );
+
+        const meta = document.getElementById('lightbox-metadata').dataset;
+        // now according to the data in #lightbox-container i must make some modifications
+        // const userLiked = Boolean(Number(document.getElementById('lightbox-meta-userLiked').value));
+        const userLiked = stringNumberToBoolean(meta.liked);
+        const lightboxLikeButton = document.getElementById('lightbox-like-button');
+        if (userLiked) {
+            lightboxLikeButton.innerHTML = "❤️"
+        }
+        else {
+            lightboxLikeButton.innerHTML = "🤍"
+        }
+        const itemUrl = meta.mediaUrl;
+        document.getElementById('lightbox-download').href = itemUrl;
+
+        if (stringNumberToBoolean(meta.mediaOwner) || <%= currentUser.role === 'admin' %>) {
+            document.getElementById('lightbox-delete-button').style.display = 'block';
+            document.getElementById('lightbox-edit-tags-button').style.display = 'block';
+        }
+            else {
+            document.getElementById('lightbox-delete-button').style.display = 'none';
+            document.getElementById('lightbox-edit-tags-button').style.display = 'none'
+        }
+
+        currentIndex = index;
+        const link = mediaItems[currentIndex];
+        const fullUrl = link.getAttribute('href');
+        lightboxImg.src = fullUrl;
+        lightbox.classList.add('active');
+    }
+
+    function openLightboxFromElement(trigger) {
+        const anchor = trigger.closest('.media-item')?.querySelector('.gallery-item');
+        if (!anchor) return;
+
+        const galleryItems = Array.from(document.querySelectorAll('#media-grid .gallery-item'));
+        const index = galleryItems.indexOf(anchor);
+
+        if (index === -1) return;
+
+        openLightbox(index);
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove('active');
+        lightboxImg.src = '';
+    }
+
+    function showNext() {
+        const mediaItems = getGalleryItems();
+        const nextIndex = (currentIndex + 1) % mediaItems.length;
+        openLightbox(nextIndex);
+    }
+
+    function showPrev() {
+        const mediaItems = getGalleryItems();
+        const prevIndex = (currentIndex - 1 + mediaItems.length) % mediaItems.length;
+        openLightbox(prevIndex);
+    }
+
+    async function deleteMediaItem() {
+        if (!confirm('Seguro de borrar este item?')) return false;
+        const meta = document.getElementById('lightbox-metadata').dataset;
+        const mediaId = meta.mediaId;
+        const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/delete`;
+        const options = { target: `#media-item-${mediaId}`, swap: 'outerHTML' };
+        try {
+            await htmxAjaxPromise('DELETE', url, options);
+            const mediaItems = getGalleryItems();
+            if (mediaItems.length === 0) {
+                document.getElementById('no-images-message').textContent = 'Nada que ver aquí :/'
+            }
+            return true;
+        }
+        catch (error) {
+            showToast('Error deleting media item: ' + error, 'error');
+            return false;
+        }
+    }
+
+    function editTags() {
+        const meta = document.getElementById('lightbox-metadata').dataset;
+        const mediaId = meta.mediaId;
+        const modal = document.getElementById('lightbox-tag-editor-modal');
+        const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/tags/edit`;
+
+        // Set a one-time event listener for this request
+        const listener = () => {
+            modal.classList.remove('hidden');
+            htmx.off("htmx:afterSwap", listener); // clean up after firing
+        };
+
+        htmx.on("htmx:afterSwap", listener);
+
+        // Fire the HTMX request
+        try {
+            htmx.ajax('GET', url, { target: '#lightbox-tag-editor-modal', swap: 'innerHTML' });
+        }
+        catch (error) {
+            showToast('Error retrieving tags: ' + error, 'error');
+        }
+    }
+
+    async function likeToggle() {
+
+        const meta = document.getElementById('lightbox-metadata').dataset;
+        const mediaId = meta.mediaId;
+        const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery/${mediaId}/like`;
+        const options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
+        try {
+            await htmxAjaxPromise('POST', url, options);
+            const userLiked = stringNumberToBoolean(meta.liked);
+            const lightboxLikeButton = document.getElementById('lightbox-like-button');
+            if (userLiked) {
+                lightboxLikeButton.innerHTML = "🤍"
+            }
+            else {
+                lightboxLikeButton.innerHTML = "❤️"
+            }
+            //VOY POR AQUI
+            // en esta función debería haber un comportamiento similar al que hay en 
+            // la linea 617
+            if (galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
+                // Like sorting is active → reload the grid
+                const params = new URLSearchParams();
+                if (galleryState.selectedTagId && galleryState.selectedTagId !== "-1") params.append('tag', galleryState.selectedTagId);
+                if (galleryState.selectedAuthor && galleryState.selectedAuthor !== "-1") params.append('author', galleryState.selectedAuthor);
+                if (galleryState.selectedSortCriteria && galleryState.selectedSortCriteria !== "-1") params.append('sort', galleryState.selectedSortCriteria);
+
+                const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
+
+                htmx.ajax('GET', galleryUrl, {
+                    target: '#media-grid',
+                    swap: 'innerHTML'
+                });
+            }
+        } catch (err) {
+            showToast('Error toggling like', 'error');
+        }
+    }
+
+    const mediaItems = getGalleryItems();
+
+    mediaItems.forEach((item, idx) => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            openLightbox(idx);
+        });
+    });
+
+    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+    document.getElementById('lightbox-next').addEventListener('click', showNext);
+    document.getElementById('lightbox-prev').addEventListener('click', showPrev);
+    document.getElementById('lightbox-like-button').addEventListener('click', likeToggle);
+    document.getElementById('lightbox-delete-button').addEventListener('click', async () => {
+        if (await deleteMediaItem()) { closeLightbox() }
+    });
+    document.getElementById('lightbox-edit-tags-button').addEventListener('click', editTags);
+
+    document.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('active')) return;
+        if (e.key === 'ArrowRight') showNext();
+        if (e.key === 'ArrowLeft') showPrev();
+        if (e.key === 'Escape') closeLightbox();
+    });
+
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) closeLightbox();
+    });
+
+    // this will be triggered when the upload is complete
+    document.body.addEventListener('upload-complete', () => {
+        document.getElementById('uploadModal')?.classList.add('hidden');
+        document.querySelector('#uploadModal form')?.reset();
+    });
+
+</script>

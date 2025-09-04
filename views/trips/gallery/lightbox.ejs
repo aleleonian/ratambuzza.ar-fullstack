@@ -1,0 +1,71 @@
+<div class="lightbox-overlay" id="lightbox">
+    <button id="lightbox-close" class="lightbox-close" aria-label="Cerrar">&times;</button>
+
+    <img id="lightbox-img" class="lightbox-image" src="" alt="Expanded media" />
+    <div class="lightbox-controls">
+        <button class="lightbox-btn" title="Previous" id="lightbox-prev">⏮</button>
+        <a id="lightbox-download" href="#" class="download-link" download>
+            <button class="lightbox-btn" title="Download">⬇️</button>
+        </a>
+        <button class="lightbox-btn" title="Like" id="lightbox-like-button"></button>
+        <!-- 
+            this button has to be hidden or shown according to
+            document.getElementById('lightbox-metadata').dataset.isOwner
+            -->
+        <button class="lightbox-btn" title="Delete item" id="lightbox-delete-button">❌</button>
+
+        <!-- 
+            this button has to be hidden or shown according to
+            document.getElementById('lightbox-metadata').dataset.isOwner
+            -->
+        <button class="lightbox-btn" title="Edit Tags" id="lightbox-edit-tags-button">🏷️</button>
+
+        <button class="lightbox-btn" title="Next" id="lightbox-next">⏭</button>
+    </div>
+    <!-- This next div is the 'state' for the current media item's metadata for the lightbox -->
+    <div id="lightbox-meta"></div>
+    <div class="lightbox-tag-editor-modal hidden" id="lightbox-tag-editor-modal"></div>
+
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const mediaItems = window.getGalleryItems();
+        
+        mediaItems.forEach((item, idx) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                openLightbox(idx);
+            });
+        });
+
+        const lightboxDiv = document.getElementById('lightbox');
+        document.getElementById('lightbox-close').addEventListener('click', window.closeLightbox);
+        document.getElementById('lightbox-next').addEventListener('click', window.showNextLightbox);
+        document.getElementById('lightbox-prev').addEventListener('click', window.showPrevLightbox);
+        document.getElementById('lightbox-like-button').addEventListener('click', window.likeToggleLightbox);
+        document.getElementById('lightbox-delete-button').addEventListener('click', async () => {
+            if (await window.deleteMediaItemLightbox()) { window.closeLightbox() }
+        });
+        document.getElementById('lightbox-edit-tags-button').addEventListener('click', window.editTagsLightbox);
+
+        document.addEventListener('keydown', (e) => {
+            if (!lightboxDiv.classList.contains('active')) return;
+            if (e.key === 'ArrowRight') window.showNextLightbox();
+            if (e.key === 'ArrowLeft') window.showPrevLightbox();
+            if (e.key === 'Escape') window.closeLightbox();
+        });
+
+        lightboxDiv.addEventListener('click', (e) => {
+            if (e.target === lightboxDiv) window.closeLightbox();
+        });
+
+        // this will be triggered when the upload is complete
+        document.body.addEventListener('upload-complete', () => {
+            document.getElementById('uploadModal')?.classList.add('hidden');
+            document.querySelector('#uploadModal form')?.reset();
+        });
+    });
+</script>

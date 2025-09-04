@@ -35,9 +35,12 @@
 </div>
 
 <script>
-    function resetFilters() {
-        document.getElementById('loading-overlay').classList.remove('hidden');
-        location.href = "/trips/<%=currentOrUpcomingTrip.slug%>/gallery"
-    }
-    document.getElementById('clean-filters-button').addEventListener('click', resetFilters)
+    // let's not pollute the global space, shall we
+    (() => {
+        function resetFilters() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            location.href = "/trips/<%=currentOrUpcomingTrip.slug%>/gallery"
+        }
+        document.getElementById('clean-filters-button').addEventListener('click', resetFilters)
+    })()
 </script>

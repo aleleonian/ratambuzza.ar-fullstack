@@ -183,7 +183,7 @@ router.get('/gallery', async (req, res, next) => {
 
             const sort = getAllSortCriteria();
 
-            res.render('trips/gallery', { media, tags, authors, sort });
+            res.render('trips/gallery/index', { media, tags, authors, sort });
         }
     }
     catch (error) {

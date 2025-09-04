@@ -3,12 +3,12 @@
         <img class="media-item-image" src="<%= item.thumbnail_url %>" alt="Uploaded image">
     </a>
     <div class="overlay">
-        <!-- <div class="overlay-top">
+        <div class="overlay-top">
                     <img id="avatar-head" src="/images/avatars/thumbs/<%= item.uploader_avatar %>"
                         alt="<%= item.uploader_name %>" title="<%= item.uploader_name %>">
-                </div> -->
-        <div class="overlay-bottom">
-            <button onclick="event.stopPropagation();openLightboxFromElement(this)" class="overlay-btn"
+                </div>
+        <div class="overlay-middle">
+            <button onclick="window.openLightboxFromElement(this)" class="overlay-btn"
                 title="Play">▶️</button>
             <div id="like-button-container-<%= item.id %>">
                 <%- include('./like-button-gallery',{
@@ -18,16 +18,16 @@
                     })%>
             </div>
             <a href="<%-item.url%>" download class="download-link">
-                <button class="overlay-btn" onclick="event.stopPropagation();" title="Download">⬇️</button>
+                <button class="overlay-btn" title="Download">⬇️</button>
             </a>
             <% if (currentUser.id === item.user_id || currentUser.role == 'admin') { %>
-            <button class="overlay-btn" onclick="event.stopPropagation();" title="Edit Tags"
+            <button class="overlay-btn" title="Edit Tags"
                 hx-get="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%=item.id %>/tags/edit"
                 hx-target="#tag-editor-<%= item.id %>" hx-swap="innerHTML">
                 🏷️
             </button>
             <button class="overlay-btn" data-media-id="<%= item.id %>" title="Delete"
-                onclick="event.stopPropagation();deleteThisItem(this)">
+                onclick="window.deleteThisItem(this)">
                 ❌
             </button>
             <% } %>
@@ -44,31 +44,32 @@
 
 
 <script>
-    // voy por aqui: este código es para hookear el delete button y luego de borrar
+    // este código es para hookear el delete button y luego de borrar
     // si no hay más items, pintar un mensaje
-    async function deleteThisItem(e) {
+    (() => {
+        window.deleteThisItem = async function (e) {
 
-        const mediaId = e.dataset.mediaId;
-        const mediaItem = e.closest('.media-item');
+            const mediaId = e.dataset.mediaId;
+            const mediaItem = e.closest('.media-item');
 
-        if (!confirm('Seguro de borrar este item?')) return;
+            if (!confirm('Seguro de borrar este item?')) return;
 
-        try {
-            await htmxAjaxPromise('DELETE', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/delete`, {
-                target: mediaItem,
-                swap: 'outerHTML'
-            });
+            try {
+                await window.htmxAjaxPromise('DELETE', `/trips/<%-currentOrUpcomingTrip.slug%>/gallery/${mediaId}/delete`, {
+                    target: mediaItem,
+                    swap: 'outerHTML'
+                });
 
-            // After the swap, check if any media items remain
-            const remaining = document.querySelectorAll('.media-item').length;
-            if (remaining === 0) {
-                document.getElementById('no-images-message').textContent = 'Nada que ver aquí :/'
+                // After the swap, check if any media items remain
+                const remaining = document.querySelectorAll('.media-item').length;
+                if (remaining === 0) {
+                    document.getElementById('no-images-message').textContent = 'Nada que ver aquí :/'
+                }
+
+            } catch (err) {
+                console.error('Error deleting media:', err);
+                showToast('Error al borrar el item', 'error');
             }
-
-        } catch (err) {
-            console.error('Error deleting media:', err);
-            showToast('Error al borrar el item', 'error');
-        }
-    };
-
+        };
+    })()
 </script>

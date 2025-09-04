@@ -169,7 +169,7 @@
             //VOY POR AQUI
             // en esta función debería haber un comportamiento similar al que hay en 
             // la linea 617
-            if (galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
+            if (galleryState.selectedSortCriteria == window.MOST_LIKES_SORT_CRITERIA) {
                 // Like sorting is active → reload the grid
                 const params = new URLSearchParams();
                 if (galleryState.selectedTagId && galleryState.selectedTagId !== "-1") params.append('tag', galleryState.selectedTagId);
@@ -184,18 +184,23 @@
                 });
             }
         } catch (err) {
+            debugger;
             showToast('Error toggling like', 'error');
         }
     }
 
-    const mediaItems = getGalleryItems();
 
-    mediaItems.forEach((item, idx) => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            openLightbox(idx);
+    document.addEventListener('DOMContentLoaded', () => {
+        const mediaItems = getGalleryItems();
+        mediaItems.forEach((item, idx) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                openLightbox(idx);
+            });
         });
     });
+
+
 
     document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
     document.getElementById('lightbox-next').addEventListener('click', showNext);

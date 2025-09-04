@@ -2,8 +2,16 @@
 
 <link rel="stylesheet" href="/style/gallery.css" />
 
-<script src="/javascript/gallery/index.js"></script>
+<script type="module" src="/javascript/gallery/index.js"></script>
+
 <script>
+    window.galleryState = {
+        tripSlug: "<%= currentOrUpcomingTrip.slug %>"
+    };
+</script>
+
+<script>
+    // set the tripSlug property for other files outside this one to use
     (() => {
         window.toggleUploadButton = function (input) {
             const btn = document.getElementById('uploadButton');
@@ -11,6 +19,7 @@
         }
     })()
 </script>
+
 <main class="gallery-container" id="gallery-container">
     <div id="uploadModal" class="modal hidden">
         <div class="modal-content">
@@ -116,48 +125,6 @@
     <!-- Lightbox -->
     <%- include('lightbox') %>
     <!-- Lightbox -->
-
-
-    <!-- This listener is for the form inside like-button-gallery.ejs -->
-    <script>
-        document.body.addEventListener('submit', async function (e) {
-            if (!e.target.matches('.like-form')) return;
-            e.preventDefault();
-            const form = e.target;
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    headers: { 'HX-Request': 'true' }
-                });
-
-                if (!response.ok) throw new Error('Failed to like');
-
-                if (galleryState.selectedSortCriteria == MOST_LIKES_SORT_CRITERIA) {
-                    // Like sorting is active → reload the grid
-                    const params = new URLSearchParams();
-                    if (galleryState.selectedTagId && galleryState.selectedTagId !== "-1") params.append('tag', galleryState.selectedTagId);
-                    if (galleryState.selectedAuthor && galleryState.selectedAuthor !== "-1") params.append('author', galleryState.selectedAuthor);
-                    if (galleryState.selectedSortCriteria && galleryState.selectedSortCriteria !== "-1") params.append('sort', galleryState.selectedSortCriteria);
-
-                    const galleryUrl = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?` + params.toString();
-
-                    htmx.ajax('GET', galleryUrl, {
-                        target: '#media-grid',
-                        swap: 'innerHTML'
-                    });
-                } else {
-                    // Like sorting NOT active → only update this button
-                    const html = await response.text();
-                    form.outerHTML = html;
-                }
-            } catch (err) {
-                showToast('Error al dar like', 'error');
-                console.error(err);
-            }
-        });
-    </script>
-
     <% } %>
 </main>
 

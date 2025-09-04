@@ -75,89 +75,63 @@
 </div>
 
 <script>
+    (() => {
+        document.getElementById('default-tag-pill').classList.add('active');
+        document.getElementById('default-author-pill').classList.add('active');
+        document.getElementById('default-sort-pill').classList.add('active');
 
-    document.getElementById('default-tag-pill').classList.add('active');
-    document.getElementById('default-author-pill').classList.add('active');
-    document.getElementById('default-sort-pill').classList.add('active');
+        document.getElementById('filter-pills')?.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tag-pill')) {
+                // Update selected tag
+                window.galleryState.selectedTagId = e.target.dataset.tag;
 
-    document.getElementById('filter-pills')?.addEventListener('click', (e) => {
-        if (e.target.classList.contains('tag-pill')) {
-            // Update selected tag
-            window.galleryState.selectedTagId = e.target.dataset.tag;
+                // Update pill UI
+                document.querySelectorAll('.sorting-pill.tag-pill').forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
 
-            // Update pill UI
-            document.querySelectorAll('.sorting-pill.tag-pill').forEach(p => p.classList.remove('active'));
-            e.target.classList.add('active');
+                // HTMX load new filtered media
+                const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${window.galleryState.selectedTagId}&author=${window.galleryState.selectedAuthor}&sort=${window.galleryState.selectedSortCriteria}`;
+                htmx.ajax('GET', url, {
+                    target: '#media-grid',
+                    swap: 'innerHTML'
+                });
+            }
+            else if (e.target.classList.contains('author-pill')) {
+                // Update selected tag
+                window.galleryState.selectedAuthor = e.target.dataset.author;
 
-            // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${window.galleryState.selectedTagId}&author=${window.galleryState.selectedAuthor}&sort=${window.galleryState.selectedSortCriteria}`;
-            htmx.ajax('GET', url, {
-                target: '#media-grid',
-                swap: 'innerHTML'
-            });
-        }
-        else if (e.target.classList.contains('author-pill')) {
-            // Update selected tag
-            window.galleryState.selectedAuthor = e.target.dataset.author;
+                // Update pill UI
+                document.querySelectorAll('.sorting-pill.author-pill').forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
 
-            // Update pill UI
-            document.querySelectorAll('.sorting-pill.author-pill').forEach(p => p.classList.remove('active'));
-            e.target.classList.add('active');
+                // HTMX load new filtered media
+                const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${window.galleryState.selectedTagId}&author=${window.galleryState.selectedAuthor}&sort=${window.galleryState.selectedSortCriteria}`;
+                htmx.ajax('GET', url, {
+                    target: '#media-grid',
+                    swap: 'innerHTML'
+                });
+            }
+            else if (e.target.classList.contains('sort-pill')) {
+                // Update selected sort criteria
+                window.galleryState.selectedSortCriteria = e.target.dataset.sort;
 
-            // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${window.galleryState.selectedTagId}&author=${window.galleryState.selectedAuthor}&sort=${window.galleryState.selectedSortCriteria}`;
-            htmx.ajax('GET', url, {
-                target: '#media-grid',
-                swap: 'innerHTML'
-            });
-        }
-        else if (e.target.classList.contains('sort-pill')) {
-            // Update selected sort criteria
-            window.galleryState.selectedSortCriteria = e.target.dataset.sort;
+                // Update pill UI
+                document.querySelectorAll('.sort-pill.sort-pill').forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
 
-            // Update pill UI
-            document.querySelectorAll('.sort-pill.sort-pill').forEach(p => p.classList.remove('active'));
-            e.target.classList.add('active');
+                // HTMX load new filtered media
+                const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${window.galleryState.selectedTagId}&author=${window.galleryState.selectedAuthor}&sort=${window.galleryState.selectedSortCriteria}`;
+                htmx.ajax('GET', url, {
+                    target: '#media-grid',
+                    swap: 'innerHTML'
+                });
+            }
 
-            // HTMX load new filtered media
-            const url = `/trips/<%= currentOrUpcomingTrip.slug %>/gallery?tag=${window.galleryState.selectedTagId}&author=${window.galleryState.selectedAuthor}&sort=${window.galleryState.selectedSortCriteria}`;
-            htmx.ajax('GET', url, {
-                target: '#media-grid',
-                swap: 'innerHTML'
-            });
-        }
-
-        else if (e.target.id == 'toggle-filters') {
-            const filters = document.getElementsByClassName('filter-container')[0];
-            window.galleryState.filterDivState = !window.galleryState.filterDivState;
-            filters.classList.toggle('hidden');
-        }
-    });
-
-    // Re-apply active class after filter-pills update
-    // Update DOM after adding or removing tags
-    // related to tags-updated
-    // htmx:afterSettle is the safest place to touch the DOM after a swap. It guarantees:
-    document.body.addEventListener('htmx:afterSettle', (evt) => {
-        if (evt.target.id === 'filter-pills') {
-            if (window.galleryState.filterDivState) {
-                console.log('Restoring active pills:', window.galleryState.selectedTagId, window.galleryState.selectedAuthor, window.galleryState.selectedSortCriteria);
-
+            else if (e.target.id == 'toggle-filters') {
                 const filters = document.getElementsByClassName('filter-container')[0];
+                window.galleryState.filterDivState = !window.galleryState.filterDivState;
                 filters.classList.toggle('hidden');
             }
-            const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${window.galleryState.selectedTagId}"]`);
-            if (activeTagPill) {
-                activeTagPill.classList.add('active');
-            }
-            const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${window.galleryState.selectedAuthor}"]`);
-            if (activeAuthorPill) {
-                activeAuthorPill.classList.add('active');
-            }
-            const activeSortPill = document.querySelector(`.sort-pill[data-sort="${window.galleryState.selectedSortCriteria}"]`);
-            if (activeSortPill) {
-                activeSortPill.classList.add('active');
-            }
-        }
-    });
+        });
+    })()
 </script>

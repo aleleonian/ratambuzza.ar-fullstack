@@ -38,6 +38,7 @@ document.body.addEventListener('submit', async function (e) {
     }
 });
 
+// tags-updated event handling
 document.body.addEventListener('tags-updated', (e) => {
     const { updatedTags } = e.detail;
     // if tags were updated either on the hover menu or the lightbox
@@ -75,7 +76,7 @@ document.body.addEventListener('tags-updated', (e) => {
     }
 });
 
-
+// lightbox stuff
 document.body.addEventListener('htmx:afterSwap', function (e) {
     const isTagEditorSwap = e.target.id?.startsWith?.('tag-editor-');
     if (!isTagEditorSwap) return;
@@ -97,9 +98,9 @@ document.body.addEventListener('htmx:afterSwap', function (e) {
         dialog.classList.add('hidden');
     }
 });
-// after the tags were edited, either in the hover menu or lightbox
-// fire this event to we can re-fetch the filter-pills
 
+// after the tags were edited, either in the hover menu or lightbox
+// fire tags-updated event to we can re-fetch the filter-pills
 document.body.addEventListener('htmx:afterSwap', function (evt) {
     const el = evt.target;
     const updatedTagList = el.querySelector('.tag-list.just-updated');
@@ -108,5 +109,32 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
         const updatedTags = JSON.parse(tagsJson || '[]');
         // const mediaId = updatedTagList.dataset.mediaId;
         document.body.dispatchEvent(new CustomEvent('tags-updated', { detail: { updatedTags } }));
+    }
+});
+
+// Re-apply active class after filter-pills update
+// Update DOM after adding or removing tags
+// related to tags-updated
+// htmx:afterSettle is the safest place to touch the DOM after a swap. It guarantees:
+document.body.addEventListener('htmx:afterSettle', (evt) => {
+    if (evt.target.id === 'filter-pills') {
+        if (window.galleryState.filterDivState) {
+            console.log('Restoring active pills:', window.galleryState.selectedTagId, window.galleryState.selectedAuthor, window.galleryState.selectedSortCriteria);
+
+            const filters = document.getElementsByClassName('filter-container')[0];
+            filters.classList.toggle('hidden');
+        }
+        const activeTagPill = document.querySelector(`.sorting-pill[data-tag="${window.galleryState.selectedTagId}"]`);
+        if (activeTagPill) {
+            activeTagPill.classList.add('active');
+        }
+        const activeAuthorPill = document.querySelector(`.sorting-pill[data-author="${window.galleryState.selectedAuthor}"]`);
+        if (activeAuthorPill) {
+            activeAuthorPill.classList.add('active');
+        }
+        const activeSortPill = document.querySelector(`.sort-pill[data-sort="${window.galleryState.selectedSortCriteria}"]`);
+        if (activeSortPill) {
+            activeSortPill.classList.add('active');
+        }
     }
 });

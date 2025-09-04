@@ -1,0 +1,208 @@
+#avatar-head {
+    width: 40px;
+    height: 40px;
+}
+
+.gallery-container {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    /* text-align: center; */
+}
+
+.media-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.media-item {
+    aspect-ratio: 1 / 1;
+    /* square thumbnails */
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.media-item-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+}
+
+.media-item-image:hover {
+    transform: scale(1.03);
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.5rem;
+    opacity: 0;
+    transition: opacity 200ms ease-in-out;
+    pointer-events: none;
+}
+
+.media-item:hover .overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.overlay-top {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.overlay-top .avatar {
+    width: 40px;
+    height: 40px;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.overlay-bottom {
+    display: flex;
+    justify-content: space-evenly;
+    gap: 0.5rem;
+}
+
+.overlay-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 0.4rem 0.6rem;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.overlay-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    flex-direction: column;
+}
+
+.lightbox-overlay.active {
+    display: flex;
+}
+
+.lightbox-image {
+    max-width: 90vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.lightbox-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.lightbox-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 0.6rem 1rem;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.lightbox-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.lightbox-tags {
+    margin-top: 10px;
+}
+
+.lightbox-tag-editor-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(30, 30, 30, 0.95);
+    padding: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #000;
+    z-index: 1000;
+    width: 80%;
+    max-width: 400px;
+    color: white;
+}
+
+.lightbox-tag-editor-modal.hidden {
+    display: none;
+}
+
+.tag-list {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: center;
+}
+
+.tag-pill {
+    background-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6rem;
+}
+
+.tag-pill.empty {
+    opacity: 0.6;
+}
+
+a.download-link {
+    display: contents;
+}
+
+.controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    width: 100%;
+    margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+
+    .lightbox-controls {
+        gap: 0.5rem;
+    }
+}

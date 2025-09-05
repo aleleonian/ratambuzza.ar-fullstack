@@ -1,0 +1,31 @@
+<h2>Create una postal pixelada</h2>
+
+<form action="/postcard/create" method="POST">
+    <label>Choose up to 3 avatars:</label><br />
+    <% avatars.forEach(avatar => { %>
+    <input type="checkbox" name="avatars" value="<%= avatar.handle %>"> <%= avatar.handle %><br />
+    <% }) %>
+
+    <br />
+    <label>Background:</label>
+    <select name="background">
+        <% backgrounds.forEach(bg => { %>
+        <option value="<%= bg %>"><%= bg %></option>
+        <% }) %>
+    </select>
+
+    <br /><br />
+    <label>Action:</label>
+    <select name="action">
+        <% actions.forEach(act => { %>
+        <option value="<%= act %>"><%= act %></option>
+        <% }) %>
+    </select>
+
+    <br /><br />
+    <label>Optional caption:</label><br />
+    <input type="text" name="caption" placeholder="Wish you were here!" style="width: 300px;">
+
+    <br /><br />
+    <button type="submit">Generate Postcard</button>
+</form>

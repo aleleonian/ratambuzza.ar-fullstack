@@ -1,0 +1,20 @@
+<h2>Postales</h2>
+<ul>
+    <% console.log(postcards)%>
+    <% if(postcards.length < 1) {%>
+    Todavía no generaste postales, bro.
+    <% } else {%>
+    <% postcards.forEach(pc => { %>
+    <li>
+        <%= pc.status %>
+        <% if (pc.image_url) { %>
+        <img src="<%= pc.image_url %>" width="200">
+        <% } else if (pc.status === 'error') { %>
+        <strong>Error:</strong> <%= pc.error_message %>
+        <% } else { %>
+        (Generating...)
+        <% } %>
+    </li>
+    <% }) %>
+    <% } %>
+</ul>

@@ -1,31 +1,112 @@
-<h2>Create una postal pixelada</h2>
+<style>
+    .disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 
-<form action="/postcard/create" method="POST">
-    <label>Choose up to 3 avatars:</label><br />
-    <% avatars.forEach(avatar => { %>
-    <input type="checkbox" name="avatars" value="<%= avatar.handle %>"> <%= avatar.handle %><br />
-    <% }) %>
+    form label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: bold;
+    }
 
-    <br />
-    <label>Background:</label>
-    <select name="background">
-        <% backgrounds.forEach(bg => { %>
-        <option value="<%= bg %>"><%= bg %></option>
-        <% }) %>
-    </select>
+    .multi-avatar-picker {
+        margin-bottom: 1rem;
+    }
 
-    <br /><br />
-    <label>Action:</label>
-    <select name="action">
-        <% actions.forEach(act => { %>
-        <option value="<%= act %>"><%= act %></option>
-        <% }) %>
-    </select>
+    .avatar-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
 
-    <br /><br />
-    <label>Optional caption:</label><br />
-    <input type="text" name="caption" placeholder="Wish you were here!" style="width: 300px;">
+    .avatar-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 2px solid transparent;
+        padding: 0.25rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: border 0.2s ease;
+    }
 
-    <br /><br />
-    <button type="submit">Generate Postcard</button>
-</form>
+    .avatar-option img {
+        width: 24;
+        height: 24px;
+        border-radius: 50%;
+    }
+
+    .avatar-option.selected {
+        border-color: #2196f3;
+        background-color: #e3f2fd;
+    }
+
+    .avatar-option span {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-row>div {
+        flex: 1;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+
+        .avatar-grid {
+            justify-content: space-evenly;
+        }
+    }
+</style>
+
+
+<div id="form-container">
+    <%- include('actual-postcard-form')%>
+</div>
+
+<script>
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        if (e.target.id === 'form-container') {
+            const avatarSelect = document.getElementById('avatar-select');
+            const hiddenInput = document.getElementById('selected-avatars-input');
+
+            avatarSelect.addEventListener('change', () => {
+                const selected = Array.from(avatarSelect.selectedOptions).map(opt => opt.value);
+                if (selected.length > 3) {
+                    alert('Solo podés elegir hasta 3 avatares.');
+                    // Undo last selection
+                    avatarSelect.selectedOptions[selected.length - 1].selected = false;
+                    return;
+                }
+                hiddenInput.value = selected.join(',');
+            });
+        }
+    });
+
+</script>
+<!-- <script>
+    const avatarSelect = document.getElementById('avatar-select');
+    const hiddenInput = document.getElementById('selected-avatars-input');
+
+    avatarSelect.addEventListener('change', () => {
+        const selected = Array.from(avatarSelect.selectedOptions).map(opt => opt.value);
+        if (selected.length > 3) {
+            alert('Solo podés elegir hasta 3 avatares.');
+            // Undo last selection
+            avatarSelect.selectedOptions[selected.length - 1].selected = false;
+            return;
+        }
+        hiddenInput.value = selected.join(',');
+    });
+</script> -->

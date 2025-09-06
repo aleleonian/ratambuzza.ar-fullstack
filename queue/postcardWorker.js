@@ -30,9 +30,9 @@ Constraints:
     return base + (mode === 'scenic' ? scenic : strict);
 }
 
-async function enqueuePostcardJob(data) {
+async function enqueuePostcardJob(db, userId, tripId, avatars, scene, action) {
     const jobId = uuidv4();
-    await insertPostcard({ id: jobId, ...data, status: 'pending' });
+    await insertPostcard(db, jobId, userId, tripId, avatars, scene, action, 'pending');
     setTimeout(() => processJob(jobId, data), 0);
     return jobId;
 }

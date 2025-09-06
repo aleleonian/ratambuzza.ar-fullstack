@@ -9,38 +9,85 @@ router.get('/postcards', async (req, res) => {
     const postcards = await getUserPostcards(req.db, userId);
     const hasPending = postcards.some(p => p.status === 'pending');
     const avatars = await getTripMembersAvatars(req.db, trip.id);
-    console.log('avatars->', avatars);
+    const backgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];
+    const actions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie'];
+
     // const postcards = [];
     // const hasPending = false;
 
     res.render('trips/postcards/index', {
-        userId,
+        // selectedAvatars: ["Boli", "Butis", "Charly"],
+        // selectedBackground: "Rio beach",
+        // selectedAction: "playing cards",
         postcards,
         hasPending,
         avatars,
-        backgrounds: ['Rio beach', 'Hostel kitchen', 'Plane window'],
-        actions: ['drinking caipirinhas', 'playing cards', 'taking a group selfie'],
+        backgrounds,
+        actions,
     });
 });
 
-// Form to create a postcard
-router.get('/postcard/new', (req, res) => {
-    res.render('postcard-form', {
-        avatars: ['Patas', 'Boli', 'Depo', 'Mariano', 'Bicho'], // replace with real ones
-        backgrounds: ['Rio beach', 'Hostel kitchen', 'Plane window'],
-        actions: ['drinking caipirinhas', 'playing cards', 'taking a group selfie'],
-    });
-});
-
+router.get('/postcards/list', async (req, res) => {
+    res.send("this is the list of postcards, buddy!")
+})
 // Submit postcard creation
-router.post('/postcards', async (req, res) => {
+router.post('/postcards/new', async (req, res) => {
     const userId = req.session.user.id;
     const trip = req.trip;
-    const { avatars, scene, action, caption } = req.body;
 
-    await enqueuePostcardJob(req.db, userId, trip.id, avatars, scene, action, caption);
+    console.log("req.body->", req.body);
 
-    res.redirect('/postcards');
+    const { avatars, background, action } = req.body;
+
+    try {
+        if (!avatars || avatars === '') {
+            throw new Error('Gotta choose an avatar!')
+        }
+
+        await enqueuePostcardJob(req.db, userId, trip.id, avatars, background, action);
+
+        res.setHeader('X-Toast', "Se queueó tu job, bro.");
+        res.setHeader('X-Toast-Type', 'success');
+        res.render('trips/postcards/actual-postcard-form', { hasPending: true, avatars: [], backgrounds: [], actions: [] })
+    }
+    catch (error) {
+
+        if (!avatars || avatars === '') {
+            selectedAvatars = undefined
+        }
+        else selectedAvatars = avatars;
+
+        if (!background || background === '') {
+            selectedBackground = undefined
+        }
+        else selectedBackground = background;
+
+        if (!action || action === '') {
+            selectedAction = undefined
+        }
+        else selectedAction = action;
+
+        const availableAvatars = await getTripMembersAvatars(req.db, trip.id);
+        const availableBackgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];
+        const availableActions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie'];
+
+        console.log('selectedAvatars->', selectedAvatars);
+        console.log('selectedBackground->', selectedBackground);
+        console.log('selectedAction->', selectedAction);
+
+        res.setHeader('X-Toast', "Algo salió mal->" + error);
+        res.setHeader('X-Toast-Type', 'error');
+        res.render('trips/postcards/actual-postcard-form',
+            {
+                hasPending: false,
+                avatars: availableAvatars,
+                backgrounds: availableBackgrounds,
+                actions: availableActions,
+                selectedAvatars,
+                selectedBackground,
+                selectedAction
+            })
+    }
 });
 
 

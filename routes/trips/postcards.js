@@ -17,7 +17,7 @@ router.get('/postcards', async (req, res) => {
 
     res.render('trips/postcards/index', {
         // selectedAvatars: ["Boli", "Butis", "Charly"],
-        // selectedBackground: "Rio beach",
+        // selectedBackground: "Plane window",
         // selectedAction: "playing cards",
         postcards,
         hasPending,

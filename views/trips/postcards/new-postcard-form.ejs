@@ -87,6 +87,18 @@
             TomSelect.instances['avatar-select'].destroy();
         }
 
+        debugger;
+
+        new TomSelect("#background-select", {
+            create: false,
+            maxItems: 1
+        });
+
+        new TomSelect("#action-select", {
+            create: false,
+            maxItems: 1
+        });
+
         new TomSelect("#avatar-select", {
             maxItems: 3,
             options: options,
@@ -111,6 +123,8 @@
                 }
             }
         });
+
+        document.querySelector('#postcards-form').classList.remove('hidden');
     }
 
     // Register listener only once

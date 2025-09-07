@@ -2,18 +2,18 @@
 
 <form <%- hasPending ? "class='disabled'" :"" %> hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new"
     hx-target="#form-container" hx-swap="innerHTML">
-    <!-- AVATAR ROW -->
     <div class="multi-avatar-picker">
         <label for="avatar-select">Elegí hasta 3 avatares:</label>
-        <select id="avatar-select" multiple size="5" style="width: 100%; max-width: 400px;">
+        <select name="avatars" id="avatar-select" multiple>
             <% avatars.forEach(a => { %>
-            <option <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%> selected
-                <% } %> value="<%= a.handle %>"><%= a.handle %>
+            <option value="<%= a.handle %>"
+                data-custom-properties='{"img":"/images/avatars/thumbs/<%= a.avatar_head_file_name %>"}'>
+                <%= a.handle %>
             </option>
             <% }) %>
         </select>
-        <input type="hidden" name="avatars" id="selected-avatars-input" />
     </div>
+
 
     <!-- LOCATION + ACTION ROW -->
     <div class="form-row">

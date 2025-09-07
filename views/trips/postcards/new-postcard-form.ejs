@@ -76,37 +76,48 @@
 </div>
 
 <script>
-    document.body.addEventListener('htmx:afterSwap', (e) => {
-        if (e.target.id === 'form-container') {
-            const avatarSelect = document.getElementById('avatar-select');
-            const hiddenInput = document.getElementById('selected-avatars-input');
+    function initTomSelect() {
+        const options = [...document.querySelectorAll('#avatar-select option')].map(opt => ({
+            value: opt.value,
+            text: opt.textContent,
+            customProperties: JSON.parse(opt.dataset.customProperties || '{}')
+        }));
 
-            avatarSelect.addEventListener('change', () => {
-                const selected = Array.from(avatarSelect.selectedOptions).map(opt => opt.value);
-                if (selected.length > 3) {
-                    alert('Solo podés elegir hasta 3 avatares.');
-                    // Undo last selection
-                    avatarSelect.selectedOptions[selected.length - 1].selected = false;
-                    return;
+        if (TomSelect.instances && TomSelect.instances['avatar-select']) {
+            TomSelect.instances['avatar-select'].destroy();
+        }
+
+        new TomSelect("#avatar-select", {
+            maxItems: 3,
+            options: options,
+            valueField: "value",
+            labelField: "text",
+            searchField: "text",
+            plugins: ['remove_button'],
+            render: {
+                option: function (data, escape) {
+                    const imgUrl = data.customProperties?.img || '';
+                    return `<div>
+            <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+            ${escape(data.text)}
+          </div>`;
+                },
+                item: function (data, escape) {
+                    const imgUrl = data.customProperties?.img || '';
+                    return `<div>
+            <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+            ${escape(data.text)}
+          </div>`;
                 }
-                hiddenInput.value = selected.join(',');
-            });
-        }
-    });
+            }
+        });
+    }
 
+    // Register listener only once
+    document.addEventListener('DOMContentLoaded', () => {
+        initTomSelect(); // Initial render
+        document.body.addEventListener('htmx:afterSettle', function () {
+            initTomSelect();
+        });
+    });
 </script>
-<!-- <script>
-    const avatarSelect = document.getElementById('avatar-select');
-    const hiddenInput = document.getElementById('selected-avatars-input');
-
-    avatarSelect.addEventListener('change', () => {
-        const selected = Array.from(avatarSelect.selectedOptions).map(opt => opt.value);
-        if (selected.length > 3) {
-            alert('Solo podés elegir hasta 3 avatares.');
-            // Undo last selection
-            avatarSelect.selectedOptions[selected.length - 1].selected = false;
-            return;
-        }
-        hiddenInput.value = selected.join(',');
-    });
-</script> -->

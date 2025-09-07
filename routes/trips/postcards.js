@@ -52,7 +52,7 @@ router.post('/postcards/new', async (req, res) => {
     }
     catch (error) {
 
-        if (!avatars || avatars === '') {
+        if (!Array.isArray(avatars) || avatars.length < 1) {
             selectedAvatars = undefined
         }
         else selectedAvatars = avatars;

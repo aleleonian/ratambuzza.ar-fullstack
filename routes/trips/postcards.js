@@ -29,9 +29,12 @@ router.get('/postcards', async (req, res) => {
     });
 });
 
-router.get('/postcards/list', async (req, res) => {
-    res.send("this is the list of postcards, buddy!")
-})
+router.get('/postcards-grid', async (req, res) => {
+    const userId = req.session.user.id;
+    const postcards = await getUserPostcards(userId); // returns top 10 with status and thumbnail_url
+    res.render('trips/postcards/postcards-grid', { postcards });
+});
+
 // Submit postcard creation
 router.post('/postcards/new', async (req, res) => {
     const userId = req.session.user.id;

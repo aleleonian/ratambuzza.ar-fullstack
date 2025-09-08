@@ -1,6 +1,6 @@
 // TODO: save this in the localStorage and not globally
 import './events.js';
-import '../lightbox/index.js';
+import './lightbox.js';
 import './mobile-overlay.js';
 
 // gallery globals

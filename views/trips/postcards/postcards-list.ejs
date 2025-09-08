@@ -1,24 +1,45 @@
-<br>
-<br>
-<div id="postcards-list">
-    <% if(postcards.length < 1) {%>
-    Todavía no generaste postales, bro.
-    <% } else {%>
-    <h2>Tus postales</h2>
-    <ul>
-        <% postcards.forEach(pc => { %>
-        <li>
-            <%= pc.status %>
-            <% if (pc.image_url) { %>
-            <img src="<%= pc.image_url %>" width="200">
-            <% } else if (pc.status === 'error') { %>
-            <strong>Error:</strong> <%= pc.error_message %>
-            <% } else { %>
-            (Generating...)
-            <% } %>
-        </li>
-        <% }) %>
-    </ul>
+<style>
+    /* Grid Layout */
+    .postcard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
 
-    <% } %>
+    /* Postcard Styles */
+    .postcard {
+        border: 2px solid #ccc;
+        background: white;
+        padding: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .postcard:hover {
+        transform: scale(1.03);
+    }
+
+    .postcard.pending,
+    .postcard.error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .postcard.error {
+        background-color: #ffe6e6;
+        color: red;
+    }
+</style>
+
+<div id="postcards-list">
+
+    <div hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load" hx-swap="innerHTML"></div>
+
+    <% include('../../partials/lightbox-standalone') %>
+
 </div>

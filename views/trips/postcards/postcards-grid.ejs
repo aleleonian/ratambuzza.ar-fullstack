@@ -1,0 +1,21 @@
+<!-- views/partials/postcards-grid.ejs -->
+
+<h2>Tus postales</h2>
+
+<div class="postcard-grid">
+    <% postcards.forEach(card => { %>
+    <% if (card.status === 'done') { %>
+    <div class="postcard" onclick="openLightbox('<%= card.image_url %>')">
+        <img src="<%= card.thumbnail_url %>" alt="Postcard thumbnail" style="width: 100%; height: auto;">
+    </div>
+    <% } else if (card.status === 'pending') { %>
+    <div class="postcard pending">
+        ⏳ Pending
+    </div>
+    <% } else if (card.status === 'error') { %>
+    <div class="postcard error">
+        ❌ Error
+    </div>
+    <% } %>
+    <% }) %>
+</div>

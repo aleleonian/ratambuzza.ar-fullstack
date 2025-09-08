@@ -1,45 +1,47 @@
-<form id="postcards-form" class="hidden <%- hasPending ? "disabled" :"" %>"
-    hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new" hx-target="#form-container" hx-swap="innerHTML">
+<form id="postcards-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new" hx-target="#form-container"
+    hx-swap="innerHTML">
+    <fieldset <%- hasPending ? "disabled" :"" %>>
+        <h2>Create una postal pixelada</h2>
 
-    <h2>Create una postal pixelada</h2>
-
-    <div class="multi-avatar-picker">
-        <label for="avatar-select">Elegí hasta 3 avatares:</label>
-        <select name="avatars" id="avatar-select" multiple>
-            <% avatars.forEach(a => { %>
-            <option value="<%= a.handle %>"
-                <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%> selected<% } %>
-                data-custom-properties='{"img":"/images/avatars/thumbs/<%= a.avatar_head_file_name %>"}'>
-                <%= a.handle %>
-            </option>
-            <% }) %>
-        </select>
-    </div>
-
-
-    <!-- LOCATION + ACTION ROW -->
-    <div class="form-row">
-        <div>
-            <label for="background-select">Elegí locación:</label>
-            <select id="background-select" name="background">
-                <% backgrounds.forEach(bg => { %>
-                <option <% if(typeof selectedBackground != "undefined" && selectedBackground === bg) {%> selected
-                    <% } %> value="<%= bg %>"><%= bg %></option>
+        <div class="multi-avatar-picker">
+            <label for="avatar-select">Elegí hasta 3 avatares:</label>
+            <select name="avatars" id="avatar-select" multiple>
+                <% avatars.forEach(a => { %>
+                <option value="<%= a.handle %>"
+                    <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%>
+                    selected<% } %>
+                    data-custom-properties='{"img":"/images/avatars/thumbs/<%= a.avatar_head_file_name %>"}'>
+                    <%= a.handle %>
+                </option>
                 <% }) %>
             </select>
         </div>
-        <div>
-            <label for="action-select">Elegí una acción:</label>
-            <select id="action-select" name="action">
-                <% actions.forEach(act => { %>
-                <option <% if(typeof selectedAction != "undefined" && selectedAction === act) {%> selected <% } %>
-                    value="<%= act %>"><%= act %></option>
-                <% }) %>
-            </select>
-        </div>
-    </div>
 
-    <div class="form-row center">
-        <button class="button" type="submit">Generar Postal</button>
-    </div>
+
+        <!-- LOCATION + ACTION ROW -->
+        <div class="form-row">
+            <div>
+                <label for="background-select">Elegí locación:</label>
+                <select id="background-select" name="background">
+                    <% backgrounds.forEach(bg => { %>
+                    <option <% if(typeof selectedBackground != "undefined" && selectedBackground === bg) {%> selected
+                        <% } %> value="<%= bg %>"><%= bg %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div>
+                <label for="action-select">Elegí una acción:</label>
+                <select id="action-select" name="action">
+                    <% actions.forEach(act => { %>
+                    <option <% if(typeof selectedAction != "undefined" && selectedAction === act) {%> selected <% } %>
+                        value="<%= act %>"><%= act %></option>
+                    <% }) %>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row center">
+            <button class="button" type="submit">Generar Postal</button>
+        </div>
+    </fieldset>
 </form>

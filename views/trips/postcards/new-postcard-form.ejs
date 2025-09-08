@@ -1,8 +1,20 @@
 <style>
-    .disabled {
-        opacity: 0.5;
+    .ts-wrapper.disabled {
         cursor: not-allowed;
+        opacity: 0.5;
         pointer-events: none;
+    }
+
+    fieldset {
+        border: 0;
+    }
+
+    fieldset[disabled] {
+        opacity: 0.5;
+    }
+
+    fieldset[disabled] * {
+        cursor: not-allowed;
     }
 
     form label {
@@ -76,60 +88,90 @@
 </div>
 
 <script>
-    function initTomSelect() {
-        const options = [...document.querySelectorAll('#avatar-select option')].map(opt => ({
-            value: opt.value,
-            text: opt.textContent,
-            customProperties: JSON.parse(opt.dataset.customProperties || '{}')
-        }));
 
-        if (TomSelect.instances && TomSelect.instances['avatar-select']) {
-            TomSelect.instances['avatar-select'].destroy();
+    const tomSelectInstances = {};
+
+    function initTomSelect() {
+        // Clean up any existing instances before re-initializing
+        for (const key in tomSelectInstances) {
+            tomSelectInstances[key].destroy();
+            delete tomSelectInstances[key];
         }
 
-        new TomSelect("#background-select", {
-            create: false,
-            maxItems: 1
-        });
+        // AVATAR SELECT
+        const avatarSelectEl = document.querySelector('#avatar-select');
+        if (avatarSelectEl) {
+            const options = [...avatarSelectEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{}')
+            }));
 
-        new TomSelect("#action-select", {
-            create: false,
-            maxItems: 1
-        });
-
-        new TomSelect("#avatar-select", {
-            maxItems: 3,
-            options: options,
-            valueField: "value",
-            labelField: "text",
-            searchField: "text",
-            plugins: ['remove_button'],
-            render: {
-                option: function (data, escape) {
-                    const imgUrl = data.customProperties?.img || '';
-                    return `<div>
-            <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
-            ${escape(data.text)}
-          </div>`;
-                },
-                item: function (data, escape) {
-                    const imgUrl = data.customProperties?.img || '';
-                    return `<div>
-            <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
-            ${escape(data.text)}
-          </div>`;
+            tomSelectInstances['avatar-select'] = new TomSelect(avatarSelectEl, {
+                maxItems: 3,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
                 }
-            }
-        });
+            });
+        }
 
-        document.querySelector('#postcards-form').classList.remove('hidden');
+        // BACKGROUND SELECT
+        const backgroundSelectEl = document.querySelector('#background-select');
+        if (backgroundSelectEl) {
+            tomSelectInstances['background-select'] = new TomSelect(backgroundSelectEl, {
+                create: false,
+                maxItems: 1
+            });
+        }
+
+        // ACTION SELECT
+        const actionSelectEl = document.querySelector('#action-select');
+        if (actionSelectEl) {
+            tomSelectInstances['action-select'] = new TomSelect(actionSelectEl, {
+                create: false,
+                maxItems: 1
+            });
+        }
     }
+
+    // Attach listeners
+
+    const disableSelect = (id) => {
+        const instance = TomSelect.instances[id];
+        if (instance) {
+            instance.disable();
+            instance.wrapper.classList.add('disabled');
+        }
+    };
 
     // Register listener only once
     document.addEventListener('DOMContentLoaded', () => {
         initTomSelect(); // Initial render
-        document.body.addEventListener('htmx:afterSettle', function () {
-            initTomSelect();
-        });
+        <% if (hasPending) { %>
+        for (const key in tomSelectInstances) {
+                tomSelectInstances[key].disable();
+            }
+        <% } %>
+            document.body.addEventListener('htmx:afterSettle', function () {
+                initTomSelect();
+            });
     });
 </script>

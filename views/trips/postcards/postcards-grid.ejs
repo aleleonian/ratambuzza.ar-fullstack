@@ -5,7 +5,7 @@
 <div class="postcard-grid">
     <% postcards.forEach(card => { %>
     <% if (card.status === 'done') { %>
-    <div class="postcard" onclick="openLightbox('<%= card.image_url %>')">
+    <div class="postcard postcard-thumb" data-full="<%-card.image_url%>" data-id="<%-card.id%>">
         <img src="<%= card.thumbnail_url %>" alt="Postcard thumbnail" style="width: 100%; height: auto;">
     </div>
     <% } else if (card.status === 'pending') { %>

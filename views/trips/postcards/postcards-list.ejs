@@ -38,8 +38,44 @@
 
 <div id="postcards-list">
 
-    <div hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load" hx-swap="innerHTML"></div>
+    <div id="postcards-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load" hx-swap="innerHTML"></div>
 
-    <% include('../../partials/lightbox-standalone') %>
+    <%- include('../../partials/lightbox-standalone') %>
 
 </div>
+
+<script>
+    function setupPostcardLightbox() {
+        const postcardElements = Array.from(document.querySelectorAll('.postcard-thumb'));
+        if (postcardElements.length === 0) return;
+
+        const items = postcardElements.map(el => ({
+            url: el.dataset.full,
+            id: el.dataset.id
+        }));
+
+        initLightbox(items, {
+            onDelete: async (item) => {
+                const confirmed = confirm("Delete this postcard?");
+                if (!confirmed) return false;
+                await fetch(`/postcards/${item.id}/delete`, { method: 'DELETE' });
+                return true;
+            }
+        });
+
+        postcardElements.forEach((el, i) => {
+            el.addEventListener('click', () => openLightbox(i));
+        });
+    }
+
+    // Run it on first page load
+    window.addEventListener('DOMContentLoaded', setupPostcardLightbox);
+
+    // Run it after HTMX swaps in new content
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        if (e.target.id === 'postcards-grid') {
+            setupPostcardLightbox();
+        }
+    });
+
+</script>

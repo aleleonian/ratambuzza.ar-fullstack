@@ -8,6 +8,8 @@ router.get('/postcards', async (req, res) => {
     const trip = req.trip;
     const postcards = await getUserPostcards(userId);
     const hasPending = postcards.some(p => p.status === 'pending');
+    console.log('postcards->', postcards);
+    console.log('hasPending->', hasPending);
     const avatars = await getTripMembersAvatars(req.db, trip.id);
     const backgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];
     const actions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie'];
@@ -81,8 +83,8 @@ router.post('/postcards/new', async (req, res) => {
         if (!selectedAction) {
             throw new Error('Gotta choose an action!')
         }
-        
-        await enqueuePostcardJob(req.db, userId, trip.id, avatars, background, action);
+
+        await enqueuePostcardJob(userId, trip.id, avatars, background, action);
 
         res.setHeader('X-Toast', "Se queueó tu job, bro.");
         res.setHeader('X-Toast-Type', 'success');

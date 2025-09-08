@@ -40,15 +40,15 @@ async function enqueuePostcardJob(userId, tripId, avatars, scene, action) {
     console.log('scene->', scene);
     console.log('action->', action);
 
-    const data = {
-        userId,
-        tripId,
-        avatars,
-        scene,
-        action
-    }
+    // const data = {
+    //     userId,
+    //     tripId,
+    //     avatars,
+    //     scene,
+    //     action
+    // }
 
-    const jobId = await insertPostcard(pool, userId, tripId, avatars, scene, action, caption);
+    const jobId = await insertPostcard(pool, userId, tripId, avatars, scene, action, "pending");
     return jobId;
 }
 
@@ -83,9 +83,6 @@ async function processJob(jobId, data) {
 }
 
 async function getUserPostcards(userId) {
-    console.log('typeof pool:', typeof pool);
-    console.log('pool.constructor.name:', pool.constructor.name);
-
     const [rows] = await pool.execute(`SELECT * from postcards WHERE user_id = ? LIMIT 10`, [userId]);
     return rows;
 }
@@ -121,7 +118,7 @@ async function runJobLoop() {
 }
 
 // Kick off the interval loop
-setInterval(runJobLoop, JOB_INTERVAL_MS);
+// setInterval(runJobLoop, JOB_INTERVAL_MS);
 
 module.exports = {
     enqueuePostcardJob,

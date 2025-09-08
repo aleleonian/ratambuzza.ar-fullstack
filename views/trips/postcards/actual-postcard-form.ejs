@@ -1,7 +1,8 @@
-<h2>Create una postal pixelada</h2>
-
-<form id="postcards-form" class="hidden <%- hasPending ? "class='disabled'" :"" %>"
+<form id="postcards-form" class="hidden <%- hasPending ? "disabled" :"" %>"
     hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new" hx-target="#form-container" hx-swap="innerHTML">
+
+    <h2>Create una postal pixelada</h2>
+
     <div class="multi-avatar-picker">
         <label for="avatar-select">Elegí hasta 3 avatares:</label>
         <select name="avatars" id="avatar-select" multiple>

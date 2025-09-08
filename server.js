@@ -6,7 +6,6 @@ console.log("process.env.DB_NAME:", process.env.DB_NAME);
 const express = require('express')
 const session = require('express-session')
 const path = require('path')
-const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
 const viajesRoutes = require('./routes/viajes')
 const app = express();
@@ -19,12 +18,7 @@ const { requireLogin } = require('./middleware/requireLogin')
 const PORT = process.env.PORT || 3000
 
 // DB connection
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-})
+const pool = require("./lib/db");
 
 const sessionStore = new MySQLStore({}, pool)
 

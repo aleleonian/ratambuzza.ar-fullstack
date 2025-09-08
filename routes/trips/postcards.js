@@ -6,7 +6,7 @@ const { getTripMembersAvatars } = require('../../lib/postcardJobs');
 router.get('/postcards', async (req, res) => {
     const userId = req.session.user.id;
     const trip = req.trip;
-    const postcards = await getUserPostcards(req.db, userId);
+    const postcards = await getUserPostcards(userId);
     const hasPending = postcards.some(p => p.status === 'pending');
     const avatars = await getTripMembersAvatars(req.db, trip.id);
     const backgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];
@@ -35,15 +35,53 @@ router.post('/postcards/new', async (req, res) => {
     const userId = req.session.user.id;
     const trip = req.trip;
 
+    let selectedAvatars = [];
+    let selectedBackground;
+    let selectedAction;
+
     console.log("req.body->", req.body);
 
     const { avatars, background, action } = req.body;
 
+    if (!avatars) selectedAvatars = undefined;
+
+    else {
+        if (Array.isArray(avatars)) {
+            if (avatars.length < 1) selectedAvatars = undefined;
+            else selectedAvatars = avatars;
+        }
+        else {
+            if (avatars == '') {
+                selectedAvatars = undefined
+            }
+            else selectedAvatars.push(avatars);
+        }
+    }
+
+    if (!background || background === '') {
+        selectedBackground = undefined
+    }
+    else selectedBackground = background;
+
+    if (!action || action === '') {
+        selectedAction = undefined
+    }
+    else selectedAction = action;
+
     try {
-        if (!avatars || avatars === '') {
+
+        if (!selectedAvatars || selectedAvatars.length < 1) {
             throw new Error('Gotta choose an avatar!')
         }
 
+        if (!selectedBackground) {
+            throw new Error('Gotta choose an background!')
+        }
+
+        if (!selectedAction) {
+            throw new Error('Gotta choose an action!')
+        }
+        
         await enqueuePostcardJob(req.db, userId, trip.id, avatars, background, action);
 
         res.setHeader('X-Toast', "Se queueó tu job, bro.");
@@ -51,21 +89,6 @@ router.post('/postcards/new', async (req, res) => {
         res.render('trips/postcards/actual-postcard-form', { hasPending: true, avatars: [], backgrounds: [], actions: [] })
     }
     catch (error) {
-
-        if (!Array.isArray(avatars) || avatars.length < 1) {
-            selectedAvatars = undefined
-        }
-        else selectedAvatars = avatars;
-
-        if (!background || background === '') {
-            selectedBackground = undefined
-        }
-        else selectedBackground = background;
-
-        if (!action || action === '') {
-            selectedAction = undefined
-        }
-        else selectedAction = action;
 
         const availableAvatars = await getTripMembersAvatars(req.db, trip.id);
         const availableBackgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];

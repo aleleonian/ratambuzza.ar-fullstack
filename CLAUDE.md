@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `node scripts/resize.js` - Process avatar images (resize utility)
 
 **Testing:**
-- `npx playwright test` - Run all Playwright tests
+- `npm run test:e2e` or `npx playwright test` - Run all Playwright tests
 - `npx playwright test login.spec.js` - Run specific test file
 - Playwright test framework with global setup handling authentication via `storageState.json`
 - Environment-specific configs: `.env` for development, `.env.test` for testing
@@ -34,7 +34,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 **Key Components:**
 - **Server Entry Point:** `server.js` - Express app with MySQL session store. Note: some routes (feed, posts, likes) are currently commented out
 - **Authentication:** `routes/auth.js` - Handle-based login with secure redirects, auto-generated avatar filenames
-- **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting
+- **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting (feed, posts, likes, crew, media, postcards)
 - **Media System:** `routes/trips/media.js` - Gallery system with multiple upload, tagging, filtering, and like functionality
 - **Feed System:** `routes/trips/feed.js` - Post creation and infinite scroll for trip feeds
 - **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
@@ -100,6 +100,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - multer - File upload handling
 - sharp - Image processing
 - ejs - Templating system
+- htmx.org - Frontend interactivity and dynamic updates
+- uuid - Unique identifier generation
 - @playwright/test - End-to-end testing framework
 
 **Development Notes:**
@@ -110,6 +112,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Authorization system:** Role-based access control for media deletion and tag editing (owner or admin)
 - **Custom toast system:** Uses X-Toast headers for user feedback on HTMX requests
 - **Tag cleanup:** Automatic cleanup of unused tags when updating media item tags
-- **Gallery state management:** Uses `galleryState` object for filter persistence and `htmx:afterSettle` for reliable DOM updates
+- **Gallery state management:** Uses `window.galleryState` object for filter persistence and `htmx:afterSettle` for reliable DOM updates
+- **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
 - **Test setup:** Global setup handles database seeding, trip creation, and authenticated session storage
 - **Session security:** Cookies set to non-secure in development/test environments

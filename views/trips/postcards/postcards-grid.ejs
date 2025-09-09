@@ -10,11 +10,13 @@
     </div>
     <% } else if (card.status === 'pending') { %>
     <div class="postcard pending">
-        ⏳ Pending
+        ⏳ Pendiente
     </div>
     <% } else if (card.status === 'error') { %>
     <div class="postcard error">
         ❌ Error
+        <br>
+        <button class="button button-smaller" onclick="deletePostcardErrorHandler(<%- card.id %>)">Borrar</button>
     </div>
     <% } %>
     <% }) %>

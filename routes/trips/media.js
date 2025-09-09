@@ -228,7 +228,7 @@ router.delete('/gallery/:id/delete', async (req, res, next) => {
         if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
         res.setHeader('X-Toast', 'Item eliminado!');
         res.setHeader('X-Toast-Type', 'success');
-        return res.status(200).send('');
+        return res.status(200).send('OK!');
     }
     catch (error) {
         console.log("Error deleting media: " + error);

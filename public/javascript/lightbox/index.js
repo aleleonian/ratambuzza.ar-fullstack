@@ -1,20 +1,20 @@
 let lightboxItems = [];
 let currentIndex = 0;
-let onDeleteCallback = null;
 
 function initLightbox(items, options = {}) {
     lightboxItems = items;
     currentIndex = 0;
-    onDeleteCallback = options.onDelete || null;
 
+    if (options.customButtons && options.customButtons.length > 0) {
+        options.customButtons.forEach(customButton => {
+            if (document.getElementById(customButton.buttonId)) {
+                document.getElementById(customButton.buttonId).addEventListener(customButton.eventType, customButton.handler);
+            }
+        })
+    }
     document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
     document.getElementById('lightbox-next').addEventListener('click', showNextLightbox);
     document.getElementById('lightbox-prev').addEventListener('click', showPrevLightbox);
-    document.getElementById('lightbox-delete').addEventListener('click', async () => {
-        if (onDeleteCallback && await onDeleteCallback(lightboxItems[currentIndex], currentIndex)) {
-            closeLightbox();
-        }
-    });
 
     document.addEventListener('keydown', (e) => {
         const lb = document.getElementById('lightbox');

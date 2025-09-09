@@ -38,16 +38,65 @@
 
 <div id="postcards-list">
 
-    <div id="postcards-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load" hx-swap="innerHTML"></div>
+    <div id="postcards-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load"
+        hx-swap="innerHTML"></div>
 
     <%- include('../../partials/lightbox-standalone') %>
 
 </div>
 
 <script>
+
+    function postToFeedHandler() {
+        const currentItem = lightboxItems[currentIndex]
+    }
+
+    async function deletePostcardHandler() {
+        const currentItem = lightboxItems[currentIndex]
+        const confirmed = confirm("Delete this postcard?");
+        if (!confirmed) return false;
+        try {
+            let options = { target: `#postcards-grid`, swap: 'outerHTML' };
+            let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/${currentItem.id}`;
+            await window.htmxAjaxPromise('DELETE', url, options);
+            closeLightbox()
+            return true;
+        }
+        catch (error) {
+            showToast(error, "error");
+            return false;
+        }
+    }
+
     function setupPostcardLightbox() {
+
         const postcardElements = Array.from(document.querySelectorAll('.postcard-thumb'));
         if (postcardElements.length === 0) return;
+
+        const postToFeedButtonItem = {
+            buttonId: 'lightbox-posttofeed',
+            eventType: 'click',
+            handler: postToFeedHandler,
+            label: 'Post'
+        }
+        const deletePostcardButtonItem = {
+            buttonId: 'lightbox-deletepost',
+            eventType: 'click',
+            handler: deletePostcardHandler,
+            label: '❌'
+        }
+
+        const postToFeedButton = document.createElement('button');
+        postToFeedButton.textContent = postToFeedButtonItem.label
+        postToFeedButton.id = postToFeedButtonItem.buttonId;
+        postToFeedButton.type = 'button';
+        document.getElementById('lightbox-controls').appendChild(postToFeedButton)
+
+        const deletePostcardButton = document.createElement('button');
+        deletePostcardButton.textContent = deletePostcardButtonItem.label
+        deletePostcardButton.id = deletePostcardButtonItem.buttonId
+        deletePostcardButton.type = 'button';
+        document.getElementById('lightbox-controls').appendChild(deletePostcardButton)
 
         const items = postcardElements.map(el => ({
             url: el.dataset.full,
@@ -60,16 +109,14 @@
                 if (!confirmed) return false;
                 await fetch(`/postcards/${item.id}/delete`, { method: 'DELETE' });
                 return true;
-            }
+            },
+            customButtons: [postToFeedButtonItem, deletePostcardButtonItem]
         });
 
         postcardElements.forEach((el, i) => {
             el.addEventListener('click', () => openLightbox(i));
         });
     }
-
-    // Run it on first page load
-    window.addEventListener('DOMContentLoaded', setupPostcardLightbox);
 
     // Run it after HTMX swaps in new content
     document.body.addEventListener('htmx:afterSwap', (e) => {

@@ -54,7 +54,7 @@ router.post('/posts/delete', requireLogin, async (req, res, next) => {
     }
 
     await req.db.execute('DELETE FROM posts WHERE id = ?', [post_id]);
-    res.send('');
+    res.send('OK!');
   } catch (e) { next(e); }
 });
 

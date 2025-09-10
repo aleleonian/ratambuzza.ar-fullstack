@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { enqueuePostcardJob, getJobResult, getUserPostcards } = require('../../queue/postcardWorker');
 const { getTripMembersAvatars, deletePostcard } = require('../../lib/postcardJobs');
+const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
 
 router.get('/postcards', async (req, res) => {
     const userId = req.session.user.id;
@@ -139,13 +140,13 @@ router.delete('/postcards/:id/', async (req, res) => {
     }
 });
 
+//TODO post a postcard to the /feed
 router.post('/postcards/post', async (req, res) => {
     const user = req.session.user;
     const { postcardId } = req.body;
     // gotta add an entry in the 'media' table representing the postcard
     // gotta add an entry into the posts table
     // gotta return a url to the post
-    // gotta get rid of image_filename in posts table
     // gotta modify /feed to image(s) are now added to media
 
 });

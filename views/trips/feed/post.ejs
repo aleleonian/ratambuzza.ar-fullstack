@@ -12,12 +12,17 @@
     <p><%= post.content %></p>
     <% } %>
 
-    <% if (post.image_filename) { %>
-    <div style="margin-top: 12px; margin-bottom: 12px;">
-        <img src="/uploads/<%= post.image_filename %>" alt="Post Image"
-            style="max-width: 100%; border-radius: var(--radius);" />
+    <% if (post.media && post.media.length > 0) { %>
+    <div class="post-images" data-post-id="<%= post.id %>">
+        <% post.media.forEach((mediaItem, index) => { %>
+        <img src="<%= mediaItem.thumbnail_url %>" data-full="<%= mediaItem.url %>" data-index="<%= index %>"
+            data-post-id="<%= post.id %>" class="post-image-thumb"
+            style="max-width: 100px; max-height: 100px; margin: 4px; cursor: pointer; border-radius: var(--radius);"
+            alt="Post image <%= index + 1 %>" />
+        <% }) %>
     </div>
     <% } %>
+
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
         <%- include('like-button', { trip, post }) %>

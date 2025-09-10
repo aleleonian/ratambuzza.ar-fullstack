@@ -1,4 +1,4 @@
-<%- include('../../partials/header/current-upcoming') %>
+<%- include('../../partials/header/feed-current-upcoming') %>
 
 <div class="layout">
     <aside class="sidebar left">
@@ -11,9 +11,6 @@
         <div id="post-controls" class="mobile-only">
             <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo</button>
         </div>
-
-        <!-- Injected post (new post via HTMX) -->
-        <!-- <div id="post-inject-point"></div> -->
 
         <!-- Post list container -->
         <div id="posts-container">
@@ -38,6 +35,9 @@
             <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
         </div>
         <% } %>
+
+        <%- include('../../partials/lightbox-standalone') %>
+
     </main>
 
 
@@ -51,21 +51,14 @@
 
     // Function to collect all post IDs currently shown
     function updateExcludeIds() {
-        // Look for posts in both containers: main posts and newly injected posts
         const postsContainer = document.getElementById('posts-container');
-        // const injectPoint = document.getElementById('post-inject-point');
-
         const mainPosts = postsContainer.querySelectorAll('[data-post-id]');
-        // const injectedPosts = injectPoint.querySelectorAll('[data-post-id]');
-
         // Combine both sets of posts
-        // const allPostElements = [...mainPosts, ...injectedPosts];
         const allPostElements = [...mainPosts];
         const postIds = allPostElements.map(el => el.getAttribute('data-post-id'));
 
         console.log('📊 Collecting post IDs:');
         console.log('  - Main container posts:', Array.from(mainPosts).map(el => el.getAttribute('data-post-id')));
-        // console.log('  - Injected posts:', Array.from(injectedPosts).map(el => el.getAttribute('data-post-id')));
         console.log('  - Combined:', postIds);
 
         // document.getElementById('exclude-ids').value = postIds.join(',');
@@ -83,11 +76,13 @@
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         // Handle post addition - this fires AFTER the DOM is updated
         if (evt.target.id === 'posts-container') {
+
+            setupFeedPostLightbox();
+
             document.getElementById('postModal')?.classList.add('hidden')
             console.log('➕ Post added and DOM updated — updating exclude IDs');
 
             // Debug: check what was actually added
-            console.log('🔍 DEBUG: Post inject point contents:', evt.target.innerHTML);
             const newPostElement = evt.target.querySelector('[data-post-id]');
             if (newPostElement) {
                 console.log('✅ Found new post with ID:', newPostElement.getAttribute('data-post-id'));
@@ -177,5 +172,27 @@
             modal?.classList.add('hidden')
         }
     })
+</script>
+
+<script>
+    function setupFeedPostLightbox() {
+        const thumbs = Array.from(document.querySelectorAll('.post-image-thumb'));
+
+        if (thumbs.length === 0) return;
+
+        const items = thumbs.map(el => ({
+            url: el.dataset.full,
+            id: el.dataset.id,
+        }));
+
+        initLightbox(items); // Optional: pass customButtons if needed
+
+        thumbs.forEach((el, i) => {
+            el.addEventListener('click', () => openLightbox(i));
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', setupFeedPostLightbox);
+
 </script>
 <%- include('../../partials/footer') %>

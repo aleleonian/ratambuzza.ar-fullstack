@@ -55,7 +55,9 @@
 <script>
 
     function postToFeedHandler() {
-        const currentItem = lightboxItems[currentIndex]
+        const currentItem = lightboxItems[currentIndex];
+        debugger;
+
     }
 
     async function deletePostcard(postcardId) {
@@ -84,50 +86,6 @@
             return false;
         }
     }
-
-    // function setupPostcardLightbox() {
-
-    //     const postcardElements = Array.from(document.querySelectorAll('.postcard-thumb'));
-    //     if (postcardElements.length === 0) return;
-
-    //     const postToFeedButtonItem = {
-    //         buttonId: 'lightbox-posttofeed',
-    //         eventType: 'click',
-    //         handler: postToFeedHandler,
-    //         label: 'Post'
-    //     }
-    //     const deletePostcardButtonItem = {
-    //         buttonId: 'lightbox-deletepost',
-    //         eventType: 'click',
-    //         handler: deletePostcardLightboxHandler,
-    //         label: '❌'
-    //     }
-
-    //     const postToFeedButton = document.createElement('button');
-    //     postToFeedButton.textContent = postToFeedButtonItem.label
-    //     postToFeedButton.id = postToFeedButtonItem.buttonId;
-    //     postToFeedButton.type = 'button';
-    //     document.getElementById('lightbox-controls').appendChild(postToFeedButton)
-
-    //     const deletePostcardButton = document.createElement('button');
-    //     deletePostcardButton.textContent = deletePostcardButtonItem.label
-    //     deletePostcardButton.id = deletePostcardButtonItem.buttonId
-    //     deletePostcardButton.type = 'button';
-    //     document.getElementById('lightbox-controls').appendChild(deletePostcardButton)
-
-    //     const items = postcardElements.map(el => ({
-    //         url: el.dataset.full,
-    //         id: el.dataset.id
-    //     }));
-
-    //     initLightbox(items, {
-    //         customButtons: [postToFeedButtonItem, deletePostcardButtonItem]
-    //     });
-
-    //     postcardElements.forEach((el, i) => {
-    //         el.addEventListener('click', () => openLightbox(i));
-    //     });
-    // }
 
     function setupPostcardLightbox() {
         const postcardElements = Array.from(document.querySelectorAll('.postcard-thumb'));

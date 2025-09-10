@@ -139,6 +139,17 @@ router.delete('/postcards/:id/', async (req, res) => {
     }
 });
 
+router.post('/postcards/post', async (req, res) => {
+    const user = req.session.user;
+    const { postcardId } = req.body;
+    // gotta add an entry in the 'media' table representing the postcard
+    // gotta add an entry into the posts table
+    // gotta return a url to the post
+    // gotta get rid of image_filename in posts table
+    // gotta modify /feed to image(s) are now added to media
+
+});
+
 // Polling route
 router.get('/postcard/:jobId/status', async (req, res) => {
     const jobId = req.params.jobId;

@@ -90,24 +90,60 @@ router.post('/posts/delete', requireLogin, async (req, res, next) => {
     const { post_id } = req.body;
     const userId = req.session.user.id;
 
-    //TODO update this because image_filename has been deprecated
     const [rows] = await req.db.execute(
-      'SELECT user_id, image_filename FROM posts WHERE id = ?', [post_id]
+      'SELECT user_id FROM posts WHERE id = ?', [post_id]
     );
 
     if (!rows.length || rows[0].user_id !== userId) {
       return res.status(403).send('Not allowed');
     }
 
-    if (rows[0].image_filename) {
-      const imagePath = path.join(uploadDir, rows[0].image_filename);
-      fs.unlink(imagePath, (err) => {
-        if (err) console.warn('Failed to delete image:', err.message);
-      });
-    }
+    // find out if there are images related to that post
+    // SELECT url, thumbnail_url, id FROM `media` WHERE post_id = 107
 
+    const [mediaItems] = await req.db.execute(
+      'SELECT url, thumbnail_url, id FROM `media` WHERE post_id = ?', [post_id]
+    );
+
+    const mediaFileDeletions = mediaItems.map(async (item) => {
+      if (item.url) {
+        const filePath = path.join(process.cwd(), 'public', item.url.replace(/^\/+/, ''));
+        try {
+          fs.unlinkSync(filePath);
+        }
+        catch (error) {
+          console.error("Failed trying to delete " + filePath)
+        }
+      }
+
+      if (item.thumbnail_url) {
+        const filePath = path.join(process.cwd(), 'public', item.thumbnail_url.replace(/^\/+/, ''));
+        try {
+          fs.unlinkSync(filePath);
+        }
+        catch (error) {
+          console.error("Failed trying to delete " + filePath)
+        }
+      }
+
+      // clean likes_media
+      await req.db.execute('DELETE FROM likes_media WHERE media_id = ?', [item.id]);
+      // clea media_tags
+      await req.db.execute('DELETE FROM media_tags WHERE media_id = ?', [item.id]);
+
+      await req.db.execute('DELETE FROM media WHERE id = ?', [item.id]);
+    });
+
+    await Promise.all(mediaFileDeletions);
+
+    // delete from likes_post first
+    await req.db.execute('DELETE FROM likes_posts WHERE post_id = ?', [post_id]);
     await req.db.execute('DELETE FROM posts WHERE id = ?', [post_id]);
-    res.send('OK!');
+
+    res.setHeader('X-Toast', "Post borrado!");
+    res.setHeader('X-Toast-Type', 'success');
+    res.send('');
+
   } catch (e) { next(e); }
 });
 

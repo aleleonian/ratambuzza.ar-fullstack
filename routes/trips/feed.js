@@ -28,15 +28,24 @@ router.get('/feed', requireLogin, async (req, res, next) => {
 
         // 2. Get associated media
 
-        posts.forEach(async post => {
+        //     posts.forEach(async post => {
+        //         const [mediaRows] = await req.db.execute(`
+        //     SELECT id, url, thumbnail_url, width, height
+        //     FROM media
+        //     WHERE post_id = ?
+        // `, [post.id]);
+        //         post.media = mediaRows;
+        //     });
+
+        await Promise.all(posts.map(async post => {
             const [mediaRows] = await req.db.execute(`
         SELECT id, url, thumbnail_url, width, height
         FROM media
         WHERE post_id = ?
     `, [post.id]);
             post.media = mediaRows;
-        });
-
+        }));
+        
         const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
 
         console.log('GET /feed posts->', posts);

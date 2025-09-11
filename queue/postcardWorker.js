@@ -72,10 +72,13 @@ async function processJob(data) {
 
         const prompt = buildPrompt({ avatars, background, action, mode });
 
+        console.log("gonna call generatePostcardWithGemini");
+
         const { base64, mimeType } = await generatePostcardWithGemini(avatarFiles, prompt);
 
-        const fileName = `postcard-${Date.now()}.png`;
+        console.log("generatePostcardWithGemini returned!");
 
+        const fileName = `postcard-${Date.now()}.png`;
 
         const postcardDestinationPath = path.join(__dirname, '../public/uploads', fileName);
 
@@ -91,6 +94,8 @@ async function processJob(data) {
         thumbName = `thumb-${fileName}`;
         // const desiredPostcardthumbnailUrl = path.join(process.cwd(), 'public', 'uploads', thumbName);
         thumbnailUrl = await createThumbnail(postcardDestinationPath, thumbName);
+
+        console.log("thumbnail created!");
 
         await updateJobStatus(pool, jobId, {
             image_url: "/uploads/" + fileName,
@@ -165,34 +170,37 @@ async function generatePostcardWithGemini(avatarImages, prompt) {
 }
 
 async function runJobLoop() {
-    try {
-        if (workerBusy) return;
-        const job = await getNextPendingJob(pool);
-        if (!job) return; // No job found
+    if (workerBusy) {
+        console.log("Worker is busy, trying later.")
+        return;
+    }
+    const job = await getNextPendingJob(pool);
+    if (!job) return; // No job found
 
-        console.log(`🧵 Found job ${job.id}, processing...`);
+    console.log(`🧵 Found job ${job.id}, processing...`);
+
+    workerBusy = true;
+
+    try {
 
         await markJobInProgress(pool, job.id);
 
         const result = await processJob(job); // generate image, etc.
 
-        console.log('result->', result);
+        console.log('processJob result->', result);
 
         if (result.success) {
             await markJobComplete(pool, job.id);
             console.log(`✅ Job ${job.id} completed`);
-
         }
         else {
-            markJobFailed(pool, job.id, result.message)
+            markJobFailed(pool, job.id, result.message);
+            console.log(`❌ Job ${job.id} marked as failed`);
         }
-
 
     } catch (err) {
         console.error("❌ Job processing error:", err);
-        if (err.jobId) {
-            await markJobFailed(err.jobId, err.message);
-        }
+        await markJobFailed(job.id, err.message);
     }
     finally {
         workerBusy = false;

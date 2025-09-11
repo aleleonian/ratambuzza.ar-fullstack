@@ -30,6 +30,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - Media gallery system with multiple file uploads, tagging, and filtering
 - Lightbox viewing with metadata display
 - Like system for media items
+- AI-powered postcard generation with Google Gemini using avatar references
+- Background job processing for postcard creation with status tracking
 
 **Key Components:**
 - **Server Entry Point:** `server.js` - Express app with MySQL session store. Note: some routes (feed, posts, likes) are currently commented out
@@ -37,6 +39,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting (feed, posts, likes, crew, media, postcards)
 - **Media System:** `routes/trips/media.js` - Gallery system with multiple upload, tagging, filtering, and like functionality
 - **Feed System:** `routes/trips/feed.js` - Post creation and infinite scroll for trip feeds
+- **Postcards System:** `routes/trips/postcards.js` - AI postcard generation, job management, and posting to feed
+- **Background Worker:** `queue/postcardWorker.js` - Processes postcard generation jobs using Google Gemini AI
 - **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
 - **Middleware:** `middleware/requireLogin.js` - Authentication guard with redirect handling
 
@@ -47,6 +51,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Infinite scroll:** `/trips/:slug/feed/more` for pagination
 - **Media gallery:** `/trips/:slug/gallery` with filtering, tagging, and lightbox functionality
 - **Media uploads:** `/trips/:slug/upload` with multiple file support and image processing
+- **Postcards:** `/trips/:slug/postcards` with AI generation, job status, and posting to feed
 
 **Template System:**
 - **Organized by feature:** `views/trips/` for trip-specific templates
@@ -70,6 +75,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **tags:** id, name (for media tagging)
 - **media_tags:** media_id, tag_id (many-to-many relationship)
 - **likes_media:** user_id, media_id (media like system)
+- **postcards:** id, user_id, trip_id, avatars, background, action, status, image_url, thumbnail_url, post_id, created_at
 
 **Session Management:**
 - MySQL-backed sessions via `express-mysql-session`
@@ -91,6 +97,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - `PORT` - Server port (optional, defaults to 3000)
 - `APP_HOST` - Application host for testing (localhost)
 - `NODE_ENV` - Environment mode (test/development/production)
+- `GEMINI_API_KEY` - Google Gemini AI API key for postcard generation
 
 **Key Dependencies:**
 - express - Web framework
@@ -102,6 +109,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - ejs - Templating system
 - htmx.org - Frontend interactivity and dynamic updates
 - uuid - Unique identifier generation
+- @google/genai - Google Gemini AI integration for postcard generation
+- image-size - Image dimension analysis
 - @playwright/test - End-to-end testing framework
 
 **Development Notes:**
@@ -114,5 +123,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Tag cleanup:** Automatic cleanup of unused tags when updating media item tags
 - **Gallery state management:** Uses `window.galleryState` object for filter persistence and `htmx:afterSettle` for reliable DOM updates
 - **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
+- **AI postcard generation:** Background worker processes jobs using Google Gemini with 16-bit pixel art prompts
+- **Job processing:** Queue system with pending/in-progress/completed status tracking
+- **Database abstraction:** Centralized DB connection pool in `lib/db.js` using `mysql2/promise`
 - **Test setup:** Global setup handles database seeding, trip creation, and authenticated session storage
 - **Session security:** Cookies set to non-secure in development/test environments

@@ -176,19 +176,22 @@
 
 <script>
     function setupFeedPostLightbox() {
-        const thumbs = Array.from(document.querySelectorAll('.post-image-thumb'));
+        // Loop over each post container
+        document.querySelectorAll('.post-images').forEach(postEl => {
+            const thumbs = Array.from(postEl.querySelectorAll('.post-image-thumb'));
+            if (thumbs.length === 0) return;
 
-        if (thumbs.length === 0) return;
+            const items = thumbs.map(el => ({
+                url: el.dataset.full,
+                id: el.dataset.id,
+            }));
 
-        const items = thumbs.map(el => ({
-            url: el.dataset.full,
-            id: el.dataset.id,
-        }));
-
-        initLightbox(items); // Optional: pass customButtons if needed
-
-        thumbs.forEach((el, i) => {
-            el.addEventListener('click', () => openLightbox(i));
+            thumbs.forEach((el, i) => {
+                el.addEventListener('click', () => {
+                    initLightbox(items);
+                    openLightbox(i);
+                });
+            });
         });
     }
 

@@ -50,13 +50,17 @@
 
     <%- include('../../partials/lightbox-standalone') %>
 
+    <div id="dummy-target" style="display:none"></div>
 </div>
 
 <script>
 
-    function postToFeedHandler() {
+    async function postToFeedHandler() {
         const currentItem = lightboxItems[currentIndex];
         debugger;
+        let options = { target: '#dummy-target', swap: 'none', values: { postcardId: currentItem.id } };
+        let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/post`;
+        await window.htmxAjaxPromise('POST', url, options);
     }
 
     async function deletePostcard(postcardId) {

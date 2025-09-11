@@ -1,10 +1,10 @@
 window.htmxAjaxPromise = function (method, url, options = {}) {
     return new Promise((resolve, reject) => {
-        const targetSelector = options.target;
-        if (!targetSelector) {
-            reject(new Error("htmxAjaxPromise requires a { target } option"));
-            return;
-        }
+        // const targetSelector = options.target;
+        // if (!targetSelector) {
+        //     reject(new Error("htmxAjaxPromise requires a { target } option"));
+        //     return;
+        // }
 
         try {
             const listener = (evt) => {

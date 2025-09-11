@@ -2,7 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { enqueuePostcardJob, getJobResult, getUserPostcards } = require('../../queue/postcardWorker');
 const { getTripMembersAvatars, deletePostcard } = require('../../lib/postcardJobs');
-const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
+// const { uploadDir } = require('../../lib/upload');
+const sharp = require('sharp');
+const path = require('path');
+
+const width = 1600;
+const height = 1600;
+const quality = 80;
 
 router.get('/postcards', async (req, res) => {
     const userId = req.session.user.id;
@@ -118,6 +124,7 @@ router.post('/postcards/new', async (req, res) => {
             })
     }
 });
+
 router.delete('/postcards/:id/', async (req, res) => {
     const user = req.session.user;
     const postcardId = req.params.id;
@@ -140,15 +147,59 @@ router.delete('/postcards/:id/', async (req, res) => {
     }
 });
 
-//TODO post a postcard to the /feed
 router.post('/postcards/post', async (req, res) => {
     const user = req.session.user;
+    const trip = req.trip;
     const { postcardId } = req.body;
-    // gotta add an entry in the 'media' table representing the postcard
-    // gotta add an entry into the posts table
-    // gotta return a url to the post
-    // gotta modify /feed to image(s) are now added to media
 
+    try {
+        // gotta add an entry into the posts table
+        const [postResult] = await req.db.execute(
+            'INSERT INTO posts (user_id, trip_id, content) VALUES (?, ?, ?)',
+            [user.id, trip.id, '']
+        );
+
+        const postId = postResult.insertId;
+
+        //gotta resize the postcard (will reuse thumb)
+        const [postcards] = await req.db.execute(`
+    SELECT image_url, thumbnail_url FROM postcards
+    WHERE id = ?
+  `, [postcardId]);
+
+        const desiredPostcard = postcards[0];
+        // postcard.image_url = '/uploads/postcard.png'.split('/')
+        const explodedName = desiredPostcard.image_url.split('/')
+        const fileName = explodedName[explodedName.length - 1]
+        const resizedName = 'resized-' + fileName;
+        const desiredPostcardUrl = "/uploads/" + resizedName;
+        const originalPostcardPath = path.join(process.cwd(), 'public', desiredPostcard.image_url.replace(/^\/+/, ''))
+        const resizedPostcardPath = path.join(process.cwd(), 'public', 'uploads', resizedName);
+
+        await sharp(originalPostcardPath)
+            .rotate()
+            .resize({ width, height, fit: 'inside' })
+            .jpeg({ quality })
+            .toFile(resizedPostcardPath);
+
+        // gotta add an entry in the 'media' table representing the postcard
+
+        await req.db.execute(
+            'INSERT INTO media (post_id, trip_id, user_id, url, thumbnail_url, width, height) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [postId, trip.id, user.id, desiredPostcardUrl, desiredPostcard.thumbnail_url, width, height]
+        );
+
+        // gotta return a url to the post
+        res.setHeader('X-Toast', "Se posteó su postal, jefe.");
+        res.setHeader('X-Toast-Type', 'success');
+        res.send('');
+    }
+    catch (error) {
+        console.error(error);
+        res.setHeader('X-Toast', "Algo se jodió.");
+        res.setHeader('X-Toast-Type', 'error');
+        res.send('');
+    }
 });
 
 // Polling route

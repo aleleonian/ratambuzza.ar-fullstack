@@ -42,11 +42,6 @@ router.post('/upload', uploadMultiple, async (req, res, next) => {
             const thumbName = `thumb-${file.filename}`;
             const thumbnailUrl = await createThumbnail(file.path, thumbName);
             fs.unlinkSync(originalPath);
-            // Store info to respond or save to DB
-            // resizedFiles.push({
-            //     resized: '/uploads/resized-' + file.filename,
-            //     thumb: '/uploads/' + thumbnailUrl
-            // });
             try {
                 const [result] = await req.db.execute(`
             INSERT INTO media (trip_id, user_id, url, thumbnail_url, width, height, type)

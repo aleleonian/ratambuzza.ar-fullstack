@@ -2,9 +2,14 @@
 const fs = require('fs');
 const path = require('path');
 const postcardJobs = new Map();
-const { insertPostcard, getNextPendingJob, markJobInProgress, markJobComplete, updateJobStatus, processJobData } = require('../lib/postcardJobs');
+const { insertPostcard, getNextPendingJob, markJobFailed, markJobInProgress, markJobComplete, updateJobStatus } = require('../lib/postcardJobs');
+const { GoogleGenAI, Modality } = require("@google/genai");
+// const mime = require('mime-types');
 const pool = require("../lib/db");
+const { createThumbnail, } = require('../lib/upload');
+
 const JOB_INTERVAL_MS = 5000;
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // const { sendEmail } = require('../lib/email');ƒ
 
@@ -40,45 +45,62 @@ async function enqueuePostcardJob(userId, tripId, avatars, scene, action) {
     console.log('scene->', scene);
     console.log('action->', action);
 
-    // const data = {
-    //     userId,
-    //     tripId,
-    //     avatars,
-    //     scene,
-    //     action
-    // }
-
     const jobId = await insertPostcard(pool, userId, tripId, avatars, scene, action, "pending");
     return jobId;
 }
 
-async function processJob(jobId, data) {
+//TODO: voy por aquí. Gotta query the LLM
+async function processJob(data) {
+    console.log('data->', data);
+    let jobId;
     try {
-        const { avatars, background, action, mode, userId, userEmail } = data;
+        let { id, avatars, background, action, mode, user_id } = data;
+
+        jobId = id;
+
+        if (!Array.isArray(avatars)) {
+            const avatarsString = avatars;
+            avatars = [];
+            avatars.push(avatarsString);
+        }
+
         const avatarFiles = avatars.map(name => {
-            const filePath = path.resolve(__dirname, `../public/assets/avatars/${name}.png`);
+            const filePath = path.resolve(__dirname, `../public/images/avatars/${name}.png`);
             const base64 = fs.readFileSync(filePath).toString('base64');
             return { base64, mimeType: 'image/png', fileName: `${name}.png` };
         });
 
         const prompt = buildPrompt({ avatars, background, action, mode });
-        const imageDataUrl = await generatePostcardWithGemini(avatarFiles, prompt);
+
+        const { base64, mimeType } = await generatePostcardWithGemini(avatarFiles, prompt);
+
+        const fileName = `postcard-${Date.now()}.png`;
+
+        const postcardDestinationPath = path.join(__dirname, '../public/uploads', fileName);
+
+        fs.writeFile(postcardDestinationPath, Buffer.from(base64, 'base64'), (err) => {
+            if (err) console.error('Failed to write file:', err);
+            else console.log('✅ File written successfully');
+        });
+        let thumbName, thumbnailUrl;
+
+        thumbName = `thumb-${fileName}`;
+        // const desiredPostcardthumbnailUrl = path.join(process.cwd(), 'public', 'uploads', thumbName);
+        thumbnailUrl = await createThumbnail(postcardDestinationPath, thumbName);
 
         await updateJobStatus(pool, jobId, {
-            status: 'done',
-            image_url: imageDataUrl,
-            completed_at: new Date(),
+            image_url: "/uploads/" + fileName,
+            thumbnail_url: "/uploads/" + thumbnailUrl,
         });
 
-        if (userEmail) {
-            await sendEmail(userEmail, '🎉 Your Ratambuzza postcard is ready!',
-                `Visit https://ratambuzza.ar/postcards to see it now!`);
-        }
+        // if (userEmail) {
+        //     await sendEmail(userEmail, '🎉 Your Ratambuzza postcard is ready!',
+        //         `Visit https://ratambuzza.ar/postcards to see it now!`);
+        // }
+        return { success: true };
     } catch (err) {
-        await updateJobStatus(pool, jobId, {
-            status: 'error',
-            error_message: err.message,
-        });
+        console.log('err->', err);
+        return { success: false, message: err.message ? err.message : JSON.stringify(err) };
     }
 }
 
@@ -91,9 +113,67 @@ async function getJobResult(jobId) {
     return postcardJobs.get(jobId);
 }
 
-async function generatePostcardWithGemini(images, prompt) {
-    // Real Gemini logic goes here
-    return 'data:image/png;base64,FAKEIMAGE';
+async function generatePostcardWithGemini(avatarImages, prompt) {
+
+    // TODO: i think this is unnecessary
+    // const avatarsDir = path.join(__dirname, '../public/images/avatars');
+    // const validImages = [];
+
+    // for (const fileName of avatarFilenames.slice(0, 3)) {
+    //     const fullPath = path.join(avatarsDir, fileName);
+    //     try {
+    //         const buffer = await fs.readFile(fullPath);
+    //         const base64 = buffer.toString('base64');
+    //         const mimeType = mime.lookup(fullPath) || 'image/png';
+    //         validImages.push({ base64, mimeType });
+    //     } catch (err) {
+    //         console.error(`Could not load avatar: ${fullPath}`, err);
+    //     }
+    // }
+
+    if (avatarImages.length === 0) throw new Error('No valid avatar images found');
+
+    const instruction = `
+    You are composing a SINGLE pixel-art “postcard” (one output image only).
+
+    Use the uploaded avatars STRICTLY as visual references for appearance (face, hair, clothing, accessories).
+    Do NOT treat any single upload as the canvas to edit; instead COMPOSE a NEW scene that includes ALL the uploaded avatars TOGETHER in a single scene.
+
+    Constraints:
+    - Output exactly ONE image (one canvas, one file).
+    - Show exactly the number of avatars uploaded — no more, no fewer. Do NOT add extra characters, crowds, or NPCs.
+    - Place ALL avatars TOGETHER in the SAME frame, interacting naturally.
+    - Think "group selfie / posed group shot" in SNES 16-bit style: smooth pixel shading, detailed sprites, nostalgic retro vibe.
+    - Maintain each avatar’s clothing and accessories; you may adjust pose/expression for a natural composition.
+    - No text overlays, no borders, no collage. One unified scene.
+    - The uploaded images are for APPEARANCE REFERENCE ONLY. Do NOT generate one image per avatar or isolate them.
+
+    If you generate more than one candidate internally, each candidate must still contain all uploaded avatars TOGETHER in one frame. Return only ONE final image.
+    `;
+
+    const parts = [{ text: instruction + '\n\nUser style note:\n' + prompt }];
+
+    for (const image of avatarImages) {
+        parts.push({ inlineData: { data: image.base64, mimeType: image.mimeType } });
+    }
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image-preview',
+        contents: { parts },
+        config: {
+            candidateCount: 1,
+            responseModalities: [Modality.IMAGE],
+        },
+    });
+
+    const imagePart = response?.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data);
+
+    if (!imagePart) throw new Error('Gemini did not return an image');
+
+    const { data, mimeType } = imagePart.inlineData;
+
+    return { base64: data, mimeType };
+
 }
 
 async function runJobLoop() {
@@ -102,13 +182,26 @@ async function runJobLoop() {
         if (!job) return; // No job found
 
         console.log(`🧵 Found job ${job.id}, processing...`);
+
         await markJobInProgress(pool, job.id);
 
-        const result = await processJobData(job); // generate image, etc.
+        const result = await processJob(job); // generate image, etc.
 
-        await markJobComplete(pool, job.id, result.image_url);
+        console.log('result->', result);
 
-        console.log(`✅ Job ${job.id} completed`);
+        if (result.success) {
+            await markJobComplete(pool, job.id);
+            console.log(`✅ Job ${job.id} completed`);
+        }
+        else {
+            // await updateJobStatus(pool, job.id, {
+            //     status: 'error',
+            //     error_message: result.message,
+            // });
+            markJobFailed(pool, job.id, result.message)
+        }
+
+
     } catch (err) {
         console.error("❌ Job processing error:", err);
         if (err.jobId) {
@@ -118,7 +211,7 @@ async function runJobLoop() {
 }
 
 // Kick off the interval loop
-// setInterval(runJobLoop, JOB_INTERVAL_MS);
+setInterval(runJobLoop, JOB_INTERVAL_MS);
 
 module.exports = {
     enqueuePostcardJob,

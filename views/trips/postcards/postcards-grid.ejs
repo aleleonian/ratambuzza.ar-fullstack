@@ -1,23 +1,25 @@
 <!-- views/partials/postcards-grid.ejs -->
 
+<% if(postcards && postcards.length > 0) {%>
 <h2>Tus postales</h2>
+<%}%>
 
 <div class="postcard-grid">
     <% postcards.forEach(card => { %>
-    <% if (card.status === 'done') { %>
-    <div class="postcard postcard-thumb" data-full="<%-card.image_url%>" data-id="<%-card.id%>">
-        <img src="<%= card.thumbnail_url %>" alt="Postcard thumbnail" style="width: 100%; height: auto;">
-    </div>
-    <% } else if (card.status === 'pending') { %>
-    <div class="postcard pending">
-        ⏳ Pendiente
-    </div>
-    <% } else if (card.status === 'error') { %>
-    <div class="postcard error">
-        ❌ Error
-        <br>
-        <button class="button button-smaller" onclick="deletePostcardErrorHandler(<%- card.id %>)">Borrar</button>
-    </div>
-    <% } %>
-    <% }) %>
+<% if (card.status === 'done') { %>
+<div class="postcard postcard-thumb" data-full="<%-card.image_url%>" data-id="<%-card.id%>">
+    <img src="<%= card.thumbnail_url %>" alt="Postcard thumbnail" style="width: 100%; height: auto;">
+</div>
+<% } else if (card.status === 'pending') { %>
+<div class="postcard pending">
+    ⏳ Pendiente
+</div>
+<% } else if (card.status === 'error') { %>
+<div class="postcard error">
+    ❌ Error
+    <br>
+    <button class="button button-smaller" onclick="deletePostcardErrorHandler(<%- card.id %>)">Borrar</button>
+</div>
+<% } %>
+<% }) %>
 </div>

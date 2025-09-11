@@ -65,7 +65,6 @@ app.use('/', authRoutes)
 app.use('/', requireLogin, homeRoutes);
 app.use('/trips', requireLogin, tripRoutes);
 
-//TODO deprecated
 app.get('/partials/avatar-ribbon', async (req, res) => {
     const [crew] = await req.db.execute('SELECT handle, avatar_head_file_name FROM users ORDER BY handle')
     console.log("returning crew:", crew);

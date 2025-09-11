@@ -147,7 +147,6 @@ router.delete('/postcards/:id/', async (req, res) => {
     }
 });
 
-//TODO: check if the postcard has already been posted
 router.post('/postcards/post', async (req, res) => {
     const user = req.session.user;
     const trip = req.trip;

@@ -83,7 +83,7 @@
 </style>
 
 
-<div id="form-container">
+<div id="new-postcard-form-container">
     <%- include('actual-postcard-form')%>
 </div>
 
@@ -173,5 +173,12 @@
             document.body.addEventListener('htmx:afterSettle', function () {
                 initTomSelect();
             });
+        document.body.addEventListener('htmx:afterSwap', async function (e) {
+            if (e.target.id === 'new-postcard-form-container') {
+                const options = { target: `#postcards-grid`, swap: 'innerHTML' };
+                const url = `/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid`;
+                await window.htmxAjaxPromise('GET', url, options);
+            }
+        });
     });
 </script>

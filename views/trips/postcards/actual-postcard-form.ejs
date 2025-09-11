@@ -1,4 +1,4 @@
-<form id="postcards-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new" hx-target="#form-container"
+<form id="postcards-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new" hx-target="#new-postcard-form-container"
     hx-swap="innerHTML">
     <fieldset <%- hasPending ? "disabled" :"" %>>
         <h2>Create una postal pixelada</h2>

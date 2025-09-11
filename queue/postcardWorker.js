@@ -10,6 +10,7 @@ const { createThumbnail, } = require('../lib/upload');
 
 const JOB_INTERVAL_MS = 5000;
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let workerBusy = false;
 
 // const { sendEmail } = require('../lib/email');ƒ
 
@@ -51,7 +52,6 @@ async function enqueuePostcardJob(userId, tripId, avatars, scene, action) {
 
 //TODO: voy por aquí. Gotta query the LLM
 async function processJob(data) {
-    console.log('data->', data);
     let jobId;
     try {
         let { id, avatars, background, action, mode, user_id } = data;
@@ -76,12 +76,16 @@ async function processJob(data) {
 
         const fileName = `postcard-${Date.now()}.png`;
 
+
         const postcardDestinationPath = path.join(__dirname, '../public/uploads', fileName);
 
-        fs.writeFile(postcardDestinationPath, Buffer.from(base64, 'base64'), (err) => {
+        const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+
+        fs.writeFile(postcardDestinationPath, Buffer.from(base64Data, 'base64'), (err) => {
             if (err) console.error('Failed to write file:', err);
             else console.log('✅ File written successfully');
         });
+
         let thumbName, thumbnailUrl;
 
         thumbName = `thumb-${fileName}`;
@@ -90,7 +94,7 @@ async function processJob(data) {
 
         await updateJobStatus(pool, jobId, {
             image_url: "/uploads/" + fileName,
-            thumbnail_url: "/uploads/" + thumbnailUrl,
+            thumbnail_url: thumbnailUrl,
         });
 
         // if (userEmail) {
@@ -114,22 +118,6 @@ async function getJobResult(jobId) {
 }
 
 async function generatePostcardWithGemini(avatarImages, prompt) {
-
-    // TODO: i think this is unnecessary
-    // const avatarsDir = path.join(__dirname, '../public/images/avatars');
-    // const validImages = [];
-
-    // for (const fileName of avatarFilenames.slice(0, 3)) {
-    //     const fullPath = path.join(avatarsDir, fileName);
-    //     try {
-    //         const buffer = await fs.readFile(fullPath);
-    //         const base64 = buffer.toString('base64');
-    //         const mimeType = mime.lookup(fullPath) || 'image/png';
-    //         validImages.push({ base64, mimeType });
-    //     } catch (err) {
-    //         console.error(`Could not load avatar: ${fullPath}`, err);
-    //     }
-    // }
 
     if (avatarImages.length === 0) throw new Error('No valid avatar images found');
 
@@ -178,6 +166,7 @@ async function generatePostcardWithGemini(avatarImages, prompt) {
 
 async function runJobLoop() {
     try {
+        if (workerBusy) return;
         const job = await getNextPendingJob(pool);
         if (!job) return; // No job found
 
@@ -192,12 +181,9 @@ async function runJobLoop() {
         if (result.success) {
             await markJobComplete(pool, job.id);
             console.log(`✅ Job ${job.id} completed`);
+
         }
         else {
-            // await updateJobStatus(pool, job.id, {
-            //     status: 'error',
-            //     error_message: result.message,
-            // });
             markJobFailed(pool, job.id, result.message)
         }
 
@@ -207,6 +193,9 @@ async function runJobLoop() {
         if (err.jobId) {
             await markJobFailed(err.jobId, err.message);
         }
+    }
+    finally {
+        workerBusy = false;
     }
 }
 

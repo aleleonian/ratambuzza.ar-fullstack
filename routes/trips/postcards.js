@@ -18,8 +18,8 @@ router.get('/postcards', async (req, res) => {
     console.log('postcards->', postcards);
     console.log('hasPending->', hasPending);
     const avatars = await getTripMembersAvatars(req.db, trip.id);
-    const backgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];
-    const actions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie'];
+    const backgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window', 'Playboy mansion', 'Library', 'Soccer field', 'Restaurant'];
+    const actions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie', 'Eating pizza', 'Playing chess', 'Getting a massage','Snowboarding'];
 
     // const postcards = [];
     // const hasPending = false;

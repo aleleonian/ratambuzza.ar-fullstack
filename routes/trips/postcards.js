@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { enqueuePostcardJob, getJobResult, getUserPostcards } = require('../../queue/postcardWorker');
 const { getTripMembersAvatars, deletePostcard } = require('../../lib/postcardJobs');
-// const { uploadDir } = require('../../lib/upload');
+const { createThumbnail } = require('../../lib/upload');
 const sharp = require('sharp');
 const path = require('path');
 
@@ -147,12 +147,29 @@ router.delete('/postcards/:id/', async (req, res) => {
     }
 });
 
+//TODO: check if the postcard has already been posted
 router.post('/postcards/post', async (req, res) => {
     const user = req.session.user;
     const trip = req.trip;
     const { postcardId } = req.body;
 
     try {
+
+        // make sure this postcard has not been posted before
+        const [rows] = await req.db.execute(
+            'SELECT post_id from postcards WHERE id = ?',
+            [postcardId]
+        );
+        const postcard = rows[0];
+
+        console.log('postcard->', postcard);
+
+        if (postcard.post_id) {
+            res.setHeader('X-Toast', "Ya se posteó esa imagen, broder.");
+            res.setHeader('X-Toast-Type', 'error');
+            return res.send('');
+        }
+
         // gotta add an entry into the posts table
         const [postResult] = await req.db.execute(
             'INSERT INTO posts (user_id, trip_id, content) VALUES (?, ?, ?)',
@@ -182,11 +199,19 @@ router.post('/postcards/post', async (req, res) => {
             .jpeg({ quality })
             .toFile(resizedPostcardPath);
 
+        const thumbName = `thumb-${resizedName}`;
+        const thumbnailUrl = await createThumbnail(resizedPostcardPath, thumbName);
+
         // gotta add an entry in the 'media' table representing the postcard
 
         await req.db.execute(
             'INSERT INTO media (post_id, trip_id, user_id, url, thumbnail_url, width, height) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [postId, trip.id, user.id, desiredPostcardUrl, desiredPostcard.thumbnail_url, width, height]
+            [postId, trip.id, user.id, desiredPostcardUrl, thumbnailUrl, width, height]
+        );
+
+        await req.db.execute(
+            'UPDATE postcards set post_id = ? where id = ?',
+            [postId, postcardId]
         );
 
         // gotta return a url to the post

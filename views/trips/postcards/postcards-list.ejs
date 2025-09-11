@@ -56,11 +56,12 @@
 <script>
 
     async function postToFeedHandler() {
-        const currentItem = lightboxItems[currentIndex];
-        debugger;
-        let options = { target: '#dummy-target', swap: 'none', values: { postcardId: currentItem.id } };
-        let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/post`;
-        await window.htmxAjaxPromise('POST', url, options);
+        if (confirm('Posteo esta imagen al feed?')) {
+            const currentItem = lightboxItems[currentIndex];
+            let options = { target: '#dummy-target', swap: 'none', values: { postcardId: currentItem.id } };
+            let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/post`;
+            await window.htmxAjaxPromise('POST', url, options);
+        }
     }
 
     async function deletePostcard(postcardId) {

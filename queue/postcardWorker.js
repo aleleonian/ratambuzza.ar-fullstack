@@ -1,5 +1,5 @@
 // queue/postcardWorker.js
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
 const postcardJobs = new Map();
 const { insertPostcard, getNextPendingJob, markJobFailed, markJobInProgress, markJobComplete, updateJobStatus } = require('../lib/postcardJobs');
@@ -64,11 +64,18 @@ async function processJob(data) {
             avatars.push(avatarsString);
         }
 
-        const avatarFiles = avatars.map(name => {
-            const filePath = path.resolve(__dirname, `../public/images/avatars/${name}.png`);
-            const base64 = fs.readFileSync(filePath).toString('base64');
-            return { base64, mimeType: 'image/png', fileName: `${name}.png` };
-        });
+        const avatarFiles = await Promise.all(
+            avatars.map(async name => {
+                const filePath = path.resolve(__dirname, `../public/images/avatars/${name}.png`);
+                const buffer = await fs.readFile(filePath);
+                const base64 = buffer.toString('base64');
+                return {
+                    base64,
+                    mimeType: 'image/png',
+                    fileName: `${name}.png`
+                };
+            })
+        );
 
         const prompt = buildPrompt({ avatars, background, action, mode });
 
@@ -84,10 +91,17 @@ async function processJob(data) {
 
         const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
 
-        fs.writeFile(postcardDestinationPath, Buffer.from(base64Data, 'base64'), (err) => {
-            if (err) console.error('Failed to write file:', err);
-            else console.log('✅ File written successfully');
-        });
+        // fs.writeFile(postcardDestinationPath, Buffer.from(base64Data, 'base64'), (err) => {
+        //     if (err) console.error('Failed to write file:', err);
+        //     else console.log('✅ File written successfully');
+        // });
+
+        try {
+            await fs.writeFile(postcardDestinationPath, Buffer.from(base64Data, 'base64'));
+            console.log('✅ File written successfully');
+        } catch (err) {
+            console.error('Failed to write file:', err);
+        }
 
         let thumbName, thumbnailUrl;
 

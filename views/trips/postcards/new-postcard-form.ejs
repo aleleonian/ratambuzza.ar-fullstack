@@ -74,6 +74,12 @@
         max-width: 400px;
     }
 
+    .center {
+        justify-content: center;
+        align-items: center;
+
+    }
+
     @media (max-width: 768px) {
         .form-row {
             flex-direction: column;
@@ -135,45 +141,6 @@
                 }
             });
         }
-
-        // BACKGROUND SELECT
-        // const backgroundSelectEl = document.querySelector('#background-select');
-        // if (backgroundSelectEl) {
-        //     tomSelectInstances['background-select'] = new TomSelect(backgroundSelectEl, {
-        //         create: true,
-        //         persist: false,     // don't keep custom ones for later unless you want
-        //         sortField: { field: "text", direction: "asc" },
-        //         maxItems: 1,
-        //         render: {
-        //             option_create: function (data, escape) {
-        //                 return '<div class="create">➕ Usar "' + escape(data.input) + '" como nueva acción</div>';
-        //             },
-        //             no_results: function (data, escape) {
-        //                 return '';
-        //             }
-        //         },
-        //     });
-        // }
-
-        // ACTION SELECT
-        //     const actionSelectEl = document.querySelector('#action-select');
-        //     if (actionSelectEl) {
-        //         tomSelectInstances['action-select'] = new TomSelect(actionSelectEl, {
-        //             create: true,
-        //             persist: false,     // don't keep custom ones for later unless you want
-        //             sortField: { field: "text", direction: "asc" },
-        //             maxItems: 1,
-        //             render: {
-        //                 option_create: function (data, escape) {
-        //                     return '<div class="create">➕ Usar "' + escape(data.input) + '" como nueva acción</div>';
-        //                 },
-        //                 no_results: function (data, escape) {
-        //                     return '';
-        //                 }
-        //             },
-
-        //         });
-        //     }
     }
 
     // Attach listeners

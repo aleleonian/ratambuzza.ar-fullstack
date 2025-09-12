@@ -132,7 +132,6 @@ router.delete('/postcards/:id/', async (req, res) => {
         if (!isAuthorized(req.db, user.role, user.id, postcardId)) {
             return res.status(403).send('Unauthorized');
         }
-        //TODO: gotta delete the files for the postcard
         await deletePostcard(req.db, postcardId);
         const postcards = await getUserPostcards(user.id);
         res.setHeader('X-Toast', 'Postal borrada!');

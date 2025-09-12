@@ -128,7 +128,7 @@ async function processJob(data) {
 }
 
 async function getUserPostcards(userId) {
-    const [rows] = await pool.execute(`SELECT * from postcards WHERE user_id = ? LIMIT 10`, [userId]);
+    const [rows] = await pool.execute(`SELECT * from postcards WHERE user_id = ?`, [userId]);
     return rows;
 }
 

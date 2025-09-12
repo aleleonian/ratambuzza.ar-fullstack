@@ -1,4 +1,12 @@
 <!-- views/partials/postcards-grid.ejs -->
+<style>
+    .pending-status {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+        align-items: center;
+    }
+</style>
 
 <% if(postcards && postcards.length > 0) {%>
 <h2>Tus postales</h2>
@@ -11,8 +19,9 @@
     <img src="<%= card.thumbnail_url %>" alt="Postcard thumbnail" style="width: 100%; height: auto;">
 </div>
 <% } else if (card.status === 'pending') { %>
-<div class="postcard pending">
-    ⏳ Pendiente
+<div class="pending-status">
+    <div>Volvé en un rato...</div>
+    <img src="/images/hourglass-anime.gif" style="width: 25px; height: 25px;">
 </div>
 <% } else if (card.status === 'error') { %>
 <div class="postcard error">

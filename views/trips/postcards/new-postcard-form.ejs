@@ -137,8 +137,18 @@
         const backgroundSelectEl = document.querySelector('#background-select');
         if (backgroundSelectEl) {
             tomSelectInstances['background-select'] = new TomSelect(backgroundSelectEl, {
-                create: false,
-                maxItems: 1
+                create: true,
+                persist: false,     // don't keep custom ones for later unless you want
+                sortField: { field: "text", direction: "asc" },
+                maxItems: 1,
+                render: {
+                    option_create: function (data, escape) {
+                        return '<div class="create">➕ Usar "' + escape(data.input) + '" como nueva acción</div>';
+                    },
+                    no_results: function (data, escape) {
+                        return '';
+                    }
+                },
             });
         }
 
@@ -146,8 +156,19 @@
         const actionSelectEl = document.querySelector('#action-select');
         if (actionSelectEl) {
             tomSelectInstances['action-select'] = new TomSelect(actionSelectEl, {
-                create: false,
-                maxItems: 1
+                create: true,
+                persist: false,     // don't keep custom ones for later unless you want
+                sortField: { field: "text", direction: "asc" },
+                maxItems: 1,
+                render: {
+                    option_create: function (data, escape) {
+                        return '<div class="create">➕ Usar "' + escape(data.input) + '" como nueva acción</div>';
+                    },
+                    no_results: function (data, escape) {
+                        return '';
+                    }
+                },
+
             });
         }
     }

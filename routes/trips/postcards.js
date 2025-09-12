@@ -18,8 +18,8 @@ router.get('/postcards', async (req, res) => {
     console.log('postcards->', postcards);
     console.log('hasPending->', hasPending);
     const avatars = await getTripMembersAvatars(req.db, trip.id);
-    const backgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window', 'Playboy mansion', 'Library', 'Soccer field', 'Restaurant'];
-    const actions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie', 'Eating pizza', 'Playing chess', 'Getting a massage','Snowboarding'];
+    const backgrounds = ['Copacabana', 'Cancha de golf', 'En la cocina', 'En un avión', 'En la biblioteca', 'En la cancha de Boca', 'Restaurante'];
+    const actions = ['Tomando caipirinhas', 'Jugando truco', 'Tomando una selfie grupal', 'Comiendo pizza', 'Jugando chess', 'Recibiendo un masaje', 'Andando en snowboard'];
 
     // const postcards = [];
     // const hasPending = false;
@@ -132,6 +132,7 @@ router.delete('/postcards/:id/', async (req, res) => {
         if (!isAuthorized(req.db, user.role, user.id, postcardId)) {
             return res.status(403).send('Unauthorized');
         }
+        //TODO: gotta delete the files for the postcard
         await deletePostcard(req.db, postcardId);
         const postcards = await getUserPostcards(user.id);
         res.setHeader('X-Toast', 'Postal borrada!');

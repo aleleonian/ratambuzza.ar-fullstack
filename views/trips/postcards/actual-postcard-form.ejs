@@ -2,23 +2,23 @@
     .pixel-input {
         display: block;
         width: 100%;
-        padding: 6px 10px;
+        max-width: 400px;
+        min-height: 38px;
+        /* match Tom Select */
+        padding: 6px 8px;
+        /* match Tom Select */
         font-size: 14px;
+        font-family: var(--font);
         line-height: 1.4;
         color: #333;
         background-color: #fff;
         border: 1px solid #d1d5db;
-        font-family: var(--font);
-        /* Tailwind gray-300 */
         border-radius: 4px;
-        cursor: text;
-        margin-bottom: 10px;
+        box-sizing: border-box;
     }
 
-    /* On focus */
     .pixel-input:focus {
         border-color: #6366f1;
-        /* Tailwind indigo-500 */
         box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
         outline: none;
     }
@@ -49,7 +49,7 @@
             <div>
                 <label for="background-select">Locación:</label>
                 <input type="text" class="pixel-input" placeholder="Escribí una" id="background-select"
-                    name="background">
+                    name="background" autocomplete="off">
                 <span style="font-size: x-small;">
                     (Ejemplo: Discoteca, Rio de Janeiro, Casa embrujada...)
                 </span>
@@ -57,7 +57,8 @@
 
             <div>
                 <label for="action-select">Acción:</label>
-                <input type="text" id="action-select" placeholder="Escribí una" class="pixel-input" name="action">
+                <input type="text" id="action-select" placeholder="Escribí una" class="pixel-input" name="action"
+                    autocomplete="off">
                 <span style="font-size: x-small;">
                     (Ejemplo: Tomando mate, Bailando, Jugando ajedrez...)
                 </span>

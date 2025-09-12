@@ -50,7 +50,6 @@ async function enqueuePostcardJob(userId, tripId, avatars, scene, action) {
     return jobId;
 }
 
-//TODO: voy por aquí. Gotta query the LLM
 async function processJob(data) {
     let jobId;
     try {

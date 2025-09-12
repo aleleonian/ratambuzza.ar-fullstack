@@ -1,46 +1,83 @@
+<style>
+    .pixel-input {
+        display: block;
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #333;
+        background-color: #fff;
+        border: 1px solid #d1d5db;
+        font-family: var(--font);
+        /* Tailwind gray-300 */
+        border-radius: 4px;
+        cursor: text;
+        margin-bottom: 10px;
+    }
+
+    /* On focus */
+    .pixel-input:focus {
+        border-color: #6366f1;
+        /* Tailwind indigo-500 */
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+        outline: none;
+    }
+</style>
+
 <form id="postcards-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new"
     hx-target="#new-postcard-form-container" hx-swap="innerHTML">
     <fieldset <%- hasPending ? "disabled" :"" %>>
         <h2>Create una postal</h2>
 
-        <div class="multi-avatar-picker">
-            <label for="avatar-select">Avatares (Max 3):</label>
-            <select name="avatars" id="avatar-select" multiple>
-                <% avatars.forEach(a => { %>
-                <option value="<%= a.handle %>"
-                    <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%>
-                    selected<% } %>
-                    data-custom-properties='{"img":"/images/avatars/thumbs/<%= a.avatar_head_file_name %>"}'>
-                    <%= a.handle %>
-                </option>
-                <% }) %>
-            </select>
-        </div>
-
-
-        <!-- LOCATION + ACTION ROW -->
         <div class="form-row">
-            <div>
-                <label for="background-select">Locación:</label>
-                <select id="background-select" name="background">
-                    <option>Elegí o ← para editar</option>
-                    <% backgrounds.forEach(bg => { %>
-                    <option
-                        <%= (typeof selectedBackground !== "undefined" && selectedBackground === bg) ? "selected" : "" %>
-                        value="<%= bg %>"><%= bg %></option>
+            <div class="multi-avatar-picker">
+                <label for="avatar-select">Avatares (Max 3):</label>
+                <select name="avatars" id="avatar-select" multiple>
+                    <% avatars.forEach(a => { %>
+                    <option value="<%= a.handle %>"
+                        <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%>
+                        selected<% } %>
+                        data-custom-properties='{"img":"/images/avatars/thumbs/<%= a.avatar_head_file_name %>"}'>
+                        <%= a.handle %>
+                    </option>
                     <% }) %>
                 </select>
+            </div>
+        </div>
 
+        <!-- LOCATION + ACTION ROW -->
+        <!-- <div class="form-row">
+            <div>
+                <label for="background-select">Locación:</label>
+                <input type="text" class="pixel-input" placeholder="Escribí una" id="background-select"
+                    name="background">
+                <span style="font-size: smaller; margin-top: 10px;"> (Ejemplo: Discoteca, Rio de Janeiro, Casa
+                    embrujada...)</span>
             </div>
             <div>
                 <label for="action-select">Acción:</label>
-                <select id="action-select" name="action">
-                    <option>Elegí o ← para editar</option>
-                    <% actions.forEach(act => { %>
-                    <option <% if(typeof selectedAction != "undefined" && selectedAction === act) {%> selected <% } %>
-                        value="<%= act %>"><%= act %></option>
-                    <% }) %>
-                </select>
+                <input type id="action-select" placeholder="Escribí una" class="pixel-input" name="action">
+                <span style="font-size: smaller; margin-top: 10px;"> (Ejemplo: Tomando mate, Bailando, Jugando
+                    ajedrez...)</span>
+            </div>
+        </div> -->
+
+        <div class="form-row">
+            <div>
+                <label for="background-select">Locación:</label>
+                <input type="text" class="pixel-input" placeholder="Escribí una" id="background-select"
+                    name="background">
+                <span style="font-size: xx-small;">
+                    (Ejemplo: Discoteca, Rio de Janeiro, Casa embrujada...)
+                </span>
+            </div>
+
+            <div>
+                <label for="action-select">Acción:</label>
+                <input type="text" id="action-select" placeholder="Escribí una" class="pixel-input" name="action">
+                <span style="font-size: xx-small;">
+                    (Ejemplo: Tomando mate, Bailando, Jugando ajedrez...)
+                </span>
             </div>
         </div>
 

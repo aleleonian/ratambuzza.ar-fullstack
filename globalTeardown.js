@@ -3,6 +3,7 @@ import path from 'path';
 import { getDb, cleanDb } from './tests/utils/seed/helpers/db.js';
 import { getAllMedia, deleteMediaLikes } from './tests/utils/seed/helpers/mediaHelpers.js';
 import { removeUser } from './tests/utils/seed/helpers/userHelpers.js';
+import { deleteAllPostcardsMedia } from './tests/utils/seed/helpers/postcardHelpers.js'
 
 export default async () => {
 
@@ -21,6 +22,8 @@ export default async () => {
             console.log("error->", error)
         }
     });
+
+    await deleteAllPostcardsMedia();
 
     //clean db
     const db = getDb();

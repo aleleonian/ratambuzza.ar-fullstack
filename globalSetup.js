@@ -1,7 +1,7 @@
 // global-setup.js
 import { chromium } from '@playwright/test';
 import { insertUser } from './tests/utils/seed/helpers/userHelpers.js';
-import { insertTrip } from './tests/utils/seed/helpers/tripHelpers.js';
+import { insertTrip, addUsersToTrip } from './tests/utils/seed/helpers/tripHelpers.js';
 import { initDb, cleanDb } from './tests/utils/seed/helpers/db.js';
 
 export default async () => {
@@ -10,7 +10,7 @@ export default async () => {
   await insertUser(process.env.FIRST_TEST_USER_NAME, process.env.FIRST_TEST_USER_PASS, process.env.ADMIN_ROLE);
   await insertUser(process.env.SECOND_TEST_USER_NAME, process.env.SECOND_TEST_USER_PASS, process.env.USER_ROLE);
   await insertTrip(process.env.FIRST_TRIP_NAME, process.env.FIRST_TRIP_SLUG, process.env.FIRST_TRIP_START_DATE, process.env.FIRST_TRIP_END_DATE, process.env.FIRST_TRIP_LANDSCAPE_IMAGE)
-
+  await addUsersToTrip([process.env.FIRST_TEST_USER_NAME, process.env.SECOND_TEST_USER_NAME], process.env.FIRST_TRIP_NAME);
 
   // 2. Create browser and login
   // const browser = await chromium.launch();

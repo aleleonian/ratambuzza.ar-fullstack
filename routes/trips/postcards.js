@@ -15,14 +15,9 @@ router.get('/postcards', async (req, res) => {
     const trip = req.trip;
     const postcards = await getUserPostcards(userId);
     const hasPending = postcards.some(p => p.status === 'pending');
-    console.log('postcards->', postcards);
-    console.log('hasPending->', hasPending);
     const avatars = await getTripMembersAvatars(req.db, trip.id);
-    const backgrounds = ['Copacabana', 'Cancha de golf', 'En la cocina', 'En un avión', 'En la biblioteca', 'En la cancha de Boca', 'Restaurante'];
-    const actions = ['Tomando caipirinhas', 'Jugando truco', 'Tomando una selfie grupal', 'Comiendo pizza', 'Jugando chess', 'Recibiendo un masaje', 'Andando en snowboard'];
-
-    // const postcards = [];
-    // const hasPending = false;
+    // const backgrounds = ['Copacabana', 'Cancha de golf', 'En la cocina', 'En un avión', 'En la biblioteca', 'En la cancha de Boca', 'Restaurante'];
+    // const actions = ['Tomando caipirinhas', 'Jugando truco', 'Tomando una selfie grupal', 'Comiendo pizza', 'Jugando chess', 'Recibiendo un masaje', 'Andando en snowboard'];
 
     res.render('trips/postcards/index', {
         // selectedAvatars: ["Boli", "Butis", "Charly"],
@@ -31,8 +26,6 @@ router.get('/postcards', async (req, res) => {
         postcards,
         hasPending,
         avatars,
-        backgrounds,
-        actions,
     });
 });
 
@@ -55,19 +48,9 @@ router.post('/postcards/new', async (req, res) => {
 
     const { avatars, background, action } = req.body;
 
-    if (!avatars) selectedAvatars = undefined;
-
+    if (!avatars || avatars == '') selectedAvatars = undefined;
     else {
-        if (Array.isArray(avatars)) {
-            if (avatars.length < 1) selectedAvatars = undefined;
-            else selectedAvatars = avatars;
-        }
-        else {
-            if (avatars == '') {
-                selectedAvatars = undefined
-            }
-            else selectedAvatars.push(avatars);
-        }
+        selectedAvatars.push(avatars);
     }
 
     if (!background || background === '') {
@@ -98,13 +81,11 @@ router.post('/postcards/new', async (req, res) => {
 
         res.setHeader('X-Toast', "Se queueó tu job, bro.");
         res.setHeader('X-Toast-Type', 'success');
-        res.render('trips/postcards/actual-postcard-form', { hasPending: true, avatars: [], backgrounds: [], actions: [] })
+        res.render('trips/postcards/actual-postcard-form', { hasPending: true, avatars: [] })
     }
     catch (error) {
 
         const availableAvatars = await getTripMembersAvatars(req.db, trip.id);
-        const availableBackgrounds = ['Rio beach', 'Hostel kitchen', 'Plane window'];
-        const availableActions = ['drinking caipirinhas', 'playing cards', 'taking a group selfie'];
 
         console.log('selectedAvatars->', selectedAvatars);
         console.log('selectedBackground->', selectedBackground);
@@ -116,8 +97,6 @@ router.post('/postcards/new', async (req, res) => {
             {
                 hasPending: false,
                 avatars: availableAvatars,
-                backgrounds: availableBackgrounds,
-                actions: availableActions,
                 selectedAvatars,
                 selectedBackground,
                 selectedAction

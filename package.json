@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start:test": "NODE_ENV=test node server.js",
+    "start:test": "NODE_ENV=test nodemon server.js",
     "start": "node server.js",
     "test:e2e": "npx playwright test tests/e2e"
   },

@@ -2,7 +2,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 const postcardJobs = new Map();
-const { insertPostcard, getNextPendingJob, markJobFailed, markJobInProgress, markJobComplete, updateJobStatus } = require('../lib/postcardJobs');
+const { insertPostcard, getNextPendingJob, markJobFailed, markJobInProgress, markJobComplete, updateJobStatus, updateOnlyJobStatus } = require('../lib/postcardJobs');
 const { GoogleGenAI, Modality } = require("@google/genai");
 // const mime = require('mime-types');
 const pool = require("../lib/db");
@@ -51,6 +51,30 @@ async function enqueuePostcardJob(userId, tripId, avatars, scene, action) {
 }
 
 async function processJob(data) {
+
+    if (process.env.NODE_ENV === 'test') {
+        // ⏩ Stub: copy a static test image instead of calling LLM
+        const TEST_POSTCARD_PATH = path.join(process.cwd(), 'tests/e2e/fixtures/images/TEST-postcard.png');
+        const destName = `TEST-postcard.png`;
+        const destThumbName = `TEST-thumb-postcard.png`;
+        const destPath = path.join(process.cwd(), 'public', 'uploads', destName);
+        await fs.copyFile(TEST_POSTCARD_PATH, destPath);
+        const destThumbPath = path.join(process.cwd(), 'public', 'uploads', destThumbName);
+        await fs.copyFile(TEST_POSTCARD_PATH, destThumbPath);
+
+        // since i don't have the jobId i will use this function that will update
+        // all (the only one) the postcards
+        // TODO this is probably a not so great approach
+
+        await updateOnlyJobStatus(pool, {
+            status: "done",
+            image_url: "/uploads/" + destName,
+            thumbnail_url: "/uploads/" + destThumbName,
+        });
+
+        return { success: true };
+    }
+
     let jobId;
     try {
         let { id, avatars, background, action, mode, user_id } = data;
@@ -78,22 +102,13 @@ async function processJob(data) {
 
         const prompt = buildPrompt({ avatars, background, action, mode });
 
-        console.log("gonna call generatePostcardWithGemini");
-
         const { base64, mimeType } = await generatePostcardWithGemini(avatarFiles, prompt);
-
-        console.log("generatePostcardWithGemini returned!");
 
         const fileName = `postcard-${Date.now()}.png`;
 
         const postcardDestinationPath = path.join(__dirname, '../public/uploads', fileName);
 
         const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
-
-        // fs.writeFile(postcardDestinationPath, Buffer.from(base64Data, 'base64'), (err) => {
-        //     if (err) console.error('Failed to write file:', err);
-        //     else console.log('✅ File written successfully');
-        // });
 
         try {
             await fs.writeFile(postcardDestinationPath, Buffer.from(base64Data, 'base64'));
@@ -105,7 +120,7 @@ async function processJob(data) {
         let thumbName, thumbnailUrl;
 
         thumbName = `thumb-${fileName}`;
-        // const desiredPostcardthumbnailUrl = path.join(process.cwd(), 'public', 'uploads', thumbName);
+
         thumbnailUrl = await createThumbnail(postcardDestinationPath, thumbName);
 
         console.log("thumbnail created!");

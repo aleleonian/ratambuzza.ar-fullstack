@@ -125,6 +125,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
 - **AI postcard generation:** Background worker processes jobs using Google Gemini with 16-bit pixel art prompts
 - **Job processing:** Queue system with pending/in-progress/completed status tracking
+- **Test environment stubbing:** Postcard worker uses static test image instead of AI generation when `NODE_ENV=test`
 - **Database abstraction:** Centralized DB connection pool in `lib/db.js` using `mysql2/promise`
 - **Test setup:** Global setup handles database seeding, trip creation, and authenticated session storage
 - **Session security:** Cookies set to non-secure in development/test environments

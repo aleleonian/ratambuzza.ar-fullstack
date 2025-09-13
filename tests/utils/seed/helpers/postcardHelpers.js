@@ -1,4 +1,5 @@
 import { getDb } from './db.js';
+import { path } from 'path';
 
 export async function getAllPostcardsMedia() {
     const db = getDb();

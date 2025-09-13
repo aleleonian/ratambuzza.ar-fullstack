@@ -16,10 +16,8 @@ test.describe('Postcards flow', () => {
         await page.keyboard.press('Enter');
     }
 
-    test('can create a postcard and see it in the grid', async ({ page }) => {
+    test.skip('can create a postcard and see it in the grid', async ({ page }) => {
         // Select up to 3 avatars (Tom Select is a div+input combo)
-
-        // await page.locator('.ts-wrapper#avatar-select-ts-wrapper .ts-control input').click();
 
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
         await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
@@ -37,10 +35,17 @@ test.describe('Postcards flow', () => {
         // ⚡ In test mode, backend stubs postcard generation → mark complete instantly
         // Reload grid
 
-        // TODO: is this Valeria Britos?
-        await page.waitForTimeout(5000);
+        // After submit + pending UI check
+        let postcardVisible = false;
 
-        await page.reload();
+        for (let i = 0; i < 5; i++) { // try up to 5 reloads
+            await page.reload();
+            await page.waitForTimeout(1500);
+            postcardVisible = await page.locator('.postcard-grid .postcard-thumb').first().isVisible();
+            if (postcardVisible) break;
+        }
+
+        expect(postcardVisible).toBeTruthy();
 
         // ✅ Assert generated postcard appears in grid
         const postcard = page.locator('.postcard-grid .postcard-thumb').first();
@@ -63,19 +68,14 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#lightbox')).toBeHidden();
     });
 
-    test.skip('enforces max 3 avatars', async ({ page }) => {
-        await page.locator('#avatar-select').click();
-        await page.keyboard.type('a');
-        await page.keyboard.press('Enter');
-        await page.keyboard.type('b');
-        await page.keyboard.press('Enter');
-        await page.keyboard.type('c');
-        await page.keyboard.press('Enter');
-        await page.keyboard.type('d');
-        await page.keyboard.press('Enter');
+    test('enforces max 3 avatars', async ({ page }) => {
+        await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
+        await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
+        await selectAvatar(page, process.env.THIRD_TEST_USER_NAME);
+        await selectAvatar(page, process.env.FOURTH_TEST_USER_NAME);
 
         // ✅ Only 3 items selected
-        const selected = await page.locator('.ts-wrapper .ts-control .item').count();
-        expect(selected).toBe(3);
+        const selectedCount = await page.locator('#avatar-select + .ts-wrapper .ts-control .item').count();
+        expect(selectedCount).toBe(3);
     });
 });

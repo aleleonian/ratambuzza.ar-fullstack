@@ -49,7 +49,9 @@
             <div>
                 <label for="background-select">Locación:</label>
                 <input type="text" class="pixel-input" placeholder="Escribí una" id="background-select"
-                    name="background" autocomplete="off">
+                    name="background" autocomplete="off"
+                    value="<%= typeof selectedBackground != 'undefined' ? selectedBackground : '' %>">
+                    
                 <span style="font-size: x-small;">
                     (Ejemplo: Discoteca, Rio de Janeiro, Casa embrujada...)
                 </span>
@@ -58,8 +60,9 @@
             <div>
                 <label for="action-select">Acción:</label>
                 <input type="text" id="action-select" placeholder="Escribí una" class="pixel-input" name="action"
-                    autocomplete="off">
-                <span style="font-size: x-small;">
+                    autocomplete="off" value="<%= typeof selectedAction != 'undefined' ? selectedAction : '' %>">
+
+                <span style=" font-size: x-small;">
                     (Ejemplo: Tomando mate, Bailando, Jugando ajedrez...)
                 </span>
             </div>

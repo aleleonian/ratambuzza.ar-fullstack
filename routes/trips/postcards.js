@@ -16,6 +16,7 @@ router.get('/postcards', async (req, res) => {
     const postcards = await getUserPostcards(userId);
     const hasPending = postcards.some(p => p.status === 'pending');
     const avatars = await getTripMembersAvatars(req.db, trip.id);
+    console.log('avatars->', avatars);
     // const backgrounds = ['Copacabana', 'Cancha de golf', 'En la cocina', 'En un avión', 'En la biblioteca', 'En la cancha de Boca', 'Restaurante'];
     // const actions = ['Tomando caipirinhas', 'Jugando truco', 'Tomando una selfie grupal', 'Comiendo pizza', 'Jugando chess', 'Recibiendo un masaje', 'Andando en snowboard'];
 

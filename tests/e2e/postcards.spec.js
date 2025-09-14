@@ -46,6 +46,7 @@ test.describe('Postcards flow', () => {
         // ✅ Assert pending UI appears
         await expect(page.locator('.pending-status')).toBeVisible();
 
+        await expect(page.locator('.form-row button')).toBeDisabled();
         // ⚡ In test mode, backend stubs postcard generation → mark complete instantly
         // Reload grid
 

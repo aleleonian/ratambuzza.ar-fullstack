@@ -30,7 +30,7 @@ test.describe('Postcards flow', () => {
         await expect(chip).toBeVisible({ timeout: 1000 });
     }
 
-    test.skip('can create a postcard and see it in the grid', async ({ page }) => {
+    test('can create a postcard and see it in the grid', async ({ page }) => {
         // Select up to 3 avatars (Tom Select is a div+input combo)
 
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);

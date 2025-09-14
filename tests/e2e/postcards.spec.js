@@ -8,14 +8,6 @@ test.describe('Postcards flow', () => {
 
     });
 
-    // helper: select avatar from Tom Select
-    // async function selectAvatar(page, text) {
-    //     const avatarInput = page.locator('#avatar-select + .ts-wrapper .ts-control input');
-    //     // await avatarInput.click();
-    //     await avatarInput.fill(text);
-    //     await page.keyboard.press('Enter');
-    // }
-
     async function selectAvatar(page, text) {
         const input = page.locator('#avatar-select + .ts-wrapper .ts-control input');
 
@@ -90,61 +82,47 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#lightbox')).toBeHidden();
     });
 
-    test('makes sure form elements keep their values after wrong submissions', async ({ page }) => {
-
-        const backgroundText = 'Discoteca';
-        const actionText = 'Bailando';
-
+    test('form elements keep their values after validation errors', async ({ page }) => {
+        // Test 1: Submit with just avatars (missing background and action)  
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
-
         await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
 
         await page.click('button:has-text("Generar Postal")');
-
-        // First part ends
-
+        await page.waitForResponse(response =>
+            response.url().includes('postcards/new') && response.status() === 200
+        );
         await page.waitForLoadState('networkidle');
 
-        await page.waitForSelector('.ts-wrapper');
-        await expect(page.locator('.ts-wrapper')).toBeVisible();
-
+        // Avatars should be preserved
         await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
 
-        await page.fill('#background-select', backgroundText);
-
-        await expect(page.locator('#background-select')).toHaveValue(backgroundText)
-
+        // Test 2: Add background, submit without action (missing action)
+        await page.fill('#background-select', 'Discoteca');
         await page.click('button:has-text("Generar Postal")');
-
-        //  Second part ends
-
+        await page.waitForResponse(response =>
+            response.url().includes('postcards/new') && response.status() === 200
+        );
         await page.waitForLoadState('networkidle');
 
-        await page.waitForSelector('#background-select');
-        await expect(page.locator('#background-select')).toBeVisible();
+        // Background and avatars should be preserved
+        await expect(page.locator('#background-select')).toHaveValue('Discoteca');
+        await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
 
-        await expect(page.locator('#background-select')).toHaveValue(backgroundText)
-
+        // Test 3: Clear background, add action, submit (missing background)
         await page.fill('#background-select', '');
-
-        await expect(page.locator('#background-select')).toHaveValue('');
-
-        await page.fill('#action-select', actionText);
-
-        await expect(page.locator('#action-select')).toHaveValue(actionText)
+        await page.fill('#action-select', 'Bailando');
 
         await page.click('button:has-text("Generar Postal")');
 
-        //  Third part ends
-
+        // Wait for HTMX response to complete properly
+        await page.waitForResponse(response =>
+            response.url().includes('postcards/new') && response.status() === 200
+        );
         await page.waitForLoadState('networkidle');
 
-        await page.screenshot({ path: 'screenshot3.png', fullPage: true });
-
-        await page.waitForSelector('#action-select');
-        await expect(page.locator('#action-select')).toBeVisible();
-
-        await expect(page.locator('#action-select')).toHaveValue(actionText)
-
+        // Action should be preserved, background should be empty, avatars should remain
+        await expect(page.locator('#action-select')).toHaveValue('Bailando');
+        await expect(page.locator('#background-select')).toHaveValue('');
+        await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
     });
 });

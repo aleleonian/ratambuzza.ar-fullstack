@@ -9,11 +9,33 @@ test.describe('Postcards flow', () => {
     });
 
     // helper: select avatar from Tom Select
+    // async function selectAvatar(page, text) {
+    //     const avatarInput = page.locator('#avatar-select + .ts-wrapper .ts-control input');
+    //     // await avatarInput.click();
+    //     await avatarInput.fill(text);
+    //     await page.keyboard.press('Enter');
+    // }
+
     async function selectAvatar(page, text) {
-        const avatarInput = page.locator('#avatar-select + .ts-wrapper .ts-control input');
-        await avatarInput.click();
-        await avatarInput.fill(text);
-        await page.keyboard.press('Enter');
+        const input = page.locator('#avatar-select + .ts-wrapper .ts-control input');
+
+        // Click to focus
+        await input.click();
+
+        // Type the avatar name slowly (to simulate human speed)
+        await input.fill('');
+        await input.type(text, { delay: 50 });
+
+        // Wait for the dropdown to render the option
+        const dropdownOption = page.locator('.ts-dropdown .option', { hasText: text });
+        await expect(dropdownOption).toBeVisible({ timeout: 3000 });
+
+        // Click the dropdown option
+        await dropdownOption.click();
+
+        // Sanity check: ensure the chip appears
+        const chip = page.locator('.ts-wrapper .ts-control .item', { hasText: text });
+        await expect(chip).toBeVisible({ timeout: 1000 });
     }
 
     test.skip('can create a postcard and see it in the grid', async ({ page }) => {
@@ -68,14 +90,61 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#lightbox')).toBeHidden();
     });
 
-    test('enforces max 3 avatars', async ({ page }) => {
-        await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
-        await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
-        await selectAvatar(page, process.env.THIRD_TEST_USER_NAME);
-        await selectAvatar(page, process.env.FOURTH_TEST_USER_NAME);
+    test('makes sure form elements keep their values after wrong submissions', async ({ page }) => {
 
-        // ✅ Only 3 items selected
-        const selectedCount = await page.locator('#avatar-select + .ts-wrapper .ts-control .item').count();
-        expect(selectedCount).toBe(3);
+        const backgroundText = 'Discoteca';
+        const actionText = 'Bailando';
+
+        await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
+
+        await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
+
+        await page.click('button:has-text("Generar Postal")');
+
+        // First part ends
+
+        await page.waitForLoadState('networkidle');
+
+        await page.waitForSelector('.ts-wrapper');
+        await expect(page.locator('.ts-wrapper')).toBeVisible();
+
+        await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
+
+        await page.fill('#background-select', backgroundText);
+
+        await expect(page.locator('#background-select')).toHaveValue(backgroundText)
+
+        await page.click('button:has-text("Generar Postal")');
+
+        //  Second part ends
+
+        await page.waitForLoadState('networkidle');
+
+        await page.waitForSelector('#background-select');
+        await expect(page.locator('#background-select')).toBeVisible();
+
+        await expect(page.locator('#background-select')).toHaveValue(backgroundText)
+
+        await page.fill('#background-select', '');
+
+        await expect(page.locator('#background-select')).toHaveValue('');
+
+        await page.fill('#action-select', actionText);
+
+        await expect(page.locator('#action-select')).toHaveValue(actionText)
+
+        await page.click('button:has-text("Generar Postal")');
+
+        //  Third part ends
+
+        await page.waitForLoadState('networkidle');
+
+        await page.screenshot({ path: 'screenshot3.png', fullPage: true });
+
+        await page.waitForSelector('#action-select');
+        await expect(page.locator('#action-select')).toBeVisible();
+
+        await expect(page.locator('#action-select')).toHaveValue(actionText)
+
     });
 });

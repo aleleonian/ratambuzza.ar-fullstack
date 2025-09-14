@@ -13,7 +13,7 @@ router.get('/signup', (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-    const ALLOWED_REDIRECTS = ['/', '/trips', '/gallery', '/crew']
+    const ALLOWED_REDIRECTS = ['/', '/trips', '/gallery', '/crew', '/postcards']
 
     const { handle, password } = req.body
     const [rows] = await req.db.execute('SELECT * FROM users WHERE handle = ?', [handle])

@@ -49,9 +49,19 @@ router.post('/postcards/new', async (req, res) => {
 
     const { avatars, background, action } = req.body;
 
-    if (!avatars || avatars == '') selectedAvatars = undefined;
+    if (!avatars) selectedAvatars = undefined;
+
     else {
-        selectedAvatars.push(avatars);
+        if (Array.isArray(avatars)) {
+            if (avatars.length < 1) selectedAvatars = undefined;
+            else selectedAvatars = avatars;
+        }
+        else {
+            if (avatars == '') {
+                selectedAvatars = undefined
+            }
+            else selectedAvatars.push(avatars);
+        }
     }
 
     if (!background || background === '') {

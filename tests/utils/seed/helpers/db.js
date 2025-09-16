@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
-import path from 'path';
+const dotenv = require('dotenv');
+const path = require('path');
 dotenv.config({ path: path.resolve('./.env.test') });
-import mysql from 'mysql2/promise';
+
+const mysql = require('mysql2/promise');
 
 let db;
 

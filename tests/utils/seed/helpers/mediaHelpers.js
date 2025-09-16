@@ -1,6 +1,6 @@
-import path from 'path';
-import fs from 'fs';
-import { getDb } from './db.js';
+const path = require('path');
+const fs = require('fs');
+const { getDb } = require('./db.js');
 
 export async function getAllMedia() {
     const db = getDb();

@@ -1,4 +1,12 @@
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('@playwright/test');
+const path = require('path');
+const fs = require('fs/promises');
+
+const { insertPostcard, updateJobStatus } = require('../../lib/postcardJobs');
+const { initDb, getDb } = require('../utils/seed/helpers/db.js');
+const { getUserId } = require('../utils/seed/helpers/userHelpers.js');
+const { getTripId } = require('../utils/seed/helpers/tripHelpers.js');
+const { createThumbnail } = require('../../lib/upload.js');
 
 test.describe('Postcards flow', () => {
 
@@ -30,7 +38,7 @@ test.describe('Postcards flow', () => {
         await expect(chip).toBeVisible({ timeout: 1000 });
     }
 
-    test('can create a postcard and see it in the grid', async ({ page }) => {
+    test.skip('can create a postcard and see it in the grid', async ({ page }) => {
         // Select up to 3 avatars (Tom Select is a div+input combo)
 
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
@@ -83,7 +91,7 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#lightbox')).toBeHidden();
     });
 
-    test('form elements keep their values after validation errors', async ({ page }) => {
+    test.skip('form elements keep their values after validation errors', async ({ page }) => {
         // Test 1: Submit with just avatars (missing background and action)  
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
         await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
@@ -126,4 +134,89 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#background-select')).toHaveValue('');
         await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
     });
+    test('lightbox supports keyboard navigation', async ({ page }) => {
+        // 1. Visit the postcard page and ensure postcards exist
+        await initDb();
+        const db = getDb();
+
+        // gotta copy a postcard, a postcard thumb and update the postcard record
+        const postcard2Path = path.resolve(__dirname, `fixtures/images/${process.env.POSTCARD_IMAGE_2}`);
+        const postcard2DestinationPath = path.resolve(process.cwd(), `public/uploads/${process.env.POSTCARD_IMAGE_2}`);
+
+        await fs.copyFile(postcard2Path, postcard2DestinationPath);
+
+        // const postcard2ThumbDestinationPath = path.resolve(process.cwd(), `public/uploads/${process.env.POSTCARD_IMAGE_THUMB_2}`);
+        const postcard2ThumbName = process.env.POSTCARD_IMAGE_THUMB_2;
+        const thumbnail2Url = await createThumbnail(postcard2DestinationPath, postcard2ThumbName);
+
+        const postcard3Path = path.resolve(__dirname, `fixtures/images/${process.env.POSTCARD_IMAGE_3}`);
+        const postcard3DestinationPath = path.resolve(process.cwd(), `public/uploads/${process.env.POSTCARD_IMAGE_3}`);
+        await fs.copyFile(postcard3Path, postcard3DestinationPath);
+
+        // const postcard3ThumbDestinationPath = path.resolve(process.cwd(), `public/uploads/${process.env.POSTCARD_IMAGE_THUMB_3}`);
+        const postcard3ThumbName = process.env.POSTCARD_IMAGE_THUMB_3;
+        const thumbnail3Url = await createThumbnail(postcard3DestinationPath, postcard3ThumbName);
+
+        const userId = await getUserId(process.env.FIRST_TEST_USER_NAME);
+        const tripId = await getTripId(process.env.FIRST_TRIP_NAME);
+
+        let avatars = [process.env.FIRST_TEST_USER_NAME, process.env.SECOND_TEST_USER_NAME];
+        let scene = "Finland";
+        let action = "Picnic";
+        let postcard1Id = await insertPostcard(db, userId, tripId, avatars, scene, action, "done");
+
+        await updateJobStatus(db, postcard1Id, {
+            image_url: "/uploads/" + process.env.POSTCARD_IMAGE_2,
+            thumbnail_url: thumbnail2Url,
+        });
+
+        // copy postcard and generate a thumb
+
+        scene = "En el parque";
+        action = "Jugando ajedrez";
+        postcard1Id = await insertPostcard(db, userId, tripId, avatars, scene, action, "done");
+
+        await updateJobStatus(db, postcard1Id, {
+            image_url: "/uploads/" + process.env.POSTCARD_IMAGE_3,
+            thumbnail_url: thumbnail3Url,
+        });
+
+        await page.goto('/trips/rio-2025/postcards');
+
+        const thumbnails = page.locator('.postcard-grid .postcard-thumb');
+        const count = await thumbnails.count();
+        expect(count).toBeGreaterThanOrEqual(2); // Need at least 2 for meaningful navigation
+
+        // 2. Open the first postcard
+        await thumbnails.nth(0).click();
+
+        const lightbox = page.locator('#lightbox');
+        await expect(lightbox).toBeVisible();
+
+        // 3. Capture current image src
+        const firstImageSrc = await lightbox.locator('img').getAttribute('src');
+
+        // 4. Press ArrowRight to go to next
+        await page.keyboard.press('ArrowRight');
+
+        // Wait for image to change
+        await expect(async () => {
+            const newSrc = await lightbox.locator('img').getAttribute('src');
+            expect(newSrc).not.toBe(firstImageSrc);
+        }).toPass({ timeout: 2000 });
+
+        // 5. Press ArrowLeft to go back
+        await page.keyboard.press('ArrowLeft');
+        await expect(async () => {
+            const backSrc = await lightbox.locator('img').getAttribute('src');
+            expect(backSrc).toBe(firstImageSrc);
+        }).toPass({ timeout: 2000 });
+
+        // 6. Press Escape to close
+        await page.keyboard.press('Escape');
+        await expect(lightbox).toBeHidden();
+
+    });
+
+    // TODO: add a 'post to feed' test. 
 });

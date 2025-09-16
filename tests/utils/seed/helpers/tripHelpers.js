@@ -1,5 +1,5 @@
-import { getDb } from './db.js';
-import { getUserId } from './userHelpers.js';
+const { getDb } = require('./db.js');
+const { getUserId } = require('./userHelpers.js');
 
 export async function addUsersToTrip(usersNamesArray, tripName) {
     const db = getDb();

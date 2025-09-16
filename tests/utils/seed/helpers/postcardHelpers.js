@@ -1,5 +1,5 @@
-import { getDb } from './db.js';
-import { path } from 'path';
+const { getDb } = require('./db.js');
+const path = require('path');
 
 export async function getAllPostcardsMedia() {
     const db = getDb();
@@ -23,6 +23,10 @@ export async function deleteAllPostcardsMedia() {
             console.log("error->", error)
         }
     });
+
+}
+
+export async function insertPostcard() {
 
 }
 

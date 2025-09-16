@@ -1,9 +1,9 @@
-import { test, expect } from '@playwright/test';
-import path from 'path';
-import { insertMedia, changeAllMediaOwnership } from '../../utils/seed/helpers/mediaHelpers.js';
-import { changeUserType, getUserId } from '../../utils/seed/helpers/userHelpers.js';
-import { getTripId } from '../../utils/seed/helpers/tripHelpers.js';
-import { getDb, initDb } from '../../utils/seed/helpers/db.js';
+const { test, expect } = require('@playwright/test');
+const path = require('path');
+const { insertMedia, changeAllMediaOwnership } = require('../../utils/seed/helpers/mediaHelpers.js');
+const { changeUserType, getUserId } = require('../../utils/seed/helpers/userHelpers.js');
+const { getTripId } = require('../../utils/seed/helpers/tripHelpers.js');
+const { getDb, initDb } = require('../../utils/seed/helpers/db.js');
 
 test.describe('Gallery Upload', () => {
 

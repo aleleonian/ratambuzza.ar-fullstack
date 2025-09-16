@@ -1,7 +1,7 @@
-import bcrypt from 'bcrypt';
-import fs from 'fs';
-import path from 'path';
-import { getDb } from './db.js';
+const { getDb } = require('./db.js');
+const path = require('path');
+const fs = require('fs');
+const bcrypt = require('bcrypt');
 
 export async function changeUserType(userId, newRole) {
   const db = getDb();

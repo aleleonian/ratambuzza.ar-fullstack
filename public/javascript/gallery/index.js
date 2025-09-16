@@ -1,6 +1,6 @@
 // TODO: save this in the localStorage and not globally
 import './events.js';
-import '../lightbox/index.js';
+import './lightbox.js';
 import './mobile-overlay.js';
 
 // gallery globals
@@ -20,31 +20,6 @@ Object.assign(window.galleryState, {
     filterDivState: DEFAULT_FILTER_DIV_STATE,
 });
 
-
-window.htmxAjaxPromise = function (method, url, options = {}) {
-    return new Promise((resolve, reject) => {
-        const targetSelector = options.target;
-        if (!targetSelector) {
-            reject(new Error("htmxAjaxPromise requires a { target } option"));
-            return;
-        }
-
-        try {
-            const listener = (evt) => {
-                const req = evt.detail?.requestConfig;
-                if (req?.verb.toUpperCase() === method.toUpperCase() && req.path === url) {
-                    document.body.removeEventListener('htmx:afterRequest', listener);
-                    resolve(evt);
-                }
-            };
-
-            document.body.addEventListener('htmx:afterRequest', listener);
-            htmx.ajax(method, url, options);
-        } catch (err) {
-            reject(err);
-        }
-    });
-}
 
 window.getGalleryItems = function () {
     return Array.from(document.querySelectorAll('.gallery-item'));

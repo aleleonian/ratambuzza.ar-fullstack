@@ -1,0 +1,78 @@
+<style>
+    .pixel-input {
+        display: block;
+        width: 100%;
+        max-width: 400px;
+        min-height: 38px;
+        /* match Tom Select */
+        padding: 6px 8px;
+        /* match Tom Select */
+        font-size: 14px;
+        font-family: var(--font);
+        line-height: 1.4;
+        color: #333;
+        background-color: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .pixel-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+        outline: none;
+    }
+</style>
+
+<form id="postcards-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/postcards/new"
+    hx-target="#new-postcard-form-container" hx-swap="innerHTML">
+    <fieldset <%- hasPending ? "disabled" :"" %>>
+        <h2>Create una postal</h2>
+
+        <div class="form-row">
+            <div class="multi-avatar-picker">
+                <label for="avatar-select">Avatares (Max 3):</label>
+                <select name="avatars" id="avatar-select" multiple>
+                    <% avatars.forEach(a => { %>
+                    <option value="<%= a.handle %>"
+                        <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%>
+                        selected<% } %>
+                        data-custom-properties='{"img":"/images/avatars/thumbs/<%= a.avatar_head_file_name %>"}'>
+                        <%= a.handle %>
+                    </option>
+                    <% }) %>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div>
+                <label for="background-select">Locación:</label>
+                <input type="text" class="pixel-input" placeholder="Escribí una" id="background-select"
+                    name="background" autocomplete="off"
+                    value="<%= typeof selectedBackground != 'undefined' ? selectedBackground : '' %>">
+                    
+                <span style="font-size: x-small;">
+                    (Ejemplo: Discoteca, Rio de Janeiro, Casa embrujada...)
+                </span>
+            </div>
+
+            <div>
+                <label for="action-select">Acción:</label>
+                <input type="text" id="action-select" placeholder="Escribí una" class="pixel-input" name="action"
+                    autocomplete="off" value="<%= typeof selectedAction != 'undefined' ? selectedAction : '' %>">
+
+                <span style=" font-size: x-small;">
+                    (Ejemplo: Tomando mate, Bailando, Jugando ajedrez...)
+                </span>
+            </div>
+        </div>
+
+        <br>
+        <br>
+
+        <div class="form-row center">
+            <button class="button" type="submit">Generar Postal</button>
+        </div>
+    </fieldset>
+</form>

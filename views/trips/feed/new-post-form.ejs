@@ -1,19 +1,28 @@
-<form action="/trips/<%= trip.slug %>/posts/new" id="add-post-form" method="POST" enctype="multipart/form-data" class="card"
-  style="margin-bottom: 24px;" hx-on::after-request="this.reset()" hx-post="/trips/<%= trip.slug %>/posts/new"
-  hx-encoding="multipart/form-data" hx-target="#posts-container" hx-swap="afterbegin">
+<form action="/trips/<%= trip.slug %>/posts/new" id="add-post-form" method="POST" enctype="multipart/form-data"
+  class="card" style="margin-bottom: 24px;" hx-on::after-request="this.reset()"
+  hx-post="/trips/<%= trip.slug %>/posts/new" hx-encoding="multipart/form-data" hx-target="#posts-container"
+  hx-swap="afterbegin">
   <h3>Nuevo posteo</h3>
   <input type="hidden" name="trip_id" value="<%= trip.id %>" />
 
-  <textarea name="new-post-content" id="new-post-content" rows="3" autofocus placeholder="Qué anda pasando?" style="width: 100%;"></textarea>
+  <textarea name="new-post-content" id="new-post-content" rows="3" autofocus placeholder="Qué anda pasando?"
+    style="width: 100%;"></textarea>
 
   <div style="margin-top: 8px;">
     <label for="image">Imagen:</label>
-    <input type="file" style="margin-top: 10px;" name="image" accept="image/*">
+    <input type="file" multiple style="margin-top: 10px;" name="media" accept="image/*"
+      onchange="enforceMaxFiles(this, 5)">
   </div>
 
   <button type="submit" class="button" style="margin-top: 12px;">Postear</button>
 </form>
 <script>
+  function enforceMaxFiles(input, max) {
+    if (input.files.length > max) {
+      alert(`No se puede subir más de ${max} archivos, loko.`);
+      input.value = ''; // Clear the selection
+    }
+  }
   //TODO pending this validation
   function submitHandler(e) {
   }

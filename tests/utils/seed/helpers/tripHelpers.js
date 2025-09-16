@@ -1,4 +1,17 @@
-import { getDb } from './db.js';
+const { getDb } = require('./db.js');
+const { getUserId } = require('./userHelpers.js');
+
+export async function addUsersToTrip(usersNamesArray, tripName) {
+    const db = getDb();
+    const tripId = await getTripId(tripName);
+    for (let i = 0; i < usersNamesArray.length; i++) {
+        const userId = await getUserId(usersNamesArray[i]);
+        await db.execute(
+            'INSERT INTO trip_members (user_id, trip_id) VALUES (?, ?)',
+            [userId, tripId]
+        );
+    }
+}
 
 export async function insertTrip(name, slug, startDate, endDate, landscapeImg) {
 

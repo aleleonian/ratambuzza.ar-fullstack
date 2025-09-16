@@ -4,8 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start:test": "NODE_ENV=test node server.js",
-    "start": " node server.js"
+    "start:test": "NODE_ENV=test nodemon server.js",
+    "start": "node server.js",
+    "test:e2e": "npx playwright test tests/e2e"
   },
   "repository": {
     "type": "git",
@@ -19,15 +20,19 @@
   },
   "homepage": "https://github.com/aleleonian/ratambuzza.ar-fullstack#readme",
   "dependencies": {
+    "@google/genai": "^1.19.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.18.2",
+    "htmx.org": "^2.0.6",
+    "image-size": "^2.0.2",
     "multer": "^2.0.2",
     "mysql2": "^3.14.3",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"

@@ -1,7 +1,7 @@
-import bcrypt from 'bcrypt';
-import fs from 'fs';
-import path from 'path';
-import { getDb } from './db.js';
+const { getDb } = require('./db.js');
+const path = require('path');
+const fs = require('fs');
+const bcrypt = require('bcrypt');
 
 export async function changeUserType(userId, newRole) {
   const db = getDb();
@@ -16,14 +16,14 @@ export async function insertUser(handle, password, role) {
 
   await db.execute(
     'INSERT INTO users (handle, email, password_hash, avatar_file_name, avatar_head_file_name, description, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [handle, `${handle}@example.com`, hash, `${handle}.jpg`, `${handle}.head.jpg`, 'some description', role]
+    [handle, `${handle}@example.com`, hash, `${handle}.png`, `${handle}.head.png`, 'some description', role]
   );
 
   const avatarDestinationPath = path.join('public/images/avatars', `${handle}.png`);
-  if (fs.existsSync(avatarDestinationPath)) throw Error(`${avatarDestinationPath} exists!`)
+  // if (fs.existsSync(avatarDestinationPath)) throw Error(`${avatarDestinationPath} exists!`)
 
   const avatarThumbDestinationPath = path.join('public/images/avatars/thumbs', `${handle}.head.png`);
-  if (fs.existsSync(avatarThumbDestinationPath)) throw Error(`${avatarThumbDestinationPath} exists!`)
+  // if (fs.existsSync(avatarThumbDestinationPath)) throw Error(`${avatarThumbDestinationPath} exists!`)
 
   // Copy avatar files (adjust paths as needed)
   fs.copyFileSync(
@@ -36,10 +36,7 @@ export async function insertUser(handle, password, role) {
   );
 }
 
-export async function removeUser(handle) {
-  const db = getDb();
-
-  await db.execute('DELETE FROM users WHERE handle = ?', [handle]);
+export async function removeUserFiles(handle) {
 
   const avatarPath = path.join('public/images/avatars', `${handle}.png`);
 

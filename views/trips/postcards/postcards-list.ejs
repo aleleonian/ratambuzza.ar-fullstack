@@ -1,0 +1,160 @@
+<style>
+    /* Grid Layout */
+    .postcard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    /* Postcard Styles */
+    .postcard {
+        border: 2px solid #ccc;
+        background: white;
+        padding: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .postcard:hover {
+        transform: scale(1.03);
+    }
+
+    .postcard.pending,
+    .postcard.error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100px;
+        font-size: 14px;
+        color: #666;
+
+    }
+
+    .postcard.error {
+        background-color: #ffe6e6;
+        color: red;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .postcard.error button {
+        margin-top: 10px;
+    }
+</style>
+
+<div id="postcards-list">
+
+    <div id="postcards-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load"
+        hx-swap="innerHTML"></div>
+
+    <%- include('../../partials/lightbox-standalone') %>
+
+    <div id="dummy-target" style="display:none"></div>
+</div>
+
+<script>
+
+    async function postToFeedHandler() {
+        if (confirm('Posteo esta imagen al feed?')) {
+            const currentItem = lightboxItems[currentIndex];
+            let options = { target: '#dummy-target', swap: 'none', values: { postcardId: currentItem.id } };
+            let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/post`;
+            await window.htmxAjaxPromise('POST', url, options);
+        }
+    }
+
+    async function deletePostcard(postcardId) {
+        let options = { target: `#postcards-grid`, swap: 'innerHTML' };
+        let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/${postcardId}`;
+        await window.htmxAjaxPromise('DELETE', url, options);
+        return true;
+    }
+
+    async function deletePostcardErrorHandler(postcardId) {
+        const confirmed = confirm("Borro este error?");
+        if (!confirmed) return false;
+        deletePostcard(postcardId);
+    }
+    async function deletePostcardLightboxHandler() {
+        const currentItem = lightboxItems[currentIndex]
+        const confirmed = confirm("Borro esta postal?");
+        if (!confirmed) return false;
+        try {
+            deletePostcard(currentItem.id)
+            closeLightbox();
+            return true;
+        }
+        catch (error) {
+            showToast(error, "error");
+            return false;
+        }
+    }
+
+    function setupPostcardLightbox() {
+        const postcardElements = Array.from(document.querySelectorAll('.postcard-thumb'));
+        if (postcardElements.length === 0) return;
+
+        // Clear old buttons
+        clearLightboxCustomButtons();
+
+        const items = postcardElements.map(el => ({
+            url: el.dataset.full,
+            id: el.dataset.id
+        }));
+
+        // Replace global lightboxItems (assuming that's what your lightbox uses)
+        window.lightboxItems = items;
+
+        // Add buttons
+        const postToFeedButtonItem = {
+            buttonId: 'lightbox-posttofeed',
+            eventType: 'click',
+            handler: postToFeedHandler,
+            label: 'Post'
+        };
+        const deletePostcardButtonItem = {
+            buttonId: 'lightbox-deletepost',
+            eventType: 'click',
+            handler: deletePostcardLightboxHandler,
+            label: '❌'
+        };
+
+        [postToFeedButtonItem, deletePostcardButtonItem].forEach(({ buttonId, label }) => {
+            const btn = document.createElement('button');
+            btn.textContent = label;
+            btn.id = buttonId;
+            btn.type = 'button';
+            document.getElementById('lightbox-controls').appendChild(btn);
+        });
+
+        // Re-init lightbox with updated items + buttons
+        initLightbox(items, {
+            customButtons: [postToFeedButtonItem, deletePostcardButtonItem]
+        });
+
+        // Rebind click handlers
+        postcardElements.forEach((el, i) => {
+            el.addEventListener('click', () => openLightbox(i));
+        });
+    }
+
+    // Remove custom buttons before re-adding them
+    function clearLightboxCustomButtons() {
+        const keepIds = ['lightbox-prev', 'lightbox-next', 'lightbox-download', 'lightbox-close'];
+        const controls = document.getElementById('lightbox-controls');
+        Array.from(controls.children).forEach(child => {
+            if (!keepIds.includes(child.id)) {
+                controls.removeChild(child);
+            }
+        });
+    }
+
+    // Run it after HTMX swaps in new content
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        if (e.target.id === 'postcards-grid') {
+            setupPostcardLightbox();
+        }
+    });
+
+</script>

@@ -1,0 +1,9 @@
+<% if (tripMode === 'current' || tripMode === 'upcoming') { %>
+
+<%- include('current-upcoming') %>
+
+<% } else { %>
+
+<%- include('past-trips') %>
+
+<% } %>

@@ -1,0 +1,56 @@
+<style>
+    .lightbox-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .lightbox-overlay.hidden {
+        display: none;
+    }
+
+    .lightbox-image {
+        max-width: 90vw;
+        max-height: 80vh;
+        margin-bottom: 1rem;
+        border: 2px solid white;
+    }
+
+    .lightbox-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .lightbox-btn,
+    .lightbox-close {
+        font-size: 1.5rem;
+        background: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0.3rem 0.6rem;
+        cursor: pointer;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+    }
+</style>
+
+<div class="lightbox-overlay hidden" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+    <img id="lightbox-img" class="lightbox-image" src="" alt="Expanded media" />
+    <div class="lightbox-controls" id="lightbox-controls">
+        <button class="lightbox-btn" id="lightbox-prev">⏮</button>
+        <a id="lightbox-download" href="#" class="download-link" download>
+            <button class="lightbox-btn">⬇️</button>
+        </a>
+        <button class="lightbox-btn" id="lightbox-next">⏭</button>
+    </div>
+</div>

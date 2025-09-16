@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
-import path from 'path';
+const dotenv = require('dotenv');
+const path = require('path');
 dotenv.config({ path: path.resolve('./.env.test') });
-import mysql from 'mysql2/promise';
+
+const mysql = require('mysql2/promise');
 
 let db;
 
@@ -16,10 +17,11 @@ export async function cleanDb() {
     await db.execute('DELETE FROM trips');
     await db.execute('DELETE FROM media');
     await db.execute('DELETE FROM users');
+    await db.execute('DELETE FROM postcards');
 }
 
 export async function initDb() {
-    db = await mysql.createPool({
+    db = mysql.createPool({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
         database: process.env.DB_NAME || 'ratambuzza.ar_test',

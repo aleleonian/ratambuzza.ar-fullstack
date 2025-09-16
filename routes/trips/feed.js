@@ -26,11 +26,29 @@ router.get('/feed', requireLogin, async (req, res, next) => {
 
         const theresMore = posts.length === POSTS_PER_PAGE;
 
-        // const moreUrl = posts.length === POSTS_PER_PAGE
-        //     ? `/trips/${trip.slug}/feed/more?offset=${POSTS_PER_PAGE}`
-        //     : null;
+        // 2. Get associated media
 
+        //     posts.forEach(async post => {
+        //         const [mediaRows] = await req.db.execute(`
+        //     SELECT id, url, thumbnail_url, width, height
+        //     FROM media
+        //     WHERE post_id = ?
+        // `, [post.id]);
+        //         post.media = mediaRows;
+        //     });
+
+        await Promise.all(posts.map(async post => {
+            const [mediaRows] = await req.db.execute(`
+        SELECT id, url, thumbnail_url, width, height
+        FROM media
+        WHERE post_id = ?
+    `, [post.id]);
+            post.media = mediaRows;
+        }));
+        
         const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
+
+        console.log('GET /feed posts->', posts);
 
         res.render('trips/feed', { trips, trip, posts, theresMore, POSTS_PER_PAGE });
     } catch (e) { next(e); }

@@ -1,5 +1,6 @@
 const { getDb } = require('./db.js');
 const path = require('path');
+const fs = require('fs');
 
 export async function getAllPostcardsMedia() {
     const db = getDb();

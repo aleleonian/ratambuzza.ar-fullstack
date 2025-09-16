@@ -38,7 +38,7 @@ test.describe('Postcards flow', () => {
         await expect(chip).toBeVisible({ timeout: 1000 });
     }
 
-    test.skip('can create a postcard and see it in the grid', async ({ page }) => {
+    test('can create a postcard and see it in the grid', async ({ page }) => {
         // Select up to 3 avatars (Tom Select is a div+input combo)
 
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
@@ -91,7 +91,7 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#lightbox')).toBeHidden();
     });
 
-    test.skip('form elements keep their values after validation errors', async ({ page }) => {
+    test('form elements keep their values after validation errors', async ({ page }) => {
         // Test 1: Submit with just avatars (missing background and action)  
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
         await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
@@ -134,6 +134,7 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#background-select')).toHaveValue('');
         await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
     });
+    
     test('lightbox supports keyboard navigation', async ({ page }) => {
         // 1. Visit the postcard page and ensure postcards exist
         await initDb();
@@ -181,7 +182,7 @@ test.describe('Postcards flow', () => {
             thumbnail_url: thumbnail3Url,
         });
 
-        await page.goto('/trips/rio-2025/postcards');
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/postcards`);
 
         const thumbnails = page.locator('.postcard-grid .postcard-thumb');
         const count = await thumbnails.count();

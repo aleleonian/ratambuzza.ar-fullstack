@@ -134,7 +134,7 @@ test.describe('Postcards flow', () => {
         await expect(page.locator('#background-select')).toHaveValue('');
         await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
     });
-    
+
     test('lightbox supports keyboard navigation', async ({ page }) => {
         // 1. Visit the postcard page and ensure postcards exist
         await initDb();
@@ -218,6 +218,56 @@ test.describe('Postcards flow', () => {
         await expect(lightbox).toBeHidden();
 
     });
+    test('user can post postcard to feed and cannot post it twice', async ({ page }) => {
+        // Step 1: Go to a postcard page (or open a specific one)
 
-    // TODO: add a 'post to feed' test. 
+        // Step 2: Open the first postcard in lightbox
+        await page.locator('.postcard-grid .postcard-thumb').first().click();
+        await expect(page.locator('#lightbox')).toBeVisible();
+
+        // Step 3: Extract original postcard filename from lightbox image
+        const fullSrc = await page.locator('#lightbox-img').getAttribute('src');
+        expect(fullSrc).toContain('/uploads/TEST-postcard-');
+
+        // Derive the resized and thumbnail filenames
+        const fileName = fullSrc.split('/').pop(); // e.g., postcard-1757982436831.png
+        const resizedName = `resized-${fileName}`;
+        const thumbName = `thumb-${resizedName}`;
+
+        page.once('dialog', dialog => dialog.accept());
+
+        // Step 4: Click the "Post to Feed" button
+        await page.click('#lightbox-posttofeed'); // Adjust selector to match button
+
+        // Step 5: Wait for backend response
+        await page.waitForResponse(res =>
+            res.url().includes('/postcards/post') && res.status() === 200
+        );
+
+        // Step 6: Go to the feed
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
+        await page.waitForLoadState('networkidle');
+
+        // Step 7: Assert that the posted postcard appears
+        const thumbSelector = `img.post-image-thumb[src*="${thumbName}"]`;
+        const fullSelector = `img.post-image-thumb[data-full*="${resizedName}"]`;
+
+        const thumbExists = await page.locator(thumbSelector).count();
+        const fullExists = await page.locator(fullSelector).count();
+
+        expect(thumbExists + fullExists).toBeGreaterThan(0);
+
+        // Step 8: Try posting again to check rejection
+        await page.goto('/trips/rio-2025/postcards');
+
+        await page.locator('.postcard-grid .postcard-thumb').first().click();
+
+        page.once('dialog', dialog => dialog.accept());
+
+        await page.click('#lightbox-posttofeed'); // Adjust selector to match button
+
+        // Expect toast message (assuming toast renders text in .toast class)
+        await expect(page.locator('#toast-container')).toContainText('Ya se posteó esa imagen');
+    });
+
 });

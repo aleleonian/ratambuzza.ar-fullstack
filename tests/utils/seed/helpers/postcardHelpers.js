@@ -17,8 +17,12 @@ export async function deleteAllPostcardsMedia() {
         const thumbPath = path.join(process.cwd(), 'public', row.thumbnail_url);   // same here
 
         try {
-            if (fs.existsSync(mediaPath)) fs.unlinkSync(mediaPath);
-            if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+            if (fs.existsSync(mediaPath)) {
+                fs.unlinkSync(mediaPath);
+            }
+            if (fs.existsSync(thumbPath)) {
+                fs.unlinkSync(thumbPath);
+            }
         }
         catch (error) {
             console.log("error->", error)

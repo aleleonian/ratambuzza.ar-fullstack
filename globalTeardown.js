@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { getDb, cleanDb } from './tests/utils/seed/helpers/db.js';
 import { getAllMedia, deleteMediaLikes } from './tests/utils/seed/helpers/mediaHelpers.js';
-import { removeUser } from './tests/utils/seed/helpers/userHelpers.js';
+import { removeUserFiles } from './tests/utils/seed/helpers/userHelpers.js';
 import { deleteAllPostcardsMedia } from './tests/utils/seed/helpers/postcardHelpers.js'
 
 export default async () => {
@@ -28,8 +28,10 @@ export default async () => {
     //clean db
     const db = getDb();
     await deleteMediaLikes();
-    await removeUser('test-user-1');
-    await removeUser('test-user-2');
+    await removeUserFiles(process.env.FIRST_TEST_USER_NAME);
+    await removeUserFiles(process.env.SECOND_TEST_USER_NAME);
+    await removeUserFiles(process.env.THIRD_TEST_USER_NAME);
+    await removeUserFiles(process.env.FOURTH_TEST_USER_NAME);
     await cleanDb()
 
     // TODO: add code to delete images.

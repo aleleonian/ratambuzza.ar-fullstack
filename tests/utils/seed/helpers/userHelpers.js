@@ -36,10 +36,7 @@ export async function insertUser(handle, password, role) {
   );
 }
 
-export async function removeUser(handle) {
-  const db = getDb();
-
-  await db.execute('DELETE FROM users WHERE handle = ?', [handle]);
+export async function removeUserFiles(handle) {
 
   const avatarPath = path.join('public/images/avatars', `${handle}.png`);
 

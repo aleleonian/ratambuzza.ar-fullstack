@@ -7,10 +7,84 @@
 
   <br>
 
+  <!-- 
+    Feed Search and Filter Section 
+    Added: 2025-09-16 - Complete feed search functionality
+    
+    FEATURES IMPLEMENTED:
+    ✅ Text search through post content using MySQL LIKE queries
+    ✅ Filter posts by specific trip members (dropdown populated from backend)
+    ✅ HTMX-powered real-time filtering without page reloads
+    ✅ Preserves search values in form fields during filtering
+    ✅ Clean "Russian doll" prevention by targeting #posts-container only
+    ✅ Search results header showing filtered post count and criteria
+    ✅ Clear filters button to reset and show all posts
+    ✅ Proper pagination handling during filtered results
+    
+    TECHNICAL IMPLEMENTATION:
+    - Form submits to /trips/:slug/feed with search and user query parameters
+    - Backend detects HTMX requests via 'hx-request: true' header
+    - HTMX requests return only posts HTML (views/trips/feed/just-posts.ejs)
+    - Normal requests return full page layout (views/trips/feed/current-upcoming.ejs)
+    - This prevents nested layouts when search results are injected into DOM
+    
+    KEY FIXES APPLIED:
+    - Fixed JavaScript variable redeclaration error that was preventing HTMX requests
+    - Implemented proper HTMX target and swap configuration
+    - Added comprehensive error handling for empty search results
+    - Integrated with existing infinite scroll pagination system
+  -->
+  <div id="feed-search" style="margin-bottom: 20px;">
+    <h4 style="margin-bottom: 10px;">🔍 Buscar Posts</h4>
+    <form id="search-form" 
+          hx-get="/trips/<%= trip.slug %>/feed" 
+          hx-target="#posts-container" 
+          hx-swap="innerHTML"
+          hx-trigger="submit"
+          hx-indicator="#search-loading"
+          style="display: flex; flex-direction: column; gap: 10px;">
+      
+      <!-- Text search input - searches through post content -->
+      <input type="text" 
+             id="search-text" 
+             name="search" 
+             placeholder="Buscar en posts..." 
+             value="<%= typeof search !== 'undefined' ? search : '' %>"
+             style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+      
+      <!-- User filter dropdown - shows only trip members -->
+      <select id="user-filter" 
+              name="user" 
+              style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Todos los usuarios</option>
+        <% if (typeof tripUsers !== 'undefined') { %>
+          <% tripUsers.forEach(user => { %>
+            <option value="<%= user.id %>" <%= (typeof userFilter !== 'undefined' && userFilter == user.id) ? 'selected' : '' %>>
+              <%= user.handle %>
+            </option>
+          <% }) %>
+        <% } %>
+      </select>
+      
+      <!-- Search submit button with loading indicator -->
+      <button type="submit" 
+              class="button" 
+              style="padding: 8px 12px; background: var(--primary); color: white;">
+        <span>🔍 Buscar</span>
+        <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
+      </button>
+      
+      <!-- Clear filters - reloads page to show all posts -->
+      <button type="button" 
+              id="clear-filters" 
+              class="button" 
+              style="background: #f5f5f5; color: #666; padding: 6px 12px; font-size: 12px;">
+        Limpiar filtros
+      </button>
+    </form>
+  </div>
+
   <ul>
-    <li>
-      a search would be nice
-    </li>
     <li>
       most popular posts would be nice
     </li>

@@ -28,11 +28,10 @@
         <% if (theresMore) { %>
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
-            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
+            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids, #search-form"
                 hx-target="#posts-container" hx-swap="beforeend" class="button">
                 Cargar más posteos
             </button>
-            <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
         </div>
         <% } %>
 
@@ -57,18 +56,11 @@
         const allPostElements = [...mainPosts];
         const postIds = allPostElements.map(el => el.getAttribute('data-post-id'));
 
-        console.log('📊 Collecting post IDs:');
-        console.log('  - Main container posts:', Array.from(mainPosts).map(el => el.getAttribute('data-post-id')));
-        console.log('  - Combined:', postIds);
 
         // document.getElementById('exclude-ids').value = postIds.join(',');
         const input = document.getElementById('exclude-ids');
         if (input) {
             input.value = postIds.join(',');
-        }
-        const loadedCount = document.getElementById('loaded-count');
-        if (loadedCount) {
-            loadedCount.textContent = postIds.length;
         }
         return postIds;
     }
@@ -80,16 +72,6 @@
             setupFeedPostLightbox();
 
             document.getElementById('postModal')?.classList.add('hidden')
-            console.log('➕ Post added and DOM updated — updating exclude IDs');
-
-            // Debug: check what was actually added
-            const newPostElement = evt.target.querySelector('[data-post-id]');
-            if (newPostElement) {
-                console.log('✅ Found new post with ID:', newPostElement.getAttribute('data-post-id'));
-            } else {
-                console.log('❌ No data-post-id found in new post!');
-                console.log('🔍 New post HTML:', evt.target.innerHTML.substring(0, 200));
-            }
 
             setTimeout(() => updateExcludeIds(), 50);
         }
@@ -98,7 +80,6 @@
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Handle post deletion 
         if (evt.detail?.requestConfig?.elt?.closest('form')?.classList?.contains('delete-post-form')) {
-            console.log('🗑 Post deleted — updating exclude IDs');
             setTimeout(() => updateExcludeIds(), 50);
         }
     })
@@ -108,16 +89,7 @@
 
     document.body.addEventListener('htmx:beforeRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('🚀 Load More clicked!');
             const excludeIds = document.getElementById('exclude-ids').value;
-            console.log('  - Exclude IDs:', excludeIds);
-            console.log('  - Exclude IDs length:', excludeIds.length);
-            console.log('  - URL:', evt.target.getAttribute('hx-get'));
-
-            // Debug: also show what posts are currently visible
-            const postElements = document.querySelectorAll('[data-post-id]');
-            console.log('  - Visible posts count:', postElements.length);
-            console.log('  - Visible post IDs:', Array.from(postElements).map(el => el.getAttribute('data-post-id')));
 
             evt.target.textContent = 'Loading...';
         }
@@ -125,12 +97,9 @@
 
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('📦 Got response! Status:', evt.detail.xhr.status);
-
             // Check if the response indicates no more posts
             const responseText = evt.detail.xhr.responseText;
             if (responseText.includes('data-no-more-posts="true"')) {
-                console.log('❌ No more posts available - disabling button');
                 evt.target.disabled = true;
                 evt.target.textContent = 'No More Posts';
                 evt.target.style.background = '#ccc';
@@ -142,6 +111,54 @@
             setTimeout(() => updateExcludeIds(), 50);
             evt.target.textContent = 'Cargar más posteos';
         }
+    });
+
+    // Handle search form functionality
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchForm = document.getElementById('search-form');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        const searchText = document.getElementById('search-text');
+        const userFilter = document.getElementById('user-filter');
+
+
+        // Clear filters functionality
+        // Added: 2025-09-16 - Resets search form and reloads page to show all posts
+        clearFiltersBtn?.addEventListener('click', () => {
+            searchText.value = '';
+            userFilter.value = '';
+            
+            // Reload the page to show all posts
+            window.location.reload();
+        });
+
+        // Update load more button when search is performed
+        // Added: 2025-09-16 - Handles pagination during filtered results
+        // When filters are active, hide the "Load More" button since we're showing search results
+        // When no filters, restore normal infinite scroll pagination
+        document.body.addEventListener('htmx:afterSwap', (evt) => {
+            if (evt.target.id === 'posts-container') {
+                // Update the load more button to include current search parameters
+                const loadMoreBtn = document.getElementById('load-more-btn');
+                if (loadMoreBtn && searchForm) {
+                    const formData = new FormData(searchForm);
+                    const searchParams = new URLSearchParams(formData);
+                    
+                    // Check if we have any active filters
+                    const hasActiveFilters = Array.from(formData.values()).some(value => value.trim() !== '');
+                    
+                    if (hasActiveFilters) {
+                        // When filtering, the load more button should be hidden or disabled
+                        // since we're showing search results, not paginated feed
+                        loadMoreBtn.style.display = 'none';
+                    } else {
+                        // When no filters, restore normal pagination
+                        loadMoreBtn.style.display = 'block';
+                        const baseUrl = `/trips/<%= trip.slug %>/feed/more`;
+                        loadMoreBtn.setAttribute('hx-get', baseUrl);
+                    }
+                }
+            }
+        });
     });
 </script>
 
@@ -165,11 +182,9 @@
         document.getElementById('postModal')?.classList.add('hidden');
     });
 
-    const modal = document.getElementById('postModal')
-
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            modal?.classList.add('hidden')
+            document.getElementById('postModal')?.classList.add('hidden')
         }
     })
 </script>

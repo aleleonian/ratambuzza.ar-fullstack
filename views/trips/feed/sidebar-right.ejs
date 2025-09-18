@@ -2,7 +2,7 @@
 
   <!-- Everything related to creating a new post -->
   <div id="post-controls">
-    <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo Posteo</button>
+    <button class="button showPostForm" style="margin-bottom: 20px; width:100%">+ Nuevo Posteo</button>
   </div>
 
   <br>
@@ -36,16 +36,17 @@
   -->
   <div id="feed-search" style="margin-bottom: 20px;">
     <form id="search-form" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container" hx-swap="innerHTML"
-      hx-trigger="submit" hx-indicator="#search-loading" style="display: flex; flex-direction: column; gap: 10px;">
+      hx-trigger="submit" hx-indicator="#search-loading" style="display: flex; flex-direction: column; gap: 12px;">
 
-      <!-- Text search input - searches through post content -->
+      <!-- Text search -->
       <input type="text" id="search-text" name="search" placeholder="Buscar en posts..."
-        value="<%= typeof search !== 'undefined' ? search : '' %>"
-        style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" class="pixel-input">
+        value="<%= typeof search !== 'undefined' ? search : '' %>" class="pixel-input"
+        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px; width: 100%;">
 
-      <!-- User filter dropdown - shows only trip members -->
-      <select id="user-filter" name="user" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">Todos los usuarios</option>
+      <!-- Author filter -->
+      <select id="user-filter" name="user"
+        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px;">
+        <option value="">Por autor</option>
         <% if (typeof tripUsers !== 'undefined') { %>
         <% tripUsers.forEach(user => { %>
         <option value="<%= user.id %>"
@@ -56,16 +57,17 @@
         <% } %>
       </select>
 
-      <!-- Search submit button with loading indicator -->
-      <button type="submit" class="button">
-        <span>🔍 Buscar</span>
-        <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
-      </button>
+      <!-- Buttons row -->
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="button" style="flex: 1;">
+          🔍 Buscar
+          <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
+        </button>
 
-      <!-- Clear filters - reloads page to show all posts -->
-      <button type="button" id="clear-filters" class="button button-smaller">
-        Limpiar filtros
-      </button>
+        <button type="button" id="clear-filters" class="button button-smaller" style="flex: 1; background-color: #ccc;">
+          Limpiar filtros
+        </button>
+      </div>
     </form>
   </div>
 
@@ -117,6 +119,31 @@
       }));
 
       tomSelectInstances['user-filter'] = new TomSelect(userFilterel, {
+        maxItems: 1,
+        options,
+        valueField: "value",
+        labelField: "text",
+        searchField: "text",
+        plugins: ['remove_button'],
+        render: {
+          option_create: function (data, escape) {
+            return '<div class="create">➕ Usar "' + escape(data.input) + '" como nueva acción</div>';
+          },
+          no_results: function (data, escape) {
+            return '';
+          }
+        },
+      });
+    }
+    const userFilterMobileEl = document.querySelector('#user-filter-mobile');
+    if (userFilterMobileEl) {
+      const options = [...userFilterMobileEl.options].map(opt => ({
+        value: opt.value,
+        text: opt.textContent,
+        customProperties: JSON.parse(opt.dataset.customProperties || '{}')
+      }));
+
+      tomSelectInstances['user-filter-mobile'] = new TomSelect(userFilterMobileEl, {
         maxItems: 1,
         options,
         valueField: "value",

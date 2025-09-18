@@ -8,8 +8,53 @@
 
     <main class="feed">
         <!-- Everything related to creating a new post -->
-        <div id="post-controls" class="mobile-only">
-            <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo</button>
+
+        <div class="mobile-feed-controls-wrapper">
+            <!-- Row with 2 buttons -->
+            <div class="mobile-feed-controls-row">
+                <button class="button showPostForm">+ Nuevo</button>
+                <button class="button secondary-color" onclick="toggleSearch()">🔍 Buscar</button>
+            </div>
+
+            <!-- Hidden search form -->
+            <div id="search-form-wrapper" class="hidden">
+                <form id="search-form" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container"
+                    hx-swap="innerHTML" hx-trigger="submit" hx-indicator="#search-loading"
+                    style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+
+                    <!-- Text search -->
+                    <input type="text" id="search-text" name="search" placeholder="Buscar en posts..."
+                        value="<%= typeof search !== 'undefined' ? search : '' %>" class="pixel-input"
+                        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px; width: 100%;">
+
+                    <!-- Author filter -->
+                    <select id="user-filter-mobile" name="user"
+                        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px;">
+                        <option value="">Por autor</option>
+                        <% if (typeof tripUsers !== 'undefined') { %>
+                        <% tripUsers.forEach(user => { %>
+                        <option value="<%= user.id %>"
+                            <%= (typeof userFilter !== 'undefined' && userFilter == user.id) ? 'selected' : '' %>>
+                            <%= user.handle %>
+                        </option>
+                        <% }) %>
+                        <% } %>
+                    </select>
+
+                    <!-- Buttons row -->
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="button" style="flex: 1;">
+                            🔍 Buscar
+                            <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
+                        </button>
+
+                        <button type="button" id="clear-filters" class="button button-smaller"
+                            style="flex: 1; background-color: #ccc;">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Post list container -->
@@ -28,8 +73,8 @@
         <% if (theresMore) { %>
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
-            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids, #search-form"
-                hx-target="#posts-container" hx-swap="beforeend" class="button">
+            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more"
+                hx-include="#exclude-ids, #search-form" hx-target="#posts-container" hx-swap="beforeend" class="button">
                 Cargar más posteos
             </button>
         </div>
@@ -119,6 +164,7 @@
         const clearFiltersBtn = document.getElementById('clear-filters');
         const searchText = document.getElementById('search-text');
         const userFilter = document.getElementById('user-filter');
+        const userFilterMobile = document.getElementById('user-filter-mobile');
 
 
         // Clear filters functionality
@@ -126,7 +172,7 @@
         clearFiltersBtn?.addEventListener('click', () => {
             searchText.value = '';
             userFilter.value = '';
-            
+
             // Reload the page to show all posts
             window.location.reload();
         });
@@ -142,10 +188,10 @@
                 if (loadMoreBtn && searchForm) {
                     const formData = new FormData(searchForm);
                     const searchParams = new URLSearchParams(formData);
-                    
+
                     // Check if we have any active filters
                     const hasActiveFilters = Array.from(formData.values()).some(value => value.trim() !== '');
-                    
+
                     if (hasActiveFilters) {
                         // When filtering, the load more button should be hidden or disabled
                         // since we're showing search results, not paginated feed
@@ -213,4 +259,12 @@
     document.addEventListener('DOMContentLoaded', setupFeedPostLightbox);
 
 </script>
+
+<script>
+    function toggleSearch() {
+        const el = document.getElementById('search-form-wrapper');
+        el.classList.toggle('hidden');
+    }
+</script>
+
 <%- include('../../partials/footer') %>

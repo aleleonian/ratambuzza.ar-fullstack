@@ -35,50 +35,35 @@
     - Integrated with existing infinite scroll pagination system
   -->
   <div id="feed-search" style="margin-bottom: 20px;">
-    <h4 style="margin-bottom: 10px;">🔍 Buscar Posts</h4>
-    <form id="search-form" 
-          hx-get="/trips/<%= trip.slug %>/feed" 
-          hx-target="#posts-container" 
-          hx-swap="innerHTML"
-          hx-trigger="submit"
-          hx-indicator="#search-loading"
-          style="display: flex; flex-direction: column; gap: 10px;">
-      
+    <form id="search-form" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container" hx-swap="innerHTML"
+      hx-trigger="submit" hx-indicator="#search-loading" style="display: flex; flex-direction: column; gap: 10px;">
+
       <!-- Text search input - searches through post content -->
-      <input type="text" 
-             id="search-text" 
-             name="search" 
-             placeholder="Buscar en posts..." 
-             value="<%= typeof search !== 'undefined' ? search : '' %>"
-             style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-      
+      <input type="text" id="search-text" name="search" placeholder="Buscar en posts..."
+        value="<%= typeof search !== 'undefined' ? search : '' %>"
+        style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" class="pixel-input">
+
       <!-- User filter dropdown - shows only trip members -->
-      <select id="user-filter" 
-              name="user" 
-              style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+      <select id="user-filter" name="user" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
         <option value="">Todos los usuarios</option>
         <% if (typeof tripUsers !== 'undefined') { %>
-          <% tripUsers.forEach(user => { %>
-            <option value="<%= user.id %>" <%= (typeof userFilter !== 'undefined' && userFilter == user.id) ? 'selected' : '' %>>
-              <%= user.handle %>
-            </option>
-          <% }) %>
+        <% tripUsers.forEach(user => { %>
+        <option value="<%= user.id %>"
+          <%= (typeof userFilter !== 'undefined' && userFilter == user.id) ? 'selected' : '' %>>
+          <%= user.handle %>
+        </option>
+        <% }) %>
         <% } %>
       </select>
-      
+
       <!-- Search submit button with loading indicator -->
-      <button type="submit" 
-              class="button" 
-              style="padding: 8px 12px; background: var(--primary); color: white;">
+      <button type="submit" class="button">
         <span>🔍 Buscar</span>
         <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
       </button>
-      
+
       <!-- Clear filters - reloads page to show all posts -->
-      <button type="button" 
-              id="clear-filters" 
-              class="button" 
-              style="background: #f5f5f5; color: #666; padding: 6px 12px; font-size: 12px;">
+      <button type="button" id="clear-filters" class="button button-smaller">
         Limpiar filtros
       </button>
     </form>
@@ -111,3 +96,46 @@
     😂 😎 🐒 🍺 🎶
   </div> -->
 </aside>
+
+<script>
+  const tomSelectInstances = {};
+
+  function initTomSelect() {
+    // Clean up any existing instances before re-initializing
+    for (const key in tomSelectInstances) {
+      tomSelectInstances[key].destroy();
+      delete tomSelectInstances[key];
+    }
+
+    // AVATAR SELECT
+    const userFilterel = document.querySelector('#user-filter');
+    if (userFilterel) {
+      const options = [...userFilterel.options].map(opt => ({
+        value: opt.value,
+        text: opt.textContent,
+        customProperties: JSON.parse(opt.dataset.customProperties || '{}')
+      }));
+
+      tomSelectInstances['user-filter'] = new TomSelect(userFilterel, {
+        maxItems: 1,
+        options,
+        valueField: "value",
+        labelField: "text",
+        searchField: "text",
+        plugins: ['remove_button'],
+        render: {
+          option_create: function (data, escape) {
+            return '<div class="create">➕ Usar "' + escape(data.input) + '" como nueva acción</div>';
+          },
+          no_results: function (data, escape) {
+            return '';
+          }
+        },
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initTomSelect(); // Initial render
+  });
+</script>

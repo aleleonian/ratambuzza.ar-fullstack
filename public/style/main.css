@@ -375,6 +375,30 @@ h5 {
   background-color: #222;
 }
 
+.pixel-input {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  min-height: 38px;
+  /* match Tom Select */
+  padding: 6px 8px;
+  /* match Tom Select */
+  font-size: 14px;
+  font-family: var(--font);
+  line-height: 1.4;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.pixel-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  outline: none;
+}
+
 @media (max-width: 768px) {
 
   .mobile-only {

@@ -9,7 +9,7 @@
     <main class="feed">
         <!-- Everything related to creating a new post -->
 
-        <div class="mobile-feed-controls-wrapper">
+        <div class="mobile-only mobile-feed-controls-wrapper">
             <!-- Row with 2 buttons -->
             <div class="mobile-feed-controls-row">
                 <button class="button showPostForm">+ Nuevo</button>
@@ -172,6 +172,7 @@
         clearFiltersBtn?.addEventListener('click', () => {
             searchText.value = '';
             userFilter.value = '';
+            userFilterMobile.value = '';
 
             // Reload the page to show all posts
             window.location.reload();

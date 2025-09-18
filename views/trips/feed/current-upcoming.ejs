@@ -48,7 +48,7 @@
                             <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
                         </button>
 
-                        <button type="button" id="clear-filters" class="button button-smaller"
+                        <button type="button" id="clear-filters-mobile" class="button button-smaller"
                             style="flex: 1; background-color: #ccc;">
                             Limpiar filtros
                         </button>
@@ -162,6 +162,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const searchForm = document.getElementById('search-form');
         const clearFiltersBtn = document.getElementById('clear-filters');
+        const clearFiltersMobileBtn = document.getElementById('clear-filters-mobile');
         const searchText = document.getElementById('search-text');
         const userFilter = document.getElementById('user-filter');
         const userFilterMobile = document.getElementById('user-filter-mobile');
@@ -170,6 +171,14 @@
         // Clear filters functionality
         // Added: 2025-09-16 - Resets search form and reloads page to show all posts
         clearFiltersBtn?.addEventListener('click', () => {
+            searchText.value = '';
+            userFilter.value = '';
+            userFilterMobile.value = '';
+
+            // Reload the page to show all posts
+            window.location.reload();
+        });
+        clearFiltersMobileBtn?.addEventListener('click', () => {
             searchText.value = '';
             userFilter.value = '';
             userFilterMobile.value = '';

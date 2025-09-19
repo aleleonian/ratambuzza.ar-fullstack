@@ -1,0 +1,35 @@
+<%- include('../../partials/header/feed-current-upcoming') %>
+
+<div class="generic-container">
+    <div class="post-container">
+
+        <%- include('post', { trip:currentOrUpcomingTrip, post }) %>
+
+    </div>
+
+    <hr>
+
+    <div class="replies-section">
+        <h3>Respuestas</h3>
+        <% if (replies.length === 0) { %>
+        <p>No hay respuestas todavía.</p>
+        <% } else { %>
+        <% replies.forEach(r => { %>
+        <div class="reply">
+            <strong><%= r.handle %>:</strong> <%= r.content %>
+            <div class="timestamp"><%= r.created_at.toLocaleString() %></div>
+        </div>
+        <% }) %>
+        <% } %>
+    </div>
+
+    <hr>
+
+    <form method="POST" action="/feed/<%= post.id %>/replies">
+        <label for="reply">Escribí una respuesta:</label><br>
+        <textarea name="content" id="reply" rows="3" required></textarea><br>
+        <button type="submit" class="button">Responder</button>
+    </form>
+
+</div>
+<%- include('../../partials/footer') %>

@@ -11,7 +11,7 @@ router.get('/feed', requireLogin, async (req, res, next) => {
     try {
         const userId = req.session.user.id;
         const trip = req.trip;
-        
+
         // Extract search parameters from query string
         // - search: text to search within post content (using LIKE query)
         // - user: specific user ID to filter posts by
@@ -71,9 +71,9 @@ router.get('/feed', requireLogin, async (req, res, next) => {
     `, [post.id]);
             post.media = mediaRows;
         }));
-        
+
         const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
-        
+
         // Get users who are members of this trip for the filter dropdown
         // Added: 2025-09-16 - Provides user list for "Filter by User" dropdown
         // Only shows users who are actually members of the current trip
@@ -94,14 +94,14 @@ router.get('/feed', requireLogin, async (req, res, next) => {
         // - Normal requests: Return full page with layout
         // This prevents nested layouts when search results are inserted into #posts-container
         const isHtmxRequest = req.headers['hx-request'] === 'true';
-        
+
         if (isHtmxRequest) {
-            
+
             // Handle empty search results
             if (posts.length === 0) {
                 return res.send('<div style="text-align: center; padding: 20px; color: #666;">No se encontraron posts que coincidan con tu búsqueda.</div>');
             }
-            
+
             // Prepare search info for the search results header
             const searchInfo = (search || userFilter) ? {
                 hasSearch: true,
@@ -109,16 +109,16 @@ router.get('/feed', requireLogin, async (req, res, next) => {
                 hasUserFilter: !!userFilter,
                 resultCount: posts.length
             } : { hasSearch: false };
-            
+
             // Return only posts HTML template (prevents Russian doll effect)
             return res.render('trips/feed/just-posts', { trip, posts, searchInfo });
         }
 
-        res.render('trips/feed', { 
-            trips, 
-            trip, 
-            posts, 
-            theresMore, 
+        res.render('trips/feed', {
+            trips,
+            trip,
+            posts,
+            theresMore,
             POSTS_PER_PAGE,
             search,
             userFilter,
@@ -181,5 +181,50 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
         res.render('trips/feed/just-posts', { trip, posts });
     } catch (e) { next(e); }
 });
+
+// GET single post and its replies
+router.get('/feed/:postId', requireLogin, async (req, res) => {
+    console.log("/feed/:postId")
+    const postId = req.params.postId;
+    const [postRows] = await req.db.execute(
+        'SELECT posts.*, users.handle, users.avatar_head_file_name FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = ?',
+        [postId]
+    );
+    const post = postRows[0];
+
+    const [replies] = await req.db.execute(
+        `SELECT pr.*, u.handle 
+     FROM post_replies pr 
+     JOIN users u ON pr.user_id = u.id 
+     WHERE pr.post_id = ? 
+     ORDER BY pr.created_at ASC`,
+        [postId]
+    );
+
+    res.render('trips/feed/post-with-replies', { post, replies });
+});
+
+// POST new reply
+router.post('/feed/:postId/replies', requireLogin, async (req, res) => {
+    const { content } = req.body;
+    const postId = req.params.postId;
+    const user = req.session.user;
+    const trip = req.trip;
+
+    if (!content.trim()) {
+        res.setHeader('X-Toast', "No podés mandar un reply vacío.");
+        res.setHeader('X-Toast-Type', "error");
+        return res.redirect(`/feed/${postId}`);
+    }
+
+    await req.db.execute(
+        'INSERT INTO post_replies (post_id, user_id, trip_id, content) VALUES (?, ?, ?, ?)',
+        [postId, user.id, trip.id, content]
+    );
+
+    res.setHeader('X-Toast', "Listo 👍");
+    res.redirect(`/feed/${postId}`);
+});
+
 
 module.exports = router;

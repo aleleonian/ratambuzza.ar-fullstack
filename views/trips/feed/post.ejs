@@ -4,7 +4,9 @@
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
         <strong>@<%= post.handle %></strong>
         <span style="margin-left:auto; font-size: 10px; color: var(--muted);">
-            <%= new Date(post.created_at).toLocaleString() %>
+            <a href="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>">
+                <%= new Date(post.created_at).toLocaleString() %>
+            </a>
         </span>
     </div>
 
@@ -26,6 +28,7 @@
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
         <%- include('like-button', { trip, post }) %>
+
         <!-- Delete button -->
         <% if (post.user_id === currentUser.id) { %>
         <%- include('delete-button', { trip, post }) %>

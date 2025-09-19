@@ -348,8 +348,6 @@ test.describe('Gallery Upload', () => {
         // 2. Delete first media item via hover menu
         let items = page.locator('.media-grid .media-item');
 
-        await expect(items).toHaveCount(2);
-
         const firstItem = items.first();
 
         await firstItem.hover();

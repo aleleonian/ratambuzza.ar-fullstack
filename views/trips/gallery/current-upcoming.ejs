@@ -9,7 +9,7 @@
         tripSlug: "<%= currentOrUpcomingTrip.slug %>",
         currentUserRole: "<%= currentUser.role %>",
     };
-    
+
     (() => {
         window.toggleUploadButton = function (input) {
             const btn = document.getElementById('uploadButton');
@@ -84,7 +84,8 @@
                     if (filtersAreActive() || !isTheUserAnAuthor()) {
                         // Reset everything
                         setTimeout(() => {
-                            document.getElementById('loading-overlay').classList.remove('hidden');
+                            // document.getElementById('loading-overlay').classList.remove('hidden');
+                            showSpinner();
                             window.location.href = '/trips/<%-currentOrUpcomingTrip.slug%>/gallery';
                         }, 1000);
 

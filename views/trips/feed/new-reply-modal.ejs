@@ -12,7 +12,7 @@
         document.querySelectorAll('.showPostForm').forEach((btn) => {
             btn.addEventListener('click', () => {
                 document.getElementById('replyModal')?.classList.remove('hidden');
-                document.getElementById('new-post-content')?.focus();
+                document.getElementById('reply-text')?.focus();
             });
         });
         // Handle modal close

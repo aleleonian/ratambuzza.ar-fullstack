@@ -42,3 +42,11 @@ window.showToast = function (message, type = 'info', duration = 3000) {
         toast.style.display = 'none';
     }, duration);
 }
+window.showSpinner = function () {
+    const spinnerDiv = document.getElementById('loading-overlay');
+    if (spinnerDiv) spinnerDiv.classList.remove('hidden');
+}
+window.hideSpinner = function () {
+    const spinnerDiv = document.getElementById('loading-overlay');
+    if (spinnerDiv) spinnerDiv.classList.add('hidden');
+}

@@ -200,7 +200,6 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
 
 // POST new reply
 router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, res) => {
-    console.log("req.body->", req.body);
     const { reply_text } = req.body;
     const postId = req.params.postId;
     const user = req.session.user;
@@ -218,6 +217,7 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
     );
 
     res.setHeader('X-Toast', "Listo, loko.");
+    res.setHeader('X-Toast-Type', 'success');
     res.redirect(`/trips/${trip.slug}/feed/${postId}`);
 });
 

@@ -9,7 +9,7 @@
     <h3>Nueva respuesta</h3>
     <input type="hidden" name="trip_id" value="<%= trip.id %>" />
 
-    <textarea name="reply_text" id="reply" rows="3" autofocus placeholder="Qué anda pasando?"
+    <textarea name="reply_text" id="reply-text" rows="3" autofocus placeholder="Qué anda pasando?"
         style="width: 100%;"></textarea>
 
     <div style="margin-top: 8px;">
@@ -32,4 +32,11 @@
     }
     document.getElementById('reply-form').addEventListener('submit', submitHandler);
 
+    const replyForm = document.getElementById('reply-form');
+    if (replyForm) {
+        replyForm.addEventListener('submit', () => {
+            // document.getElementById('loading-overlay').classList.remove('hidden');
+            showSpinner();
+        });
+    }
 </script>

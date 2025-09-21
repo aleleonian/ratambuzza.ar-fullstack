@@ -1,22 +1,24 @@
-<div class="card" data-post-id="<%= post.id %>">
+<% console.log("post 3->" + JSON.stringify(post)) %>
+
+<div class="card" data-post-id="<%= reply.id %>">
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-        <img src="/images/avatars/thumbs/<%= post.avatar_head_file_name %>" width="40" height="40"
+        <img src="/images/avatars/thumbs/<%= reply.avatar_head_file_name %>" width="40" height="40"
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
-        <strong>@<%= post.handle %></strong>
+        <strong>@<%= reply.handle %></strong>
         <span style="margin-left:auto; font-size: 10px; color: var(--muted);">
-            <%= new Date(post.created_at).toLocaleString() %>
+            <%= new Date(reply.created_at).toLocaleString() %>
         </span>
     </div>
 
-    <% if (post.reply_text) { %>
-    <p><%= post.reply_text %></p>
+    <% if (reply.reply_text) { %>
+    <p><%= reply.reply_text %></p>
     <% } %>
 
-    <% if (post.media && post.media.length > 0) { %>
-    <div class="post-images" data-post-id="<%= post.id %>">
-        <% post.media.forEach((mediaItem, index) => { %>
+    <% if (reply.media && reply.media.length > 0) { %>
+    <div class="post-images" data-post-id="<%= reply.id %>">
+        <% reply.media.forEach((mediaItem, index) => { %>
         <img src="<%= mediaItem.thumbnail_url %>" data-full="<%= mediaItem.url %>" data-index="<%= index %>"
-            data-post-id="<%= post.id %>" class="post-image-thumb"
+            data-post-id="<%= reply.id %>" class="post-image-thumb"
             style="max-width: 100px; max-height: 100px; margin: 4px; cursor: pointer; border-radius: var(--radius);"
             alt="Post image <%= index + 1 %>" />
         <% }) %>
@@ -25,11 +27,11 @@
 
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
-        <%- include('like-button', { trip, post }) %>
+        <%- include('like-button', { trip, post:reply }) %>
 
         <!-- Delete button -->
-        <% if (post.user_id === currentUser.id) { %>
-        <%- include('delete-reply-button', { trip, post }) %>
+        <% if (reply.user_id === currentUser.id) { %>
+        <%- include('delete-reply-button', { trip, reply, post }) %>
         <% } %>
     </div>
 </div>

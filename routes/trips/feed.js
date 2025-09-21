@@ -236,12 +236,90 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
     }
 });
 
-router.delete('/feed/:postId/replies', requireLogin, async (req, res) => {
+router.delete('/feed/:postId/replies/:replyId', async (req, res) => {
+    // router.delete('/feed/:postId/replies', requireLogin, async (req, res) => {
+    const { postId, replyId } = req.params;
+    const user = req.session.user;
+    const trip = req.trip;
+
+    console.log('replyId->', replyId);
 
     // find that reply
     // if it exists, delete it. 
     // return ok
-    // if it does not, return some error.    
+    // if it does not, return some error.  
+
+    try {
+        let [reply] = await req.db.execute(
+            `SELECT pr.*
+     FROM post_replies pr 
+     WHERE pr.post_id = ? 
+     AND pr.user_id = ?
+     AND pr.id = ?
+     `,
+            [postId, user.id, replyId]
+        );
+
+        reply = reply[0];
+        if (!reply) {
+            throw new Error('Ud. no puede borrar eso, señor');
+        }
+
+        await req.db.execute(
+            `DELETE
+     FROM post_replies pr 
+     WHERE pr.post_id = ? 
+     AND pr.user_id = ?
+     AND pr.id = ?
+     `,
+            [postId, user.id, replyId]
+        );
+
+        const [replies] = await req.db.execute(
+            `SELECT pr.*, u.handle, u.avatar_head_file_name
+     FROM post_replies pr 
+     JOIN users u ON pr.user_id = u.id 
+     WHERE pr.post_id = ? 
+     ORDER BY pr.created_at ASC`,
+            [postId]
+        );
+
+        const [posts] = await req.db.execute(
+            `SELECT p.*
+       FROM posts p
+       WHERE p.id = ?
+       `,
+            [postId]
+        );
+        const post = posts[0];
+        res.setHeader('X-Toast', "Todo joya!");
+        res.setHeader('X-Toast-Type', 'success');
+        res.render('trips/feed/replies-section', { replies, post }); // no body needed
+    }
+    catch (error) {
+
+        const [replies] = await req.db.execute(
+            `SELECT pr.*, u.handle, u.avatar_head_file_name
+     FROM post_replies pr 
+     JOIN users u ON pr.user_id = u.id 
+     WHERE pr.post_id = ? 
+     ORDER BY pr.created_at ASC`,
+            [postId]
+        );
+
+        const [posts] = await req.db.execute(
+            `SELECT p.*
+       FROM posts p
+       WHERE p.id = ?
+       `,
+            [postId]
+        );
+        
+        const post = posts[0];
+        res.setHeader('X-Toast', "Hubo un error: " + error);
+        res.setHeader('X-Toast-Type', 'error');
+        res.render('trips/feed/replies-section', { replies, post }); // no body needed
+    }
 });
 
 module.exports = router;

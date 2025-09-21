@@ -1,5 +1,6 @@
+<% console.log("post replies-section->" + JSON.stringify(post)) %>
 <% if (replies.length > 0) { %>
 <% replies.forEach(r => { %>
-<%- include('reply', { trip:currentOrUpcomingTrip, post:r }) %>
+<%- include('reply', { trip:currentOrUpcomingTrip, reply:r, post }) %>
 <% }) %>
 <% } %>

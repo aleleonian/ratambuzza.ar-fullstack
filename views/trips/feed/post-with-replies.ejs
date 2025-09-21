@@ -16,7 +16,8 @@
         <hr>
 
         <div class="replies-section" id="replies-section">
-            <%- include('replies-section') %>
+            <% console.log("post->" + JSON.stringify(post)) %>
+            <%- include('replies-section',{post}) %>
         </div>
 
     </main>

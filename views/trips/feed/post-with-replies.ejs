@@ -23,7 +23,61 @@
         <!-- e.g. Suggested posts / About Ratambuzza -->
         <%- include('./sidebar-right-reply', { trip:currentOrUpcomingTrip }) %>
     </aside>
+
+    <%- include('../../partials/lightbox-standalone') %>
+
 </div>
+
+<script>
+    function setupLightbox() {
+        const replyBlocks = document.querySelectorAll('.reply-images');
+
+        replyBlocks.forEach(replyEl => {
+            const imageThumbs = Array.from(replyEl.querySelectorAll('.reply-image-thumb'));
+            if (imageThumbs.length === 0) return;
+
+            const items = imageThumbs.map(img => ({
+                url: img.dataset.full,
+                id: img.dataset.replyId
+            }));
+
+            initLightbox();
+
+            // Bind click handlers just for this group
+            imageThumbs.forEach((img, i) => {
+                img.addEventListener('click', () => openLightbox(i, items));
+            });
+        });
+
+        const postImages = document.querySelectorAll('.post-images');
+
+        postImages.forEach(replyEl => {
+            const imageThumbs = Array.from(replyEl.querySelectorAll('.post-image-thumb'));
+            if (imageThumbs.length === 0) return;
+
+            const items = imageThumbs.map(img => ({
+                url: img.dataset.full,
+                id: img.dataset.replyId
+            }));
+
+            // Bind click handlers just for this group
+            imageThumbs.forEach((img, i) => {
+                img.addEventListener('click', () => openLightbox(i, items));
+            });
+        });
+    }
+
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        if (e.target.id === 'replies-section') {
+            setupLightbox();
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setupLightbox();
+    });
+
+</script>
 
 <%- include('new-reply-modal',{trip:currentOrUpcomingTrip}) %>
 

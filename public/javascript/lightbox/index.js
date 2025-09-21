@@ -1,8 +1,7 @@
 let lightboxItems = [];
 let currentIndex = 0;
 
-function initLightbox(items, options = {}) {
-    lightboxItems = items;
+function initLightbox(options = {}) {
     currentIndex = 0;
 
     if (options.customButtons && options.customButtons.length > 0) {
@@ -29,7 +28,10 @@ function initLightbox(items, options = {}) {
     });
 }
 
-function openLightbox(index) {
+function openLightbox(index, items = null) {
+    if (items) {
+        lightboxItems = items;
+    }
     currentIndex = index;
     const item = lightboxItems[currentIndex];
     document.getElementById('lightbox-img').src = item.url;

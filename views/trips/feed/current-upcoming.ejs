@@ -234,8 +234,8 @@
 
             thumbs.forEach((el, i) => {
                 el.addEventListener('click', () => {
-                    initLightbox(items);
-                    openLightbox(i);
+                    initLightbox();
+                    openLightbox(i, items);
                 });
             });
         });

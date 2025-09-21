@@ -191,7 +191,19 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
         FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = ?`,
         [userId, postId]
     );
+
+    // 2. Get associated media
+    await Promise.all(postRows.map(async post => {
+        const [mediaRows] = await req.db.execute(`
+        SELECT id, url, thumbnail_url, width, height
+        FROM media
+        WHERE post_id = ?
+    `, [post.id]);
+        post.media = mediaRows;
+    }));
+
     const post = postRows[0];
+
     const [replies] = await req.db.execute(
         `SELECT pr.*, u.handle, u.avatar_head_file_name,
         EXISTS (SELECT 1 FROM likes_replies WHERE user_id = ? AND reply_id = pr.id) AS liked_by_user,
@@ -213,7 +225,6 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
     `, [reply.id]);
         reply.media = mediaRows;
     }));
-
     post.replies_count = replies.length;
     res.render('trips/feed/post-with-replies', { post, replies });
 });
@@ -380,6 +391,16 @@ router.delete('/feed/:postId/replies/:replyId', async (req, res) => {
      ORDER BY pr.created_at ASC`,
             [postId]
         );
+
+        // 2. Get associated media
+        await Promise.all(replies.map(async reply => {
+            const [mediaRows] = await req.db.execute(`
+        SELECT id, url, thumbnail_url, width, height
+        FROM media
+        WHERE reply_id = ?
+    `, [reply.id]);
+            reply.media = mediaRows;
+        }));
 
         const [posts] = await req.db.execute(
             `SELECT p.*

@@ -1,47 +1,4 @@
-<style>
-    /* Grid Layout */
-    .postcard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    /* Postcard Styles */
-    .postcard {
-        border: 2px solid #ccc;
-        background: white;
-        padding: 8px;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    .postcard:hover {
-        transform: scale(1.03);
-    }
-
-    .postcard.pending,
-    .postcard.error {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100px;
-        font-size: 14px;
-        color: #666;
-
-    }
-
-    .postcard.error {
-        background-color: #ffe6e6;
-        color: red;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .postcard.error button {
-        margin-top: 10px;
-    }
-</style>
+<link rel="stylesheet" href="/style/postcards.css" />
 
 <div id="postcards-list">
 
@@ -129,13 +86,13 @@
         });
 
         // Re-init lightbox with updated items + buttons
-        initLightbox(items, {
+        initLightbox({
             customButtons: [postToFeedButtonItem, deletePostcardButtonItem]
         });
 
         // Rebind click handlers
         postcardElements.forEach((el, i) => {
-            el.addEventListener('click', () => openLightbox(i));
+            el.addEventListener('click', () => openLightbox(i, items));
         });
     }
 

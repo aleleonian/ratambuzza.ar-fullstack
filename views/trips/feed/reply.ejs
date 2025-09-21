@@ -1,4 +1,4 @@
-<div class="card" data-post-id="<%= reply.id %>">
+<div class="card" data-reply-id="<%= reply.id %>">
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
         <img src="/images/avatars/thumbs/<%= reply.avatar_head_file_name %>" width="40" height="40"
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
@@ -13,10 +13,10 @@
     <% } %>
 
     <% if (reply.media && reply.media.length > 0) { %>
-    <div class="post-images" data-post-id="<%= reply.id %>">
+    <div class="reply-images" data-reply-id="<%= reply.id %>">
         <% reply.media.forEach((mediaItem, index) => { %>
         <img src="<%= mediaItem.thumbnail_url %>" data-full="<%= mediaItem.url %>" data-index="<%= index %>"
-            data-post-id="<%= reply.id %>" class="post-image-thumb"
+            data-reply-id="<%= reply.id %>" class="reply-image-thumb"
             style="max-width: 100px; max-height: 100px; margin: 4px; cursor: pointer; border-radius: var(--radius);"
             alt="Post image <%= index + 1 %>" />
         <% }) %>

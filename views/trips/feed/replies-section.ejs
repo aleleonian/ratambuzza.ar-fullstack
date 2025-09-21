@@ -1,0 +1,5 @@
+<% if (replies.length > 0) { %>
+<% replies.forEach(r => { %>
+<%- include('reply', { trip:currentOrUpcomingTrip, post:r }) %>
+<% }) %>
+<% } %>

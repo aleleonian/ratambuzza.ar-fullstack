@@ -15,28 +15,9 @@
 
         <hr>
 
-        <div class="replies-section">
-            <% if (replies.length > 0) { %>
-            <% replies.forEach(r => { %>
-            <%- include('reply', { trip:currentOrUpcomingTrip, post:r }) %>
-            <% }) %>
-            <% } %>
+        <div class="replies-section" id="replies-section">
+            <%- include('replies-section') %>
         </div>
-
-        <!-- <style>
-            #reply-form .button {
-                margin-top: 20px;
-            }
-
-            #reply-form textarea {
-                margin-top: 20px;
-            }
-        </style> -->
-        <!-- <form method="POST" id="reply-form" action="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>/replies">
-            <label for="reply">Escribí una respuesta:</label><br>
-            <textarea name="reply_text" id="reply" rows="5" cols="50" required></textarea><br>
-            <button type="submit" class="button">Responder</button>
-        </form> -->
 
     </main>
 

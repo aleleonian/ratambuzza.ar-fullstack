@@ -29,15 +29,21 @@
     </div>
     <% } %>
 
+    <%
+    const isFeedRoot = currentPath.endsWith('/feed') || currentPath.match(/\/feed\/?$/);
+    %>
+
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
         <%- include('like-button', { trip, post }) %>
 
+        <!-- This will show ONLY on /feed -->
+        <% if (isFeedRoot) { %>
         <%- include('replies-button', { trip, post }) %>
-
+        <% } %>
         <!-- Delete button -->
         <% if (post.user_id === currentUser.id) { %>
-        <%- include('delete-button', { trip, post }) %>
+        <%- include('delete-post-button', { trip, post }) %>
         <% } %>
     </div>
 </div>

@@ -193,7 +193,6 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
      ORDER BY pr.created_at ASC`,
         [postId]
     );
-    console.log('replies->', replies);
     post.replies_count = replies.length;
     res.render('trips/feed/post-with-replies', { post, replies });
 });
@@ -211,15 +210,38 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
         return res.redirect(`/feed/${postId}`);
     }
 
-    await req.db.execute(
-        'INSERT INTO post_replies (post_id, user_id, trip_id, reply_text) VALUES (?, ?, ?, ?)',
-        [postId, user.id, trip.id, reply_text]
-    );
+    try {
+        await req.db.execute(
+            'INSERT INTO post_replies (post_id, user_id, trip_id, reply_text) VALUES (?, ?, ?, ?)',
+            [postId, user.id, trip.id, reply_text]
+        );
 
-    res.setHeader('X-Toast', "Listo, loko.");
-    res.setHeader('X-Toast-Type', 'success');
-    res.redirect(`/trips/${trip.slug}/feed/${postId}`);
+        const [replies] = await req.db.execute(
+            `SELECT pr.*, u.handle, u.avatar_head_file_name
+     FROM post_replies pr 
+     JOIN users u ON pr.user_id = u.id 
+     WHERE pr.post_id = ? 
+     ORDER BY pr.created_at ASC`,
+            [postId]
+        );
+
+        res.setHeader('X-Toast', "Listo, loko.");
+        res.setHeader('X-Toast-Type', 'success');
+        res.render('trips/feed/replies-section', { replies }); // no body needed
+    }
+    catch (error) {
+        res.setHeader('X-Toast', "Hubo un error, che: " + error);
+        res.setHeader('X-Toast-Type', 'error');
+        res.render('trips/feed/replies-section', { replies: [] }); // no body needed
+    }
 });
 
+router.delete('/feed/:postId/replies', requireLogin, async (req, res) => {
+
+    // find that reply
+    // if it exists, delete it. 
+    // return ok
+    // if it does not, return some error.    
+});
 
 module.exports = router;

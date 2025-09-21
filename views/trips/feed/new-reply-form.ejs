@@ -4,8 +4,9 @@
     <button type="submit" class="button">Responder</button>
 </form> -->
 
-<form action="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>/replies" id="reply-form" method="POST"
-    enctype="multipart/form-data" class="card" style="margin-bottom: 24px;">
+<form hx-post="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>/replies" id="reply-form"
+    enctype="multipart/form-data" class="card" style="margin-bottom: 24px;" hx-target="#replies-section"
+    hx-swap="innerHTML">
     <h3>Nueva respuesta</h3>
     <input type="hidden" name="trip_id" value="<%= trip.id %>" />
 
@@ -32,11 +33,4 @@
     }
     document.getElementById('reply-form').addEventListener('submit', submitHandler);
 
-    const replyForm = document.getElementById('reply-form');
-    if (replyForm) {
-        replyForm.addEventListener('submit', () => {
-            // document.getElementById('loading-overlay').classList.remove('hidden');
-            showSpinner();
-        });
-    }
 </script>

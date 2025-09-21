@@ -1,0 +1,35 @@
+<!-- <form method="POST" id="reply-form" action="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>/replies">
+    <label for="reply">Escribí una respuesta:</label><br>
+    <textarea name="reply_text" id="reply" rows="5" cols="50" required></textarea><br>
+    <button type="submit" class="button">Responder</button>
+</form> -->
+
+<form action="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>/replies" id="reply-form" method="POST"
+    enctype="multipart/form-data" class="card" style="margin-bottom: 24px;">
+    <h3>Nueva respuesta</h3>
+    <input type="hidden" name="trip_id" value="<%= trip.id %>" />
+
+    <textarea name="reply_text" id="reply" rows="3" autofocus placeholder="Qué anda pasando?"
+        style="width: 100%;"></textarea>
+
+    <div style="margin-top: 8px;">
+        <label for="image">Imagen:</label>
+        <input type="file" multiple style="margin-top: 10px;" name="media" accept="image/*"
+            onchange="enforceMaxFiles(this, 5)">
+    </div>
+
+    <button type="submit" class="button" style="margin-top: 12px;">Responder</button>
+</form>
+<script>
+    function enforceMaxFiles(input, max) {
+        if (input.files.length > max) {
+            alert(`No se puede subir más de ${max} archivos, loko.`);
+            input.value = ''; // Clear the selection
+        }
+    }
+    //TODO pending this validation
+    function submitHandler(e) {
+    }
+    document.getElementById('reply-form').addEventListener('submit', submitHandler);
+
+</script>

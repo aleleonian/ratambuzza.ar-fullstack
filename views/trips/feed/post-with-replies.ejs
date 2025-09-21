@@ -1,35 +1,52 @@
 <%- include('../../partials/header/feed-current-upcoming') %>
 
-<div class="generic-container">
-    <div class="post-container">
+<div class="layout">
+    <aside class="sidebar left">
+        <!-- e.g. Profile / Trip Switcher -->
+        <%- include('./sidebar-left') %>
+    </aside>
 
-        <%- include('post', { trip:currentOrUpcomingTrip, post }) %>
+    <main class="feed">
+        <div class="post-container">
 
-    </div>
+            <%- include('post', { trip:currentOrUpcomingTrip, post }) %>
 
-    <hr>
-
-    <div class="replies-section">
-        <h3>Respuestas</h3>
-        <% if (replies.length === 0) { %>
-        <p>No hay respuestas todavía.</p>
-        <% } else { %>
-        <% replies.forEach(r => { %>
-        <div class="reply">
-            <strong><%= r.handle %>:</strong> <%= r.content %>
-            <div class="timestamp"><%= r.created_at.toLocaleString() %></div>
         </div>
-        <% }) %>
-        <% } %>
-    </div>
 
-    <hr>
+        <hr>
 
-    <form method="POST" action="/feed/<%= post.id %>/replies">
-        <label for="reply">Escribí una respuesta:</label><br>
-        <textarea name="content" id="reply" rows="3" required></textarea><br>
-        <button type="submit" class="button">Responder</button>
-    </form>
+        <div class="replies-section">
+            <% if (replies.length > 0) { %>
+            <% replies.forEach(r => { %>
+            <%- include('reply', { trip:currentOrUpcomingTrip, post:r }) %>
+            <% }) %>
+            <% } %>
+        </div>
 
+        <!-- <style>
+            #reply-form .button {
+                margin-top: 20px;
+            }
+
+            #reply-form textarea {
+                margin-top: 20px;
+            }
+        </style> -->
+        <!-- <form method="POST" id="reply-form" action="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>/replies">
+            <label for="reply">Escribí una respuesta:</label><br>
+            <textarea name="reply_text" id="reply" rows="5" cols="50" required></textarea><br>
+            <button type="submit" class="button">Responder</button>
+        </form> -->
+
+    </main>
+
+    <aside class="sidebar right">
+        <!-- e.g. Suggested posts / About Ratambuzza -->
+        <%- include('./sidebar-right-reply', { trip:currentOrUpcomingTrip }) %>
+    </aside>
 </div>
+
+<%- include('new-reply-modal',{trip:currentOrUpcomingTrip}) %>
+
+
 <%- include('../../partials/footer') %>

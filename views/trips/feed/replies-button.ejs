@@ -1,0 +1,13 @@
+<!-- FEED Like button (HTMX) -->
+<button class="button secondary-color" onclick="redirectToReplyPage(<%= post.id %>)">
+    <%= post.replies_count %>
+    <%= post.replies_count > 1 ? 'respuestas' : post.replies_count == 1 ? 'respuesta' : 'respuestas'%>
+</button>
+
+<script>
+    function redirectToReplyPage(postId) {
+        if (!location.pathname.endsWith(`/feed/${postId}`)) {
+            location.href = `/trips/<%=currentOrUpcomingTrip.slug%>/feed/${postId}`
+        }
+    }
+</script>

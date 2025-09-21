@@ -218,32 +218,7 @@
     });
 </script>
 
-<div id="postModal" class="modal hidden">
-    <div class="modal-content">
-        <button id="closePostModal" class="modal-close">✖</button>
-        <%- include('./new-post-form', { trip }) %>
-    </div>
-</div>
-<script>
-    // Handle all open buttons
-    document.querySelectorAll('.showPostForm').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            document.getElementById('postModal')?.classList.remove('hidden');
-            document.getElementById('new-post-content')?.focus();
-        });
-    });
-
-    // Handle modal close
-    document.getElementById('closePostModal')?.addEventListener('click', () => {
-        document.getElementById('postModal')?.classList.add('hidden');
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            document.getElementById('postModal')?.classList.add('hidden')
-        }
-    })
-</script>
+<%- include('new-post-modal') %>
 
 <script>
     function setupFeedPostLightbox() {

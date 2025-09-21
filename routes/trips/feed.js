@@ -1,6 +1,7 @@
 const express = require('express');
 const { requireLogin } = require('../../middleware/requireLogin');
 const { POSTS_PER_PAGE } = require('../../lib/config');
+const { uploadMultiple } = require('../../lib/upload');
 
 const router = express.Router({ mergeParams: true });
 
@@ -41,7 +42,8 @@ router.get('/feed', requireLogin, async (req, res, next) => {
         const [posts] = await req.db.execute(
             `SELECT p.*, u.handle, u.avatar_head_file_name,
         EXISTS (SELECT 1 FROM likes_posts WHERE user_id = ? AND post_id = p.id) AS liked_by_user,
-        (SELECT COUNT(*) FROM likes_posts WHERE post_id = p.id) AS like_count
+        (SELECT COUNT(*) FROM likes_posts WHERE post_id = p.id) AS like_count,
+        (SELECT COUNT(*) FROM post_replies WHERE post_id = p.id) AS replies_count
        FROM posts p
        JOIN users u ON u.id = p.user_id
        ${whereClause}
@@ -53,16 +55,6 @@ router.get('/feed', requireLogin, async (req, res, next) => {
         const theresMore = posts.length === POSTS_PER_PAGE;
 
         // 2. Get associated media
-
-        //     posts.forEach(async post => {
-        //         const [mediaRows] = await req.db.execute(`
-        //     SELECT id, url, thumbnail_url, width, height
-        //     FROM media
-        //     WHERE post_id = ?
-        // `, [post.id]);
-        //         post.media = mediaRows;
-        //     });
-
         await Promise.all(posts.map(async post => {
             const [mediaRows] = await req.db.execute(`
         SELECT id, url, thumbnail_url, width, height
@@ -113,6 +105,8 @@ router.get('/feed', requireLogin, async (req, res, next) => {
             // Return only posts HTML template (prevents Russian doll effect)
             return res.render('trips/feed/just-posts', { trip, posts, searchInfo });
         }
+
+        console.log('posts->', posts);
 
         res.render('trips/feed', {
             trips,
@@ -184,7 +178,6 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
 
 // GET single post and its replies
 router.get('/feed/:postId', requireLogin, async (req, res) => {
-    console.log("/feed/:postId")
     const postId = req.params.postId;
     const [postRows] = await req.db.execute(
         'SELECT posts.*, users.handle, users.avatar_head_file_name FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = ?',
@@ -193,37 +186,39 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
     const post = postRows[0];
 
     const [replies] = await req.db.execute(
-        `SELECT pr.*, u.handle 
+        `SELECT pr.*, u.handle, u.avatar_head_file_name
      FROM post_replies pr 
      JOIN users u ON pr.user_id = u.id 
      WHERE pr.post_id = ? 
      ORDER BY pr.created_at ASC`,
         [postId]
     );
-
+    console.log('replies->', replies);
+    post.replies_count = replies.length;
     res.render('trips/feed/post-with-replies', { post, replies });
 });
 
 // POST new reply
-router.post('/feed/:postId/replies', requireLogin, async (req, res) => {
-    const { content } = req.body;
+router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, res) => {
+    console.log("req.body->", req.body);
+    const { reply_text } = req.body;
     const postId = req.params.postId;
     const user = req.session.user;
     const trip = req.trip;
 
-    if (!content.trim()) {
+    if (!reply_text.trim()) {
         res.setHeader('X-Toast', "No podés mandar un reply vacío.");
         res.setHeader('X-Toast-Type', "error");
         return res.redirect(`/feed/${postId}`);
     }
 
     await req.db.execute(
-        'INSERT INTO post_replies (post_id, user_id, trip_id, content) VALUES (?, ?, ?, ?)',
-        [postId, user.id, trip.id, content]
+        'INSERT INTO post_replies (post_id, user_id, trip_id, reply_text) VALUES (?, ?, ?, ?)',
+        [postId, user.id, trip.id, reply_text]
     );
 
-    res.setHeader('X-Toast', "Listo 👍");
-    res.redirect(`/feed/${postId}`);
+    res.setHeader('X-Toast', "Listo, loko.");
+    res.redirect(`/trips/${trip.slug}/feed/${postId}`);
 });
 
 

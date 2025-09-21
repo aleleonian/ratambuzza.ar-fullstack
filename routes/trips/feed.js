@@ -1,7 +1,10 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const sharp = require('sharp');
 const { requireLogin } = require('../../middleware/requireLogin');
 const { POSTS_PER_PAGE } = require('../../lib/config');
-const { uploadMultiple } = require('../../lib/upload');
+const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
 
 const router = express.Router({ mergeParams: true });
 
@@ -200,6 +203,17 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
      ORDER BY pr.created_at ASC`,
         [userId, postId]
     );
+
+    // 2. Get associated media
+    await Promise.all(replies.map(async reply => {
+        const [mediaRows] = await req.db.execute(`
+        SELECT id, url, thumbnail_url, width, height
+        FROM media
+        WHERE reply_id = ?
+    `, [reply.id]);
+        reply.media = mediaRows;
+    }));
+
     post.replies_count = replies.length;
     res.render('trips/feed/post-with-replies', { post, replies });
 });
@@ -210,6 +224,9 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
     const postId = req.params.postId;
     const user = req.session.user;
     const trip = req.trip;
+    const width = 1600;
+    const height = 1600;
+    const quality = 80;
 
     if (!reply_text.trim()) {
         res.setHeader('X-Toast', "No podés mandar un reply vacío.");
@@ -218,10 +235,44 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
     }
 
     try {
-        await req.db.execute(
+        const [insertResult] = await req.db.execute(
             'INSERT INTO post_replies (post_id, user_id, trip_id, reply_text) VALUES (?, ?, ?, ?)',
             [postId, user.id, trip.id, reply_text]
         );
+        const replyId = insertResult.insertId;
+
+        const mediaInsertions = req.files.map(async (file) => {
+
+            if (!fs.existsSync(file.path)) {
+                console.error('❌ File does not exist:', file.path);
+            }
+
+            // let's resize files and generate thumbs
+
+            const resizedName = 'resized-' + file.filename;
+            const resizedUrl = "/uploads/" + resizedName;
+
+            const originalPath = path.join(uploadDir, file.filename);
+            const outputPath = path.join(uploadDir, resizedName);
+
+            await sharp(file.path)
+                .rotate()
+                .resize({ width, height, fit: 'inside' })
+                .jpeg({ quality })
+                .toFile(outputPath);
+
+            const thumbName = `thumb-${file.filename}`;
+            const thumbnailUrl = await createThumbnail(file.path, thumbName);
+
+            fs.unlinkSync(originalPath);
+
+            return req.db.execute(
+                'INSERT INTO media (reply_id, trip_id, user_id, url, thumbnail_url, width, height) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [replyId, trip.id, user.id, resizedUrl, thumbnailUrl, width, height]
+            );
+        });
+
+        await Promise.all(mediaInsertions);
 
         const [replies] = await req.db.execute(
             `SELECT pr.*, u.handle, u.avatar_head_file_name
@@ -232,16 +283,37 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
             [postId]
         );
 
+
+        // 2. Get associated media
+        await Promise.all(replies.map(async reply => {
+            const [mediaRows] = await req.db.execute(`
+        SELECT id, url, thumbnail_url, width, height
+        FROM media
+        WHERE reply_id = ?
+    `, [reply.id]);
+            reply.media = mediaRows;
+        }));
+
         const [posts] = await req.db.execute(`SELECT * FROM posts WHERE id = ?`, [postId]);
 
         res.setHeader('X-Toast', "Listo, loko.");
         res.setHeader('X-Toast-Type', 'success');
+        console.log('replies->', replies);
         res.render('trips/feed/replies-section', { replies, post: posts[0] }); // no body needed
     }
     catch (error) {
+        const [replies] = await req.db.execute(
+            `SELECT pr.*, u.handle, u.avatar_head_file_name
+     FROM post_replies pr 
+     JOIN users u ON pr.user_id = u.id 
+     WHERE pr.post_id = ? 
+     ORDER BY pr.created_at ASC`,
+            [postId]
+        );
+
         res.setHeader('X-Toast', "Hubo un error, che: " + error);
         res.setHeader('X-Toast-Type', 'error');
-        res.render('trips/feed/replies-section', { replies: [] }); // no body needed
+        res.render('trips/feed/replies-section', { replies }); // no body needed
     }
 });
 
@@ -249,9 +321,6 @@ router.delete('/feed/:postId/replies/:replyId', async (req, res) => {
     // router.delete('/feed/:postId/replies', requireLogin, async (req, res) => {
     const { postId, replyId } = req.params;
     const user = req.session.user;
-    const trip = req.trip;
-
-    console.log('replyId->', replyId);
 
     // find that reply
     // if it exists, delete it. 
@@ -261,11 +330,11 @@ router.delete('/feed/:postId/replies/:replyId', async (req, res) => {
     try {
         let [reply] = await req.db.execute(
             `SELECT pr.*
-     FROM post_replies pr 
-     WHERE pr.post_id = ? 
-     AND pr.user_id = ?
-     AND pr.id = ?
-     `,
+            FROM post_replies pr 
+            WHERE pr.post_id = ? 
+            AND pr.user_id = ?
+            AND pr.id = ?
+            `,
             [postId, user.id, replyId]
         );
 
@@ -274,13 +343,32 @@ router.delete('/feed/:postId/replies/:replyId', async (req, res) => {
             throw new Error('Ud. no puede borrar eso, señor');
         }
 
+        // gotta read from the media table and see if there's anything to delete.
+        // VOY POR AQUI
+        let [media] = await req.db.execute(`SELECT url, thumbnail_url FROM media where reply_id = ?`, [replyId]);
+
+        console.log('media->', media);
+
+        const mediaOperations = media.map(async image => {
+            const uploadPath = path.join(process.cwd(), 'public', image.url);
+            const thumbPath = path.join(process.cwd(), 'public', image.thumbnail_url);
+            if (fs.existsSync(uploadPath)) {
+                console.log('deleting this->', uploadPath);
+                console.log('deleting this->', thumbPath);
+                fs.unlinkSync(uploadPath);
+            }
+            if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+        })
+
+        await Promise.all(mediaOperations);
+
         await req.db.execute(
             `DELETE
-     FROM post_replies pr 
-     WHERE pr.post_id = ? 
-     AND pr.user_id = ?
-     AND pr.id = ?
-     `,
+            FROM post_replies pr 
+            WHERE pr.post_id = ? 
+            AND pr.user_id = ?
+            AND pr.id = ?
+            `,
             [postId, user.id, replyId]
         );
 

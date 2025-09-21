@@ -78,8 +78,6 @@ router.post('/posts/new', requireLogin, uploadMultiple, async (req, res, next) =
     post.media = mediaRows;
     res.setHeader('X-Toast', 'Se posteó.');
     res.setHeader('X-Toast-Type', 'success');
-    console.log('trip->', trip);
-    console.log('post->', post);
     return res.render('trips/feed/post', { trip, post });
   } catch (e) { next(e); }
 });

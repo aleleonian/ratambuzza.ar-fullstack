@@ -1,8 +1,4 @@
 <!-- Like button (HTMX) -->
-<% console.log("trip->" + JSON.stringify(trip)) %>
-<% console.log("post->" + JSON.stringify(post)) %>
-<% console.log("reply->" + JSON.stringify(reply)) %>
-
 <form hx-post="/trips/<%= trip.slug %>/replies/likes/toggle"
     hx-vals='{"post_id": <%= post.id %>,"reply_id": <%= reply.id %>}' hx-target="this" hx-swap="outerHTML"
     style="display:inline">

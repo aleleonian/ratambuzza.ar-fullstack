@@ -29,7 +29,8 @@
         document.body.addEventListener('htmx:afterSwap', (evt) => {
             // Handle post addition - this fires AFTER the DOM is updated
             if (evt.target.id === 'replies-section') {
-                document.getElementById('replyModal')?.classList.add('hidden')
+                document.getElementById('replyModal')?.classList.add('hidden');
+                document.getElementById('reply-text').value = "";
             }
         });
     });

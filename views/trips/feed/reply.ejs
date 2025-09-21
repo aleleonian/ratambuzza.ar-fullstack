@@ -25,7 +25,7 @@
 
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
-        <%- include('like-button', { trip, post:reply }) %>
+        <%- include('like-button-reply', { trip, post, reply }) %>
 
         <!-- Delete button -->
         <% if (reply.user_id === currentUser.id) { %>

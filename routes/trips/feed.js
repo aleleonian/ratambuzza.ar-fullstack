@@ -190,12 +190,15 @@ router.get('/feed/:postId', requireLogin, async (req, res) => {
     );
     const post = postRows[0];
     const [replies] = await req.db.execute(
-        `SELECT pr.*, u.handle, u.avatar_head_file_name
-     FROM post_replies pr 
+        `SELECT pr.*, u.handle, u.avatar_head_file_name,
+        EXISTS (SELECT 1 FROM likes_replies WHERE user_id = ? AND reply_id = pr.id) AS liked_by_user,
+        (SELECT COUNT(*) FROM likes_replies WHERE reply_id = pr.id) AS like_count
+
+     FROM post_replies pr
      JOIN users u ON pr.user_id = u.id 
      WHERE pr.post_id = ? 
      ORDER BY pr.created_at ASC`,
-        [postId]
+        [userId, postId]
     );
     post.replies_count = replies.length;
     res.render('trips/feed/post-with-replies', { post, replies });
@@ -229,9 +232,11 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
             [postId]
         );
 
+        const [posts] = await req.db.execute(`SELECT * FROM posts WHERE id = ?`, [postId]);
+
         res.setHeader('X-Toast', "Listo, loko.");
         res.setHeader('X-Toast-Type', 'success');
-        res.render('trips/feed/replies-section', { replies }); // no body needed
+        res.render('trips/feed/replies-section', { replies, post: posts[0] }); // no body needed
     }
     catch (error) {
         res.setHeader('X-Toast', "Hubo un error, che: " + error);

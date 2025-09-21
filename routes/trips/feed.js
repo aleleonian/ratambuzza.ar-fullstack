@@ -178,13 +178,17 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
 
 // GET single post and its replies
 router.get('/feed/:postId', requireLogin, async (req, res) => {
+    const userId = req.session.user.id;
+
     const postId = req.params.postId;
     const [postRows] = await req.db.execute(
-        'SELECT posts.*, users.handle, users.avatar_head_file_name FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = ?',
-        [postId]
+        `SELECT posts.*, users.handle, users.avatar_head_file_name,
+        EXISTS (SELECT 1 FROM likes_posts WHERE user_id = ? AND post_id = posts.id) AS liked_by_user,
+        (SELECT COUNT(*) FROM likes_posts WHERE post_id = posts.id) AS like_count
+        FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = ?`,
+        [userId, postId]
     );
     const post = postRows[0];
-
     const [replies] = await req.db.execute(
         `SELECT pr.*, u.handle, u.avatar_head_file_name
      FROM post_replies pr 
@@ -314,7 +318,7 @@ router.delete('/feed/:postId/replies/:replyId', async (req, res) => {
        `,
             [postId]
         );
-        
+
         const post = posts[0];
         res.setHeader('X-Toast', "Hubo un error: " + error);
         res.setHeader('X-Toast-Type', 'error');

@@ -10,6 +10,9 @@ router.post('/posts/likes/toggle', requireLogin, async (req, res, next) => {
     const { post_id } = req.body;
     const trip = req.trip;
 
+    console.log('userId->', userId);
+    console.log('post_id->', post_id);
+    
     const [[existing]] = await req.db.execute(
       'SELECT id FROM likes_posts WHERE user_id = ? AND post_id = ?', [userId, post_id]
     );

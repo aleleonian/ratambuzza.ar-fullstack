@@ -19,6 +19,8 @@ router.get('/feed', requireLogin, async (req, res, next) => {
         // Extract search parameters from query string
         // - search: text to search within post content (using LIKE query)
         // - user: specific user ID to filter posts by
+        console.log("req.query.search->", req.query.search);
+
         const search = req.query.search ? req.query.search.trim() : '';
         const userFilter = req.query.user ? parseInt(req.query.user, 10) : null;
 
@@ -129,6 +131,8 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
     try {
         const userId = req.session.user.id;
         const trip = req.trip;
+
+        console.log("req.query.search->", req.query.search);
 
         // Get search parameters (same as main feed route)
         const search = req.query.search ? req.query.search.trim() : '';

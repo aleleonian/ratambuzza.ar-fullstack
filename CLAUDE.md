@@ -27,6 +27,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - Post creation with image uploads via HTMX
 - Infinite scroll pagination using Intersection Observer API
 - Avatar system with thumbnails
+- Feed search functionality with text search and user filtering via HTMX
 - Media gallery system with multiple file uploads, tagging, and filtering
 - Lightbox viewing with metadata display
 - Like system for media items
@@ -38,7 +39,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Authentication:** `routes/auth.js` - Handle-based login with secure redirects, auto-generated avatar filenames
 - **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting (feed, posts, likes, crew, media, postcards)
 - **Media System:** `routes/trips/media.js` - Gallery system with multiple upload, tagging, filtering, and like functionality
-- **Feed System:** `routes/trips/feed.js` - Post creation and infinite scroll for trip feeds
+- **Feed System:** `routes/trips/feed.js` - Post creation, infinite scroll, and search functionality for trip feeds with HTMX-powered real-time filtering
 - **Postcards System:** `routes/trips/postcards.js` - AI postcard generation, job management, and posting to feed
 - **Background Worker:** `queue/postcardWorker.js` - Processes postcard generation jobs using Google Gemini AI
 - **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
@@ -48,7 +49,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Slug-based URLs:** `/trips/:slug/feed` instead of `/feed/:id`
 - **Router param middleware:** `router.param('slug')` handles trip lookup by slug
 - **Post creation:** `/trips/:slug/posts/new` with HTMX integration
-- **Infinite scroll:** `/trips/:slug/feed/more` for pagination
+- **Infinite scroll:** `/trips/:slug/feed/more` for pagination  
+- **Feed search:** `/trips/:slug/feed?search=text&user=id` with HTMX detection for partial template rendering
 - **Media gallery:** `/trips/:slug/gallery` with filtering, tagging, and lightbox functionality
 - **Media uploads:** `/trips/:slug/upload` with multiple file support and image processing
 - **Postcards:** `/trips/:slug/postcards` with AI generation, job status, and posting to feed
@@ -70,7 +72,10 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **users:** id, email, password_hash, handle, avatar_file_name, avatar_head_file_name
 - **trips:** id, name, slug, start_date
 - **posts:** id, user_id, trip_id, content, image_filename, created_at
+- **post_replies:** id, post_id, user_id, trip_id, reply_text, created_at
 - **likes:** id, user_id, post_id (if still active)
+- **likes_posts:** user_id, post_id (post like system)
+- **likes_replies:** user_id, reply_id (reply like system)
 - **media:** id, trip_id, user_id, url, thumbnail_url, width, height, type, created_at
 - **tags:** id, name (for media tagging)
 - **media_tags:** media_id, tag_id (many-to-many relationship)
@@ -125,6 +130,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
 - **AI postcard generation:** Background worker processes jobs using Google Gemini with 16-bit pixel art prompts
 - **Job processing:** Queue system with pending/in-progress/completed status tracking
+- **Feed search implementation:** HTMX request detection via `hx-request: true` header prevents "Russian doll" nested layouts by returning partial templates (`views/trips/feed/just-posts.ejs`) for search results instead of full page layouts
 - **Test environment stubbing:** Postcard worker uses static test image and updates all postcards to "done" status when `NODE_ENV=test`
 - **Database abstraction:** Centralized DB connection pool in `lib/db.js` using `mysql2/promise`
 - **Test setup:** Global setup seeds 4 test users, creates trips with member associations, and handles authenticated session storage

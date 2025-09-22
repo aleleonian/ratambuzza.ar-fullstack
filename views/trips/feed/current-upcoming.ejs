@@ -18,7 +18,7 @@
 
             <!-- Hidden search form -->
             <div id="search-form-wrapper" class="hidden">
-                <form id="search-form" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container"
+                <form id="search-form-mobile" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container"
                     hx-swap="innerHTML" hx-trigger="submit" hx-indicator="#search-loading"
                     style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
 
@@ -74,7 +74,7 @@
         <div style="text-align: center; padding: 20px;">
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
             <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more"
-                hx-include="#exclude-ids, #search-form" hx-target="#posts-container" hx-swap="beforeend" class="button">
+                hx-include="#exclude-ids, #search-form-mobile" hx-target="#posts-container" hx-swap="beforeend" class="button">
                 Cargar más posteos
             </button>
         </div>
@@ -160,7 +160,7 @@
 
     // Handle search form functionality
     document.addEventListener('DOMContentLoaded', () => {
-        const searchForm = document.getElementById('search-form');
+        const searchForm = document.getElementById('search-form-mobile');
         const clearFiltersBtn = document.getElementById('clear-filters');
         const clearFiltersMobileBtn = document.getElementById('clear-filters-mobile');
         const searchText = document.getElementById('search-text');

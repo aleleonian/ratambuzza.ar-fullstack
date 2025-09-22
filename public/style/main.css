@@ -288,7 +288,16 @@ footer.footer {
 
 .post-images {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 6px;
+}
+
+.post-image-thumb {
+  max-width: 100px;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--radius);
 }
 
 .reply-images {

@@ -16,14 +16,14 @@
         if (confirm('Posteo esta imagen al feed?')) {
             const currentItem = lightboxItems[currentIndex];
             let options = { target: '#dummy-target', swap: 'none', values: { postcardId: currentItem.id } };
-            let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/post`;
+            let url = `/trips/<%-currentOrUpcomingTrip.slug%>/playground/postcards/post`;
             await window.htmxAjaxPromise('POST', url, options);
         }
     }
 
     async function deletePostcard(postcardId) {
         let options = { target: `#postcards-grid`, swap: 'innerHTML' };
-        let url = `/trips/<%-currentOrUpcomingTrip.slug%>/postcards/${postcardId}`;
+        let url = `/trips/<%-currentOrUpcomingTrip.slug%>/playground/postcards/${postcardId}`;
         await window.htmxAjaxPromise('DELETE', url, options);
         return true;
     }

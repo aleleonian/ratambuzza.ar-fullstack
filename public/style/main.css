@@ -145,7 +145,9 @@ footer.footer {
 }
 
 .button {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--fg);
   color: var(--bg);
   padding: 10px 16px;
@@ -156,6 +158,9 @@ footer.footer {
   font-family: var(--font);
   cursor: pointer;
   width: fit-content;
+  white-space: nowrap;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .button-smaller {
@@ -282,8 +287,10 @@ footer.footer {
 
 .post-botonera {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  margin-top: 20px;
+  gap: 10px;
 }
 
 .post-images {
@@ -527,6 +534,10 @@ h5 {
   .main-nav a {
     font-size: 14px;
     margin-left: 5px;
+  }
+
+  .post-botonera {
+    gap: 5px;
   }
 }
 

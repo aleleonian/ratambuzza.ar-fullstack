@@ -2,14 +2,11 @@
 <% if (typeof searchInfo !== 'undefined' && searchInfo.hasSearch) { %>
 <div
     style="background: var(--bg); padding: 10px; margin-bottom: 15px; border-radius: 4px; border-left: 3px solid var(--primary);">
-    <strong>🔍 Resultados: </strong> - <%= searchInfo.resultCount %>
+    <strong>🔍 Resultados: </strong><%= searchInfo.resultCount %>
     post<%= searchInfo.resultCount !== 1 ? 's' : '' %> encontrado<%= searchInfo.resultCount !== 1 ? 's' : '' %>
-    <!-- <% if (searchInfo.searchText) { %>
-    <br><small>Texto: "<%= searchInfo.searchText %>"</small>
+    <% if (searchInfo.showingAllResults) { %>
+    <br><small style="color: #666;">Mostrando todos los resultados</small>
     <% } %>
-    <% if (searchInfo.hasUserFilter) { %>
-    <br><small>(Búsqueda por autor)</small>
-    <% } %> -->
 </div>
 <% } %>
 

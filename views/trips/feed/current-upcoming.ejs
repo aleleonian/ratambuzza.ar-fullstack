@@ -71,7 +71,7 @@
 
         <!-- Post ID-based pagination -->
         <% if (theresMore) { %>
-        <div style="text-align: center; padding: 20px;">
+        <div id="load-more-section" style="text-align: center; padding: 20px;" <%= (typeof hasActiveFilters !== 'undefined' && hasActiveFilters) ? 'class="hidden"' : '' %>>
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
             <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more"
                 hx-include="#exclude-ids, #search-form-mobile" hx-target="#posts-container" hx-swap="beforeend" class="button">
@@ -187,34 +187,49 @@
             window.location.reload();
         });
 
+        // Set initial load more button visibility on page load
+        updateLoadMoreVisibility();
+
         // Update load more button when search is performed
         // Added: 2025-09-16 - Handles pagination during filtered results
         // When filters are active, hide the "Load More" button since we're showing search results
         // When no filters, restore normal infinite scroll pagination
         document.body.addEventListener('htmx:afterSwap', (evt) => {
             if (evt.target.id === 'posts-container') {
-                // Update the load more button to include current search parameters
-                const loadMoreBtn = document.getElementById('load-more-btn');
-                if (loadMoreBtn && searchForm) {
-                    const formData = new FormData(searchForm);
-                    const searchParams = new URLSearchParams(formData);
-
-                    // Check if we have any active filters
-                    const hasActiveFilters = Array.from(formData.values()).some(value => value.trim() !== '');
-
-                    if (hasActiveFilters) {
-                        // When filtering, the load more button should be hidden or disabled
-                        // since we're showing search results, not paginated feed
-                        loadMoreBtn.style.display = 'none';
-                    } else {
-                        // When no filters, restore normal pagination
-                        loadMoreBtn.style.display = 'block';
-                        const baseUrl = `/trips/<%= trip.slug %>/feed/more`;
-                        loadMoreBtn.setAttribute('hx-get', baseUrl);
-                    }
-                }
+                updateLoadMoreVisibility();
             }
         });
+
+        // Function to check all search forms and update load more button visibility
+        function updateLoadMoreVisibility() {
+            const loadMoreSection = document.getElementById('load-more-section');
+            if (!loadMoreSection) return;
+
+            // Check both mobile and desktop search forms for active filters
+            const mobileForm = document.getElementById('search-form-mobile');
+            const desktopForm = document.getElementById('search-form'); // from sidebar
+
+            let hasActiveFilters = false;
+
+            // Check mobile form
+            if (mobileForm) {
+                const mobileFormData = new FormData(mobileForm);
+                hasActiveFilters = hasActiveFilters || Array.from(mobileFormData.values()).some(value => value.trim() !== '');
+            }
+
+            // Check desktop form
+            if (desktopForm) {
+                const desktopFormData = new FormData(desktopForm);
+                hasActiveFilters = hasActiveFilters || Array.from(desktopFormData.values()).some(value => value.trim() !== '');
+            }
+
+            // Update visibility
+            if (hasActiveFilters) {
+                loadMoreSection.style.display = 'none';
+            } else {
+                loadMoreSection.style.display = 'block';
+            }
+        }
     });
 </script>
 

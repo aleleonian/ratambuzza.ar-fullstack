@@ -5,7 +5,7 @@ const sharp = require('sharp');
 const { requireLogin } = require('../../middleware/requireLogin');
 const { POSTS_PER_PAGE } = require('../../lib/config');
 const { uploadDir, createThumbnail, uploadMultiple } = require('../../lib/upload');
-const { buildFeedWhereClause, getFeedSelectColumns, getFeedPosts } = require('../../lib/feedQuery');
+const { getFeedPosts } = require('../../lib/feedQuery');
 
 const router = express.Router({ mergeParams: true });
 
@@ -135,15 +135,21 @@ router.get('/feed', requireLogin, async (req, res, next) => {
         const search = req.query.search ? req.query.search.trim() : '';
         const userFilter = req.query.user ? parseInt(req.query.user, 10) : null;
 
+        // For search results, show ALL matching posts (no pagination)
+        // For normal feed browsing, use pagination
+        const hasActiveFilters = search || userFilter;
+        const limit = hasActiveFilters ? null : POSTS_PER_PAGE;
+
         const posts = await getFeedPosts(req.db, {
             tripId: trip.id,
             userId,
             search,
             userFilter,
-            limit: POSTS_PER_PAGE
+            limit
         });
 
-        const theresMore = posts.length === POSTS_PER_PAGE;
+        // Only show "Load More" for normal feed browsing (no active filters)
+        const theresMore = !hasActiveFilters && posts.length === POSTS_PER_PAGE;
 
         const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
 
@@ -162,11 +168,12 @@ router.get('/feed', requireLogin, async (req, res, next) => {
                 return res.send('<div style="text-align: center; padding: 20px; color: #666;">No se encontraron posts que coincidan con tu búsqueda.</div>');
             }
 
-            const searchInfo = (search || userFilter) ? {
+            const searchInfo = hasActiveFilters ? {
                 hasSearch: true,
                 searchText: search,
                 hasUserFilter: !!userFilter,
-                resultCount: posts.length
+                resultCount: posts.length,
+                showingAllResults: true
             } : { hasSearch: false };
 
             return res.render('trips/feed/just-posts', { trip, posts, searchInfo });
@@ -182,7 +189,8 @@ router.get('/feed', requireLogin, async (req, res, next) => {
             POSTS_PER_PAGE,
             search,
             userFilter,
-            tripUsers
+            tripUsers,
+            hasActiveFilters
         });
 
     } catch (e) {

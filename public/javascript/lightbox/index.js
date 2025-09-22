@@ -62,7 +62,6 @@ function openLightbox(index, items = null) {
     }
     currentIndex = index;
     const item = lightboxItems[currentIndex];
-    // document.getElementById('lightbox-img').src = item.url;
     showLightboxImage(item);
     document.getElementById('lightbox-download').href = item.url;
     document.getElementById('lightbox').classList.remove('hidden');

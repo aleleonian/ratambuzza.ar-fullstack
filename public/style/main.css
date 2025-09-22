@@ -286,6 +286,16 @@ footer.footer {
   align-items: center;
 }
 
+.post-images {
+  display: flex;
+  justify-content: center;
+}
+
+.reply-images {
+  display: flex;
+  justify-content: center;
+}
+
 /* feed colums */
 .layout {
   display: grid;

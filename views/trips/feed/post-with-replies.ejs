@@ -3,10 +3,17 @@
 <div class="layout">
     <aside class="sidebar left">
         <!-- e.g. Profile / Trip Switcher -->
-        <%- include('./sidebar-left') %>
+        <%- include('./sidebar-left-reply') %>
     </aside>
 
     <main class="feed">
+
+        <div class="mobile-only">
+            <div id="post-controls">
+                <button class="button showPostForm" style="margin-bottom: 20px; width:100%">+ Nueva Respuesta</button>
+            </div>
+        </div>
+
         <div class="post-container">
 
             <%- include('post', { trip:currentOrUpcomingTrip, post }) %>

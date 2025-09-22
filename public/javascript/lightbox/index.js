@@ -28,13 +28,42 @@ function initLightbox(options = {}) {
     });
 }
 
+function showLightboxImage(item) {
+    const img = document.getElementById('lightbox-img');
+
+    // Show spinner immediately
+    showSpinner();
+    img.classList.add('hidden');
+
+    // Remove previous load/error handlers just in case
+    img.onload = null;
+    img.onerror = null;
+
+    // Add new handlers
+    img.onload = () => {
+        hideSpinner();
+        img.classList.remove('hidden');
+    };
+
+    img.onerror = () => {
+        hideSpinner();
+        console.error("Failed to load image:", item.url);
+        // optionally show a placeholder or error state
+    };
+
+    // Trigger loading
+    img.src = item.url;
+}
+
+
 function openLightbox(index, items = null) {
     if (items) {
         lightboxItems = items;
     }
     currentIndex = index;
     const item = lightboxItems[currentIndex];
-    document.getElementById('lightbox-img').src = item.url;
+    // document.getElementById('lightbox-img').src = item.url;
+    showLightboxImage(item);
     document.getElementById('lightbox-download').href = item.url;
     document.getElementById('lightbox').classList.remove('hidden');
 }

@@ -3,7 +3,7 @@
         <img src="/images/avatars/thumbs/<%= reply.avatar_head_file_name %>" width="40" height="40"
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
         <strong>@<%= reply.handle %></strong>
-        <span style="margin-left:auto; font-size: 10px; color: var(--muted);">
+        <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right;">
             <%= new Date(reply.created_at).toLocaleString() %>
         </span>
     </div>

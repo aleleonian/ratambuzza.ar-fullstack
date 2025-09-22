@@ -3,7 +3,7 @@
         <img src="/images/avatars/thumbs/<%= post.avatar_head_file_name %>" width="40" height="40"
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
         <strong>@<%= post.handle %></strong>
-        <span style="margin-left:auto; font-size: 10px; color: var(--muted);">
+        <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right">
             <% if(currentPath !== `/trips/${currentOrUpcomingTrip.slug}/feed/${post.id}`) {%>
             <a href="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>">
                 <%= new Date(post.created_at).toLocaleString() %>

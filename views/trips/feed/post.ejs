@@ -3,8 +3,14 @@
         <img src="/images/avatars/thumbs/<%= post.avatar_head_file_name %>" width="40" height="40"
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
         <strong>@<%= post.handle %></strong>
-        <span style="margin-left:auto; font-size: 10px; color: var(--muted);">
+        <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right">
+            <% if(currentPath !== `/trips/${currentOrUpcomingTrip.slug}/feed/${post.id}`) {%>
+            <a href="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>">
+                <%= new Date(post.created_at).toLocaleString() %>
+            </a>
+            <% } else {%>
             <%= new Date(post.created_at).toLocaleString() %>
+            <% } %>
         </span>
     </div>
 
@@ -23,12 +29,25 @@
     </div>
     <% } %>
 
+    <%
+    const isFeedRoot = currentPath.endsWith('/feed') || currentPath.endsWith('/feed/more')  || currentPath.match(/\/feed\/?$/);
+    %>
+
     <div class="post-botonera">
         <!-- Like button (HTMX) -->
         <%- include('like-button', { trip, post }) %>
+
+        <!-- This will show ONLY on /feed -->
+
+        <% console.log("currentPath:" + currentPath) %>
+        <% console.log("isFeedRoot:" + isFeedRoot) %>
+
+        <% if (isFeedRoot) { %>
+        <%- include('replies-button', { trip, post }) %>
+        <% } %>
         <!-- Delete button -->
-        <% if (post.user_id === currentUser.id) { %>
-        <%- include('delete-button', { trip, post }) %>
+        <% if (post.user_id === currentUser.id || currentUser.role =='admin') { %>
+        <%- include('delete-post-button', { trip, post }) %>
         <% } %>
     </div>
 </div>

@@ -1,8 +1,8 @@
-<!-- FEED Like button (HTMX) -->
-<form hx-post="/trips/<%= trip.slug %>/posts/likes/toggle" hx-vals='{"post_id": <%= post.id %>}' hx-target="this" hx-swap="outerHTML"
+<!-- Like button (HTMX) -->
+<form hx-post="/trips/<%= trip.slug %>/feed/likes/toggle" hx-vals='{"post_id": <%= post.id %>}' hx-target="this" hx-swap="outerHTML"
     style="display:inline">
-    <button class="button button-smaller">
-        <% if (post.liked_by_user) { %>❤️ Liked<% } else { %>🤍 Like<% } %>
-        (<%= post.like_count || 0 %>)
+    <button class="button" title="Like">
+        <% if (post.liked_by_user) { %>❤️<% } else { %>🤍<% } %>
+        <%= post.like_count || 0 %>
     </button>
 </form>

@@ -1,12 +1,11 @@
 <!-- Search Results Header -->
 <% if (typeof searchInfo !== 'undefined' && searchInfo.hasSearch) { %>
-<div style="background: #f0f8ff; padding: 10px; margin-bottom: 15px; border-radius: 4px; border-left: 3px solid var(--primary);">
-    <strong>🔍 Resultados de búsqueda</strong> - <%= searchInfo.resultCount %> post<%= searchInfo.resultCount !== 1 ? 's' : '' %> encontrado<%= searchInfo.resultCount !== 1 ? 's' : '' %>
-    <% if (searchInfo.searchText) { %>
-        <br><small>Texto: "<%= searchInfo.searchText %>"</small>
-    <% } %>
-    <% if (searchInfo.hasUserFilter) { %>
-        <br><small>Usuario filtrado</small>
+<div
+    style="background: var(--bg); padding: 10px; margin-bottom: 15px; border-radius: 4px; border-left: 3px solid var(--primary);">
+    <strong>🔍 Resultados: </strong><%= searchInfo.resultCount %>
+    post<%= searchInfo.resultCount !== 1 ? 's' : '' %> encontrado<%= searchInfo.resultCount !== 1 ? 's' : '' %>
+    <% if (searchInfo.showingAllResults) { %>
+    <br><small style="color: #666;">Mostrando todos los resultados</small>
     <% } %>
 </div>
 <% } %>

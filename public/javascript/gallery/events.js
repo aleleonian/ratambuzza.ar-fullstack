@@ -121,6 +121,7 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
 // related to tags-updated
 // htmx:afterSettle is the safest place to touch the DOM after a swap. It guarantees:
 document.body.addEventListener('htmx:afterSettle', (evt) => {
+
     if (evt.target.id === 'filter-pills') {
         if (window.galleryState.filterDivState) {
             console.log('Restoring active pills:', window.galleryState.selectedTagId, window.galleryState.selectedAuthor, window.galleryState.selectedSortCriteria);

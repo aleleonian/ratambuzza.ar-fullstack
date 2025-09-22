@@ -6,7 +6,7 @@ const posts = require('./posts');
 const likes = require('./likes');
 const crew = require('./crew');
 const media = require('./media');
-const postcards = require('./postcards');
+const playground = require('./playground');
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ router.use('/:slug', posts);  // /trips/:slug/posts/...
 router.use('/:slug', likes);  // /trips/:slug/likes/...
 router.use('/:slug', crew);  // /trips/:slug/likes/...
 router.use('/:slug', media);
-router.use('/:slug', postcards);
+router.use('/:slug', playground);
 
 // Default: /trips/:slug → redirect to feed
 router.get('/:slug', (req, res) => {

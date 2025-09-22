@@ -1,0 +1,35 @@
+<div class="card" data-reply-id="<%= reply.id %>">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <img src="/images/avatars/thumbs/<%= reply.avatar_head_file_name %>" width="40" height="40"
+            style="border-radius: 50%; object-fit: cover;" alt="avatar" />
+        <strong>@<%= reply.handle %></strong>
+        <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right;">
+            <%= new Date(reply.created_at).toLocaleString() %>
+        </span>
+    </div>
+
+    <% if (reply.reply_text) { %>
+    <p><%= reply.reply_text %></p>
+    <% } %>
+
+    <% if (reply.media && reply.media.length > 0) { %>
+    <div class="reply-images" data-reply-id="<%= reply.id %>">
+        <% reply.media.forEach((mediaItem, index) => { %>
+        <img src="<%= mediaItem.thumbnail_url %>" data-full="<%= mediaItem.url %>" data-index="<%= index %>"
+            data-reply-id="<%= reply.id %>" class="reply-image-thumb"
+            style="max-width: 100px; max-height: 100px; margin: 4px; cursor: pointer; border-radius: var(--radius);"
+            alt="Post image <%= index + 1 %>" />
+        <% }) %>
+    </div>
+    <% } %>
+
+    <div class="post-botonera">
+        <!-- Like button (HTMX) -->
+        <%- include('like-button-reply', { trip, post, reply }) %>
+
+        <!-- Delete button -->
+        <% if (reply.user_id === currentUser.id ||  currentUser.role =='admin') { %>
+        <%- include('delete-reply-button', { trip, reply, post }) %>
+        <% } %>
+    </div>
+</div>

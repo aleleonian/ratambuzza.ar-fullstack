@@ -32,7 +32,7 @@ test.describe.skip('Postcards Generation', () => {
         await page.waitForTimeout(1000);
 
         // Verify submission was successful (look for pending status or success message)
-        await expect(page.locator('text=Se queueó tu job')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('text=Me pongo a laburar')).toBeVisible({ timeout: 5000 });
 
         // Since this is a background job that takes time to process,
         // we'll simulate waiting and then check if the postcard appears

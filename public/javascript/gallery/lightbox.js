@@ -3,8 +3,8 @@ window.currentIndexLightbox = -1;
 window.enableLightboxKeyboardNavigation = true;
 
 window.openLightbox = async function (index) {
-    const lightboxDiv = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
+    // const lightboxDiv = document.getElementById('lightbox');
+    // const lightboxImg = document.getElementById('lightbox-img');
     const mediaItems = window.getGalleryItems();
     if (index < 0 || index >= mediaItems.length) return;
     // When openLightbox(index) is called, fire an HTMX request to /media/:id/lightbox-data
@@ -41,11 +41,42 @@ window.openLightbox = async function (index) {
     }
 
     window.currentIndexLightbox = index;
-    const link = mediaItems[window.currentIndexLightbox];
-    const fullUrl = link.getAttribute('href');
-    lightboxImg.src = fullUrl;
+    // const link = mediaItems[window.currentIndexLightbox];
+    // const fullUrl = link.getAttribute('href');
+    // lightboxImg.src = fullUrl;
+    // lightboxDiv.classList.add('active');
+    showLightboxImage(mediaItems[window.currentIndexLightbox])
+}
+
+function showLightboxImage(item) {
+    const lightboxDiv = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+
+    // Show spinner immediately
+    showSpinner();
+    img.classList.add('hidden');
+
+    // Remove previous load/error handlers just in case
+    img.onload = null;
+    img.onerror = null;
+
+    // Add new handlers
+    img.onload = () => {
+        hideSpinner();
+        img.classList.remove('hidden');
+    };
+
+    img.onerror = () => {
+        hideSpinner();
+        console.error("Failed to load image:", item.url);
+        // optionally show a placeholder or error state
+    };
+
+    // Trigger loading
+    img.src = item.getAttribute('href');;
     lightboxDiv.classList.add('active');
 }
+
 window.openLightboxFromElement = function (trigger) {
     const anchor = trigger.closest('.media-item')?.querySelector('.gallery-item');
     if (!anchor) return;
@@ -101,24 +132,26 @@ window.editTagsLightbox = function () {
     }
 }
 window.likeToggleLightbox = async function () {
-
-    const meta = document.getElementById('lightbox-metadata').dataset;
+    let meta = document.getElementById('lightbox-metadata').dataset;
     const mediaId = meta.mediaId;
-    const url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/like`;
-    const options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
+    let url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/like`;
+    let options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
     try {
+        debugger;
         await window.htmxAjaxPromise('POST', url, options);
+        // now i should reload meta data to repaint the button
+        options = { target: `#lightbox-meta` };
+        url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/lightbox-data`;
+        await window.htmxAjaxPromise('GET', url, options);
+        meta = document.getElementById('lightbox-metadata').dataset;
         const userLiked = window.stringNumberToBoolean(meta.liked);
         const lightboxLikeButton = document.getElementById('lightbox-like-button');
-        if (userLiked) {
+        if (!userLiked) {
             lightboxLikeButton.innerHTML = "🤍"
         }
         else {
             lightboxLikeButton.innerHTML = "❤️"
         }
-        //VOY POR AQUI
-        // en esta función debería haber un comportamiento similar al que hay en 
-        // la linea 617
         if (window.galleryState.selectedSortCriteria == window.MOST_LIKES_SORT_CRITERIA) {
             // Like sorting is active → reload the grid
             const params = new URLSearchParams();

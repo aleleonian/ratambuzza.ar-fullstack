@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { initDb } = require('../../utils/seed/helpers/db.js');
+const { initDb } = require('../utils/seed/helpers/db.js');
 
 test.describe('Gallery Likes', () => {
     test.beforeAll(async () => {

@@ -11,8 +11,8 @@ const { createThumbnail } = require('../../lib/upload.js');
 test.describe('Postcards flow', () => {
 
     test.beforeEach(async ({ page }) => {
-        // Start fresh on /postcards (assuming current trip = rio2025 for test)
-        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/postcards`);
+        // Start fresh on /playground/postcards (assuming current trip = rio2025 for test)
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/playground/postcards`);
 
     });
 
@@ -182,7 +182,7 @@ test.describe('Postcards flow', () => {
             thumbnail_url: thumbnail3Url,
         });
 
-        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/postcards`);
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/playground/postcards`);
 
         const thumbnails = page.locator('.postcard-grid .postcard-thumb');
         const count = await thumbnails.count();
@@ -241,7 +241,7 @@ test.describe('Postcards flow', () => {
 
         // Step 5: Wait for backend response
         await page.waitForResponse(res =>
-            res.url().includes('/postcards/post') && res.status() === 200
+            res.url().includes('/playground/postcards/post') && res.status() === 200
         );
 
         // Step 6: Go to the feed
@@ -258,7 +258,7 @@ test.describe('Postcards flow', () => {
         expect(thumbExists + fullExists).toBeGreaterThan(0);
 
         // Step 8: Try posting again to check rejection
-        await page.goto('/trips/rio-2025/postcards');
+        await page.goto('/trips/rio-2025/playground/postcards');
 
         await page.locator('.postcard-grid .postcard-thumb').first().click();
 

@@ -38,6 +38,9 @@
         <%- include('like-button', { trip, post }) %>
 
         <!-- This will show ONLY on /feed -->
+         
+        <% console.log("isFeedRoot:" + isFeedRoot) %>
+        
         <% if (isFeedRoot) { %>
         <%- include('replies-button', { trip, post }) %>
         <% } %>

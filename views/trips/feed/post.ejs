@@ -30,7 +30,7 @@
     <% } %>
 
     <%
-    const isFeedRoot = currentPath.endsWith('/feed') || currentPath.match(/\/feed\/?$/);
+    const isFeedRoot = currentPath.endsWith('/feed') || currentPath.endsWith('/feed/more')  || currentPath.match(/\/feed\/?$/);
     %>
 
     <div class="post-botonera">
@@ -38,9 +38,10 @@
         <%- include('like-button', { trip, post }) %>
 
         <!-- This will show ONLY on /feed -->
-         
+
+        <% console.log("currentPath:" + currentPath) %>
         <% console.log("isFeedRoot:" + isFeedRoot) %>
-        
+
         <% if (isFeedRoot) { %>
         <%- include('replies-button', { trip, post }) %>
         <% } %>

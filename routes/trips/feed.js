@@ -247,6 +247,57 @@ router.get('/feed', requireLogin, async (req, res, next) => {
 // });
 
 // GET single post and its replies
+// router.get('/feed/more', requireLogin, async (req, res, next) => {
+//     try {
+//         const userId = req.session.user.id;
+//         const trip = req.trip;
+
+//         const search = req.query.search ? req.query.search.trim() : '';
+//         const userFilter = req.query.user ? parseInt(req.query.user, 10) : null;
+
+//         const excludeIds = req.query.exclude_ids
+//             ? req.query.exclude_ids.split(',').map((id) => parseInt(id, 10))
+//             : [];
+
+//         const { clause, params } = buildFeedWhereClause({
+//             tripId: trip.id,
+//             search,
+//             userFilter,
+//             excludeIds
+//         });
+
+//         const finalParams = [userId, ...params];
+
+//         const [posts] = await req.db.execute(`
+//       ${getFeedSelectColumns()}
+//       ${clause}
+//       ORDER BY p.created_at DESC, p.id DESC
+//       LIMIT ${POSTS_PER_PAGE}
+//     `, finalParams);
+
+//         if (!posts.length) {
+//             return res.send('<div data-no-more-posts="true">No hay más che, qué querés.</div>');
+//         }
+
+//         // Load media
+//         await Promise.all(posts.map(async post => {
+//             const [mediaRows] = await req.db.execute(`
+//         SELECT id, url, thumbnail_url, width, height
+//         FROM media
+//         WHERE post_id = ?
+//       `, [post.id]);
+//             post.media = mediaRows;
+//         }));
+
+//         console.log('/feed/more posts->', posts);
+
+//         res.render('trips/feed/just-posts', { trip, posts });
+
+//     } catch (e) {
+//         next(e);
+//     }
+// });
+
 router.get('/feed/more', requireLogin, async (req, res, next) => {
     try {
         const userId = req.session.user.id;
@@ -256,40 +307,21 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
         const userFilter = req.query.user ? parseInt(req.query.user, 10) : null;
 
         const excludeIds = req.query.exclude_ids
-            ? req.query.exclude_ids.split(',').map((id) => parseInt(id, 10))
+            ? req.query.exclude_ids.split(',').map(id => parseInt(id, 10)).filter(Boolean)
             : [];
 
-        const { clause, params } = buildFeedWhereClause({
+        const posts = await getFeedPosts(req.db, {
             tripId: trip.id,
+            userId,
             search,
             userFilter,
-            excludeIds
+            excludeIds,
+            limit: POSTS_PER_PAGE
         });
-
-        const finalParams = [userId, ...params];
-
-        const [posts] = await req.db.execute(`
-      ${getFeedSelectColumns()}
-      ${clause}
-      ORDER BY p.created_at DESC, p.id DESC
-      LIMIT ${POSTS_PER_PAGE}
-    `, finalParams);
 
         if (!posts.length) {
             return res.send('<div data-no-more-posts="true">No hay más che, qué querés.</div>');
         }
-
-        // Load media
-        await Promise.all(posts.map(async post => {
-            const [mediaRows] = await req.db.execute(`
-        SELECT id, url, thumbnail_url, width, height
-        FROM media
-        WHERE post_id = ?
-      `, [post.id]);
-            post.media = mediaRows;
-        }));
-
-        console.log('/feed/more posts->', posts);
 
         res.render('trips/feed/just-posts', { trip, posts });
 
@@ -297,6 +329,7 @@ router.get('/feed/more', requireLogin, async (req, res, next) => {
         next(e);
     }
 });
+
 
 router.get('/feed/:postId', requireLogin, async (req, res) => {
     const userId = req.session.user.id;

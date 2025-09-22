@@ -39,7 +39,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Authentication:** `routes/auth.js` - Handle-based login with secure redirects, auto-generated avatar filenames
 - **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting (feed, posts, likes, crew, media, postcards)
 - **Media System:** `routes/trips/media.js` - Gallery system with multiple upload, tagging, filtering, and like functionality
-- **Feed System:** `routes/trips/feed.js` - Post creation, infinite scroll, and search functionality for trip feeds with HTMX-powered real-time filtering
+- **Feed System:** `routes/trips/feed.js` - Post creation, infinite scroll, and search functionality for trip feeds with HTMX-powered real-time filtering. Uses `lib/feedQuery.js` for query abstraction
 - **Postcards System:** `routes/trips/postcards.js` - AI postcard generation, job management, and posting to feed
 - **Background Worker:** `queue/postcardWorker.js` - Processes postcard generation jobs using Google Gemini AI
 - **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
@@ -94,6 +94,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - `views/trips/gallery/` - Gallery-specific templates (media grid, lightbox, tag editor, filters)
 - `views/partials/` - Reusable EJS components
 - `routes/trips/` - Modular trip route handlers (feed, media, posts, likes, crew)
+- `lib/` - Shared utilities including database connection (`db.js`), file upload (`upload.js`), and feed query abstraction (`feedQuery.js`)
 - `noupload/` - Development assets not committed
 
 **Environment Variables Required:**
@@ -130,7 +131,8 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
 - **AI postcard generation:** Background worker processes jobs using Google Gemini with 16-bit pixel art prompts
 - **Job processing:** Queue system with pending/in-progress/completed status tracking
-- **Feed search implementation:** HTMX request detection via `hx-request: true` header prevents "Russian doll" nested layouts by returning partial templates (`views/trips/feed/just-posts.ejs`) for search results instead of full page layouts
+- **Feed search implementation:** HTMX request detection via `hx-request: true` header prevents "Russian doll" nested layouts by returning partial templates (`views/trips/feed/just-posts.ejs`) for search results instead of full page layouts. Unique form IDs prevent duplicate inclusions
+- **Query abstraction:** `lib/feedQuery.js` provides reusable functions for building feed WHERE clauses, SELECT columns, and fetching posts with media attachments
 - **Test environment stubbing:** Postcard worker uses static test image and updates all postcards to "done" status when `NODE_ENV=test`
 - **Database abstraction:** Centralized DB connection pool in `lib/db.js` using `mysql2/promise`
 - **Test setup:** Global setup seeds 4 test users, creates trips with member associations, and handles authenticated session storage

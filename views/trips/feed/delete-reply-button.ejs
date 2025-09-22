@@ -1,9 +1,3 @@
-<!-- <form hx-delete="/trips/<%= trip.slug %>/feed/<%= reply.id %>/replies" hx-vals='{"reply_id": <%= reply.id %>}'
-    hx-target="#replies-section" hx-swap="innerHTML" class="delete-post-form"
-    hx-confirm="Seguro de borrar esta respuesta?">
-    <button type="submit" class="button button-smaller danger">🗑 Borrar</button>
-</form> -->
-
 <button hx-delete="/trips/<%= trip.slug %>/feed/<%= post.id %>/replies/<%= reply.id %>" hx-target="#replies-section"
     hx-swap="innerHTML" hx-confirm="Seguro de borrar esta respuesta?" title="Borrar" class="button danger">
     Borrar

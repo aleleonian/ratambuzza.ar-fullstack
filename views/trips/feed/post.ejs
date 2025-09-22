@@ -42,7 +42,7 @@
         <%- include('replies-button', { trip, post }) %>
         <% } %>
         <!-- Delete button -->
-        <% if (post.user_id === currentUser.id) { %>
+        <% if (post.user_id === currentUser.id || currentUser.role =='admin') { %>
         <%- include('delete-post-button', { trip, post }) %>
         <% } %>
     </div>

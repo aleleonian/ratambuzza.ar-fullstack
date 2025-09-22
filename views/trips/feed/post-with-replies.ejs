@@ -77,6 +77,12 @@
         setupLightbox();
     });
 
+    document.body.addEventListener('htmx:configRequest', function (evt) {
+        const targetForm = evt.detail.elt.closest('form.delete-post-form');
+        if (targetForm) {
+            evt.detail.headers['X-Standalone-Page'] = 'true';
+        }
+    });
 </script>
 
 <%- include('new-reply-modal',{trip:currentOrUpcomingTrip}) %>

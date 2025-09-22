@@ -28,7 +28,7 @@
         <%- include('like-button-reply', { trip, post, reply }) %>
 
         <!-- Delete button -->
-        <% if (reply.user_id === currentUser.id) { %>
+        <% if (reply.user_id === currentUser.id ||  currentUser.role =='admin') { %>
         <%- include('delete-reply-button', { trip, reply, post }) %>
         <% } %>
     </div>

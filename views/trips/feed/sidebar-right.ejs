@@ -5,77 +5,11 @@
     <button class="button showPostForm" style="margin-bottom: 20px; width:100%">+ Nuevo Posteo</button>
   </div>
 
-  <br>
-
-  <!-- 
-    Feed Search and Filter Section 
-    Added: 2025-09-16 - Complete feed search functionality
-    
-    FEATURES IMPLEMENTED:
-    ✅ Text search through post content using MySQL LIKE queries
-    ✅ Filter posts by specific trip members (dropdown populated from backend)
-    ✅ HTMX-powered real-time filtering without page reloads
-    ✅ Preserves search values in form fields during filtering
-    ✅ Clean "Russian doll" prevention by targeting #posts-container only
-    ✅ Search results header showing filtered post count and criteria
-    ✅ Clear filters button to reset and show all posts
-    ✅ Proper pagination handling during filtered results
-    
-    TECHNICAL IMPLEMENTATION:
-    - Form submits to /trips/:slug/feed with search and user query parameters
-    - Backend detects HTMX requests via 'hx-request: true' header
-    - HTMX requests return only posts HTML (views/trips/feed/just-posts.ejs)
-    - Normal requests return full page layout (views/trips/feed/current-upcoming.ejs)
-    - This prevents nested layouts when search results are injected into DOM
-    
-    KEY FIXES APPLIED:
-    - Fixed JavaScript variable redeclaration error that was preventing HTMX requests
-    - Implemented proper HTMX target and swap configuration
-    - Added comprehensive error handling for empty search results
-    - Integrated with existing infinite scroll pagination system
-  -->
-  <div id="feed-search" style="margin-bottom: 20px;">
-    <form id="search-form" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container" hx-swap="innerHTML"
-      hx-trigger="submit" hx-indicator="#search-loading" style="display: flex; flex-direction: column; gap: 12px;">
-
-      <!-- Text search -->
-      <input type="text" id="search-text" name="search" placeholder="Buscar en posts..."
-        value="<%= typeof search !== 'undefined' ? search : '' %>" class="pixel-input"
-        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px; width: 100%;">
-
-      <!-- Author filter -->
-      <select id="user-filter" name="user"
-        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px;">
-        <option value="">Por autor</option>
-        <% if (typeof tripUsers !== 'undefined') { %>
-        <% tripUsers.forEach(user => { %>
-        <option value="<%= user.id %>"
-          <%= (typeof userFilter !== 'undefined' && userFilter == user.id) ? 'selected' : '' %>>
-          <%= user.handle %>
-        </option>
-        <% }) %>
-        <% } %>
-      </select>
-
-      <!-- Buttons row -->
-      <div style="display: flex; gap: 10px;">
-        <button type="submit" class="button" style="flex: 1;">
-          🔍 Buscar
-          <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
-        </button>
-
-        <button type="button" id="clear-filters" class="button button-smaller" style="flex: 1; background-color: #ccc;">
-          Limpiar filtros
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <ul>
+  <!-- <ul>
     <li>
       most popular posts would be nice
     </li>
-  </ul>
+  </ul> -->
 
   <!-- Quote of the Day -->
   <!-- <div class="quote-box">

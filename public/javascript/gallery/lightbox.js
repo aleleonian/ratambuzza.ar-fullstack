@@ -101,24 +101,26 @@ window.editTagsLightbox = function () {
     }
 }
 window.likeToggleLightbox = async function () {
-
-    const meta = document.getElementById('lightbox-metadata').dataset;
+    let meta = document.getElementById('lightbox-metadata').dataset;
     const mediaId = meta.mediaId;
-    const url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/like`;
-    const options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
+    let url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/like`;
+    let options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
     try {
+        debugger;
         await window.htmxAjaxPromise('POST', url, options);
+        // now i should reload meta data to repaint the button
+        options = { target: `#lightbox-meta` };
+        url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/lightbox-data`;
+        await window.htmxAjaxPromise('GET', url, options);
+        meta = document.getElementById('lightbox-metadata').dataset;
         const userLiked = window.stringNumberToBoolean(meta.liked);
         const lightboxLikeButton = document.getElementById('lightbox-like-button');
-        if (userLiked) {
+        if (!userLiked) {
             lightboxLikeButton.innerHTML = "🤍"
         }
         else {
             lightboxLikeButton.innerHTML = "❤️"
         }
-        //VOY POR AQUI
-        // en esta función debería haber un comportamiento similar al que hay en 
-        // la linea 617
         if (window.galleryState.selectedSortCriteria == window.MOST_LIKES_SORT_CRITERIA) {
             // Like sorting is active → reload the grid
             const params = new URLSearchParams();

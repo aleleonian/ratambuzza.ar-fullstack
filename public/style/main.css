@@ -340,6 +340,10 @@ h5 {
   height: 50px;
 }
 
+.menu-item:hover {
+  transform: scale(1.05);
+}
+
 /* Mobile tweak */
 
 .mobile-only {

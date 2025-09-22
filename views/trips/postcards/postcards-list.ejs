@@ -2,7 +2,7 @@
 
 <div id="postcards-list">
 
-    <div id="postcards-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/postcards-grid" hx-trigger="load"
+    <div id="postcards-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/postcards-grid" hx-trigger="load"
         hx-swap="innerHTML"></div>
 
     <%- include('../../partials/lightbox-standalone') %>

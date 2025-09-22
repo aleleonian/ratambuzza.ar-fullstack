@@ -90,7 +90,7 @@ router.post('/postcards/new', async (req, res) => {
 
         await enqueuePostcardJob(userId, trip.id, avatars, background, action);
 
-        res.setHeader('X-Toast', "Se queueó tu job, bro.");
+        res.setHeader('X-Toast', "Me pongo a laburar, bro.");
         res.setHeader('X-Toast-Type', 'success');
         res.render('trips/postcards/actual-postcard-form', { hasPending: true, avatars: [] })
     }

@@ -145,10 +145,7 @@
             // Check if the response indicates no more posts
             const responseText = evt.detail.xhr.responseText;
             if (responseText.includes('data-no-more-posts="true"')) {
-                evt.target.disabled = true;
-                evt.target.textContent = 'No More Posts';
-                evt.target.style.background = '#ccc';
-                evt.target.style.cursor = 'not-allowed';
+                evt.target.style.display = 'none';
                 return;
             }
 

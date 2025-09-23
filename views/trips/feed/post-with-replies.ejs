@@ -1,5 +1,17 @@
 <%- include('../../partials/header/feed-current-upcoming') %>
 
+<style>
+    .mobile-buttons {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        margin-bottom: 20px;
+    }
+
+    .post-controls {
+        display: flex;
+    }
+</style>
 <div class="layout">
     <aside class="sidebar left">
         <!-- e.g. Profile / Trip Switcher -->
@@ -7,10 +19,14 @@
     </aside>
 
     <main class="feed">
-
         <div class="mobile-only">
-            <div id="post-controls">
-                <button class="button showPostForm" style="margin-bottom: 20px; width:100%">+ Nueva Respuesta</button>
+            <div class="mobile-buttons">
+                <a href="/trips/<%=currentOrUpcomingTrip.slug%>/feed">
+                    <img class="menu-item" src="/images/back.png" alt="">
+                </a>
+                <div id="post-controls" class="mobile-only post-controls">
+                    <button class="button showPostForm" style="width:100%">+ Nueva Respuesta</button>
+                </div>
             </div>
         </div>
 

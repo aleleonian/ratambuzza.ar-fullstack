@@ -137,7 +137,6 @@ window.likeToggleLightbox = async function () {
     let url = `/trips/${window.galleryState.tripSlug}/gallery/${mediaId}/like`;
     let options = { target: `#like-button-container-${mediaId}`, swap: 'innerHTML' };
     try {
-        debugger;
         await window.htmxAjaxPromise('POST', url, options);
         // now i should reload meta data to repaint the button
         options = { target: `#lightbox-meta` };

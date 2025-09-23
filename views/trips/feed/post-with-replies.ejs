@@ -39,6 +39,8 @@
     function setupLightbox() {
         const replyBlocks = document.querySelectorAll('.reply-images');
 
+        initLightbox();
+
         replyBlocks.forEach(replyEl => {
             const imageThumbs = Array.from(replyEl.querySelectorAll('.reply-image-thumb'));
             if (imageThumbs.length === 0) return;
@@ -47,8 +49,6 @@
                 url: img.dataset.full,
                 id: img.dataset.replyId
             }));
-
-            initLightbox();
 
             // Bind click handlers just for this group
             imageThumbs.forEach((img, i) => {
@@ -64,7 +64,7 @@
 
             const items = imageThumbs.map(img => ({
                 url: img.dataset.full,
-                id: img.dataset.replyId
+                id: img.dataset.id
             }));
 
             // Bind click handlers just for this group

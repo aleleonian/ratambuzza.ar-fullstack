@@ -16,7 +16,6 @@ router.get('/postcards', async (req, res) => {
     const postcards = await getUserPostcards(userId);
     const hasPending = postcards.some(p => p.status === 'pending');
     const avatars = await getTripMembersAvatars(req.db, trip.id);
-    console.log('avatars->', avatars);
     // const backgrounds = ['Copacabana', 'Cancha de golf', 'En la cocina', 'En un avión', 'En la biblioteca', 'En la cancha de Boca', 'Restaurante'];
     // const actions = ['Tomando caipirinhas', 'Jugando truco', 'Tomando una selfie grupal', 'Comiendo pizza', 'Jugando chess', 'Recibiendo un masaje', 'Andando en snowboard'];
 
@@ -98,10 +97,6 @@ router.post('/postcards/new', async (req, res) => {
 
         const availableAvatars = await getTripMembersAvatars(req.db, trip.id);
 
-        console.log('selectedAvatars->', selectedAvatars);
-        console.log('selectedBackground->', selectedBackground);
-        console.log('selectedAction->', selectedAction);
-
         res.setHeader('X-Toast', "Algo salió mal->" + error);
         res.setHeader('X-Toast-Type', 'error');
         res.render('trips/postcards/actual-postcard-form',
@@ -150,8 +145,6 @@ router.post('/postcards/post', async (req, res) => {
             [postcardId]
         );
         const postcard = rows[0];
-
-        console.log('postcard->', postcard);
 
         if (postcard.post_id) {
             res.setHeader('X-Toast', "Ya se posteó esa imagen, broder.");

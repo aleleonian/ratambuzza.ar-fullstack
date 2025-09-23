@@ -1,12 +1,12 @@
 <form id="postcards-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/playground/postcards/new"
     hx-target="#new-postcard-form-container" hx-swap="innerHTML">
     <fieldset <%- hasPending ? "disabled" :"" %>>
-        <h2>Create una postal</h2>
+        <h2 style="margin-bottom: 50px;">Create una postal</h2>
 
         <div class="form-row">
             <div class="multi-avatar-picker">
-                <label for="avatar-select">Avatares (Max 3):</label>
-                <select name="avatars" id="avatar-select" multiple>
+                <label for="avatar-select">Avatares:</label>
+                <select name="avatars" placeholder="Elegí hasta 3" id="avatar-select" multiple>
                     <% avatars.forEach(a => { %>
                     <option value="<%= a.handle %>"
                         <% if(typeof selectedAvatars != "undefined" && selectedAvatars.includes(a.handle)) {%>
@@ -37,7 +37,7 @@
                     autocomplete="off" value="<%= typeof selectedAction != 'undefined' ? selectedAction : '' %>">
 
                 <span style=" font-size: x-small;">
-                    (Ejemplo: Tomando mate, Bailando, Jugando ajedrez...)
+                    (Ejemplo: Tomando mate, Bailando disfrazados de perritos, Jugando ajedrez con piezas de madera...)
                 </span>
             </div>
         </div>

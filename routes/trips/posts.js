@@ -198,8 +198,9 @@ router.post('/posts/delete', requireLogin, async (req, res, next) => {
     res.setHeader('X-Toast-Type', 'success');
     res.send('');
 
-  } catch (e) {
-    res.setHeader('X-Toast', "No se borró el post!");
+  } catch (error) {
+    console.log("/posts/delete error:" + error)
+    res.setHeader('X-Toast', "No se borró el post: " + error);
     res.setHeader('X-Toast-Type', 'error');
     res.send('');
   }

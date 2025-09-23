@@ -108,6 +108,8 @@ router.post('/posts/delete', requireLogin, async (req, res, next) => {
       'SELECT url, thumbnail_url, id FROM `media` WHERE post_id = ?', [post_id]
     );
 
+    console.log(`gonna delete ${mediaItems.length} media related to this post`);
+
     const mediaFileDeletions = mediaItems.map(async (item) => {
       if (item.url) {
         const filePath = path.join(process.cwd(), 'public', item.url.replace(/^\/+/, ''));
@@ -144,7 +146,7 @@ router.post('/posts/delete', requireLogin, async (req, res, next) => {
 
     const [replies] = await req.db.execute(`SELECT id FROM post_replies where post_id = ?`, [post_id]);
 
-    console.log('replies->', replies);
+    console.log(`gonna delete ${replies.length} replies related to this post`);
 
     for (let i = 0; i < replies.length; i++) {
       const currentReplyId = replies[i].id;
@@ -186,7 +188,14 @@ router.post('/posts/delete', requireLogin, async (req, res, next) => {
 
     // delete from likes_post first
     await req.db.execute('DELETE FROM likes_posts WHERE post_id = ?', [post_id]);
+
+    console.log("after the likes_posts deletion");
+
+    await req.db.execute('UPDATE postcards set post_id = null WHERE post_id = ?', [post_id]);
+
     await req.db.execute('DELETE FROM posts WHERE id = ?', [post_id]);
+
+    console.log("after the posts deletion");
 
     if (isStandalone) {
       res.setHeader('X-Toast', "Post borrado!");

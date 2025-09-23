@@ -40,11 +40,6 @@ Constraints:
 }
 
 async function enqueuePostcardJob(userId, tripId, avatars, scene, action) {
-    console.log('userId->', userId);
-    console.log('tripId->', tripId);
-    console.log('avatars->', avatars);
-    console.log('scene->', scene);
-    console.log('action->', action);
 
     const jobId = await insertPostcard(pool, userId, tripId, avatars, scene, action, "pending");
     return jobId;

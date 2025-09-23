@@ -179,8 +179,6 @@ router.get('/feed', requireLogin, async (req, res, next) => {
             return res.render('trips/feed/just-posts', { trip, posts, searchInfo });
         }
 
-        console.log('/feed posts->', posts);
-
         res.render('trips/feed', {
             trips,
             trip,
@@ -468,7 +466,6 @@ router.post('/feed/:postId/replies', requireLogin, uploadMultiple, async (req, r
 
         res.setHeader('X-Toast', "Listo, loko.");
         res.setHeader('X-Toast-Type', 'success');
-        console.log('replies->', replies);
         res.render('trips/feed/replies-section', { replies, post: posts[0] }); // no body needed
     }
     catch (error) {

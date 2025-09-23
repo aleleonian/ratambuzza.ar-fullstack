@@ -1,7 +1,10 @@
 <!-- FEED replies button (HTMX) -->
+
 <button class="button secondary-color" onclick="redirectToReplyPage(<%= post.id %>)">
-    <%= post.replies_count %>
-    <%= post.replies_count > 1 ? 'Respuestas' : post.replies_count == 1 ? 'Respuesta' : 'Respuestas'%>
+    <div style="display: flex; flex-direction: row; align-items: center;">
+        <%= post.replies_count %>
+        <img src="/images/replies.png" alt="Respuestas" style="width: 25px;">
+    </div>
 </button>
 
 <script>

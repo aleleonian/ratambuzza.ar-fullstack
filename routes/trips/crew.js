@@ -27,8 +27,8 @@ router.get('/crew-fragment', async (req, res, next) => {
       [trip.id]
     );
 
-    // render a tiny partial to string
-    // ensure you have views/partials/avatar-grid.ejs
+    console.log("avatars->" + JSON.stringify(rows));
+
     res.render('partials/avatar-grid', { people: rows }, (err, html) => {
       if (err) return next(err);
       cache.set(trip.id, { html, data: rows, expiresAt: Date.now() + TTL_MS });

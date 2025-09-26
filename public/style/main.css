@@ -301,10 +301,12 @@ footer.footer {
 }
 
 .post-image-thumb {
-  max-width: 100px;
+  max-width: 200px;
+  max-height: 200px;
   height: auto;
   object-fit: cover;
   border-radius: var(--radius);
+  cursor: pointer;
 }
 
 .reply-images {
@@ -538,6 +540,11 @@ h5 {
 
   .post-botonera {
     gap: 5px;
+  }
+
+  .post-image-thumb {
+    max-width: 150px;
+    max-height: 150px;
   }
 }
 

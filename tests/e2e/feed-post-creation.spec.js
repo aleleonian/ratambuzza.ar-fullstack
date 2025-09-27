@@ -33,7 +33,7 @@ test.describe('Feed Post Creation', () => {
         await expect(page.locator('#toast-container', { hasText: 'Se posteó.' })).toBeVisible();
 
         // Verify the new post appears at the top of the feed
-        const firstPost = page.locator('#posts-container .card').first();
+        const firstPost = page.locator('#posts-container #post').first();
         await expect(firstPost).toBeVisible();
         await expect(firstPost).toContainText(testPostContent);
 
@@ -45,14 +45,15 @@ test.describe('Feed Post Creation', () => {
         await expect(firstPost.locator('#reply-button')).toBeVisible();
     });
 
-    test.skip('should create a post with image attachment', async ({ page }) => {
+    test('should create a post with image attachment', async ({ page }) => {
         const testPostContent = 'Test post with image from automated test';
 
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
         // Open post creation modal
-        await page.click('.showPostForm');
+        await page.click('#new-post-button-desktop');
         await expect(page.locator('#postModal')).toBeVisible();
+        await expect(page.locator('#add-post-form')).toBeVisible();
 
         // Fill in post content
         await page.fill('#new-post-content', testPostContent);
@@ -62,16 +63,16 @@ test.describe('Feed Post Creation', () => {
         await fileInput.setInputFiles('tests/e2e/fixtures/images/image1.jpeg');
 
         // Submit the form
-        await page.click('button[type="submit"]');
+        await page.click('#submit-button');
 
         // Wait for processing and modal to close
-        await expect(page.locator('#postModal')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
 
         // Verify success toast
         await expect(page.locator('#toast-container', { hasText: 'Se posteó.' })).toBeVisible();
 
         // Verify the new post with image appears
-        const firstPost = page.locator('.post').first();
+        const firstPost = page.locator('#posts-container #post').first();
         await expect(firstPost).toBeVisible();
         await expect(firstPost.locator('.post-content')).toContainText(testPostContent);
 
@@ -82,7 +83,7 @@ test.describe('Feed Post Creation', () => {
         // Verify image has proper attributes for lightbox
         const imageThumb = firstPost.locator('.post-image-thumb').first();
         await expect(imageThumb).toHaveAttribute('data-full');
-        await expect(imageThumb).toHaveAttribute('data-id');
+        await expect(imageThumb).toHaveAttribute('data-post-id');
     });
 
     test.skip('should create a post with multiple images', async ({ page }) => {

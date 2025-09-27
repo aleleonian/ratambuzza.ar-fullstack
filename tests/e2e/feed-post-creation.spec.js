@@ -86,13 +86,15 @@ test.describe('Feed Post Creation', () => {
         await expect(imageThumb).toHaveAttribute('data-post-id');
     });
 
-    test.skip('should create a post with multiple images', async ({ page }) => {
+    test('should create a post with multiple images', async ({ page }) => {
         const testPostContent = 'Test post with multiple images';
 
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
-        await page.click('.showPostForm');
+        // Open post creation modal
+        await page.click('#new-post-button-desktop');
         await expect(page.locator('#postModal')).toBeVisible();
+        await expect(page.locator('#add-post-form')).toBeVisible();
 
         await page.fill('#new-post-content', testPostContent);
 
@@ -104,13 +106,13 @@ test.describe('Feed Post Creation', () => {
             'tests/e2e/fixtures/images/image3.jpeg'
         ]);
 
-        await page.click('button[type="submit"]');
+        await page.click('#submit-button');
 
-        await expect(page.locator('#postModal')).toBeHidden({ timeout: 15000 });
+        await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
         await expect(page.locator('#toast-container', { hasText: 'Se posteó.' })).toBeVisible();
 
         // Verify post with multiple images
-        const firstPost = page.locator('.post').first();
+        const firstPost = page.locator('#posts-container #post').first();
         await expect(firstPost).toBeVisible();
         await expect(firstPost.locator('.post-content')).toContainText(testPostContent);
 
@@ -125,7 +127,7 @@ test.describe('Feed Post Creation', () => {
         for (let i = 0; i < 3; i++) {
             const image = images.nth(i);
             await expect(image).toHaveAttribute('data-full');
-            await expect(image).toHaveAttribute('data-id');
+            await expect(image).toHaveAttribute('data-post-id');
         }
     });
 

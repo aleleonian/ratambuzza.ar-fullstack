@@ -64,7 +64,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 
 **Infinite Scroll Implementation:**
 - **Intersection Observer API:** Replaces HTMX triggers for better reliability
-- **3 posts per page:** `POSTS_PER_PAGE = 3` in trips routes
+- **10 posts per page:** `POSTS_PER_PAGE = 10` in trips routes (configurable in `lib/config.js`)
 - **Scroll sentinel:** Fixed element that triggers loading when visible
 - **Graceful degradation:** Handles "no more posts" state
 
@@ -131,9 +131,11 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
 - **AI postcard generation:** Background worker processes jobs using Google Gemini with 16-bit pixel art prompts
 - **Job processing:** Queue system with pending/in-progress/completed status tracking
-- **Feed search implementation:** HTMX request detection via `hx-request: true` header prevents "Russian doll" nested layouts by returning partial templates (`views/trips/feed/just-posts.ejs`) for search results instead of full page layouts. Unique form IDs prevent duplicate inclusions
+- **Feed search implementation:** HTMX request detection via `hx-request: true` header prevents "Russian doll" nested layouts by returning partial templates (`views/trips/feed/just-posts.ejs`) for search results instead of full page layouts. Unique form IDs prevent duplicate inclusions. Search results show ALL matching posts (no pagination) while normal feed browsing uses pagination
 - **Query abstraction:** `lib/feedQuery.js` provides reusable functions for building feed WHERE clauses, SELECT columns, and fetching posts with media attachments
 - **Test environment stubbing:** Postcard worker uses static test image and updates all postcards to "done" status when `NODE_ENV=test`
 - **Database abstraction:** Centralized DB connection pool in `lib/db.js` using `mysql2/promise`
 - **Test setup:** Global setup seeds 4 test users, creates trips with member associations, and handles authenticated session storage
 - **Session security:** Cookies set to non-secure in development/test environments
+- **Reply system:** Posts support threaded replies with media attachments, likes, and deletion controls
+- **Mobile responsive design:** Separate mobile forms and controls for optimal mobile UX, including collapsible search interface

@@ -232,10 +232,10 @@ test.describe('Feed Post Creation', () => {
         await expect(firstPost.locator('.post-content')).toContainText(testPostContent);
     });
 
-    test.skip('should close modal on escape key', async ({ page }) => {
+    test('should close modal on escape key', async ({ page }) => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
-        await page.click('.showPostForm');
+        await page.click('#new-post-button-desktop');
         await expect(page.locator('#postModal')).toBeVisible();
 
         // Press escape key
@@ -245,10 +245,10 @@ test.describe('Feed Post Creation', () => {
         await expect(page.locator('#postModal')).toBeHidden();
     });
 
-    test.skip('should close modal on close button click', async ({ page }) => {
+    test('should close modal on close button click', async ({ page }) => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
-        await page.click('.showPostForm');
+        await page.click('#new-post-button-desktop');
         await expect(page.locator('#postModal')).toBeVisible();
 
         // Click close button

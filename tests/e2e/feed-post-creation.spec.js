@@ -7,8 +7,9 @@ test.describe('Feed Post Creation', () => {
         await initDb();
     });
 
+    const testPostContent1 = 'Test post from automated test - text only';
+
     test('should create a text-only post and display it in feed', async ({ page }) => {
-        const testPostContent = 'Test post from automated test - text only';
 
         // Navigate to feed page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
@@ -21,7 +22,7 @@ test.describe('Feed Post Creation', () => {
         await expect(page.locator('#add-post-form')).toBeVisible();
 
         // Fill in post content
-        await page.fill('#new-post-content', testPostContent);
+        await page.fill('#new-post-content', testPostContent1);
 
         // Submit the form
         await page.click('#submit-button');
@@ -35,7 +36,7 @@ test.describe('Feed Post Creation', () => {
         // Verify the new post appears at the top of the feed
         const firstPost = page.locator('#posts-container #post').first();
         await expect(firstPost).toBeVisible();
-        await expect(firstPost).toContainText(testPostContent);
+        await expect(firstPost).toContainText(testPostContent1);
 
         // Verify post has user information
         await expect(firstPost.locator('#post-author')).toContainText(process.env.FIRST_TEST_USER_NAME);
@@ -43,6 +44,26 @@ test.describe('Feed Post Creation', () => {
         // Verify post has interaction buttons (like, reply)
         await expect(firstPost.locator('button[title="Like"]')).toBeVisible();
         await expect(firstPost.locator('#reply-button')).toBeVisible();
+    });
+
+    test('should persist post in database', async ({ page }) => {
+        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
+
+        await page.waitForSelector('#post', { timeout: 10000 });
+
+        const posts = page.locator('#post');
+
+        await expect(posts.first().locator('.post-content')).toContainText(testPostContent1);
+
+        // Verify in database
+        const db = getDb();
+        const [rows] = await db.execute(
+            'SELECT content FROM posts WHERE content = ? ORDER BY created_at DESC LIMIT 1',
+            [testPostContent1]
+        );
+
+        expect(rows).toHaveLength(1);
+        expect(rows[0].content).toBe(testPostContent1);
     });
 
     test('should create a post with image attachment', async ({ page }) => {
@@ -131,51 +152,21 @@ test.describe('Feed Post Creation', () => {
         }
     });
 
-    test.skip('should validate required content field', async ({ page }) => {
+    test('should validate required content field', async ({ page }) => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
-        await page.click('.showPostForm');
+        await page.click('#new-post-button-desktop');
+        // Verify modal opens
         await expect(page.locator('#postModal')).toBeVisible();
+        await expect(page.locator('#add-post-form')).toBeVisible();
 
         // Try to submit without content
-        await page.click('button[type="submit"]');
+        await page.click('#submit-button');
+
+        await expect(page.locator('#toast-container', { hasText: 'Broder, el texto del post no' })).toBeVisible();
 
         // Form should not submit (modal should stay open)
         await expect(page.locator('#postModal')).toBeVisible();
-
-        // HTML5 validation should prevent submission
-        const contentField = page.locator('#new-post-content');
-        const validationMessage = await contentField.evaluate(el => el.validationMessage);
-        expect(validationMessage).toBeTruthy(); // Should have some validation message
-    });
-
-    test.skip('should persist post in database', async ({ page }) => {
-        const testPostContent = 'Database persistence test post';
-
-        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
-
-        await page.click('.showPostForm');
-        await page.fill('#new-post-content', testPostContent);
-        await page.click('button[type="submit"]');
-
-        await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
-
-        // Refresh page and verify post persists
-        await page.reload();
-        await page.waitForSelector('.post', { timeout: 10000 });
-
-        const posts = page.locator('.post');
-        await expect(posts.first().locator('.post-content')).toContainText(testPostContent);
-
-        // Verify in database
-        const db = getDb();
-        const [rows] = await db.execute(
-            'SELECT content FROM posts WHERE content = ? ORDER BY created_at DESC LIMIT 1',
-            [testPostContent]
-        );
-
-        expect(rows).toHaveLength(1);
-        expect(rows[0].content).toBe(testPostContent);
     });
 
     test.skip('should increment post count when new post is added', async ({ page }) => {

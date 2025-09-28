@@ -1,13 +1,12 @@
 const { test, expect } = require('@playwright/test');
 const { initDb, getDb } = require('../utils/seed/helpers/db.js');
-const path = require('path');
 
 test.describe('Feed Post Creation', () => {
     test.beforeAll(async () => {
         await initDb();
     });
 
-    const testPostContent1 = 'Test post from automated test - text only';
+    const testPostContentGlobal = 'Test post from automated test - text only';
 
     test('should create a text-only post and display it in feed', async ({ page }) => {
 
@@ -22,7 +21,7 @@ test.describe('Feed Post Creation', () => {
         await expect(page.locator('#add-post-form')).toBeVisible();
 
         // Fill in post content
-        await page.fill('#new-post-content', testPostContent1);
+        await page.fill('#new-post-content', testPostContentGlobal);
 
         // Submit the form
         await page.click('#submit-button');
@@ -36,7 +35,7 @@ test.describe('Feed Post Creation', () => {
         // Verify the new post appears at the top of the feed
         const firstPost = page.locator('#posts-container #post').first();
         await expect(firstPost).toBeVisible();
-        await expect(firstPost).toContainText(testPostContent1);
+        await expect(firstPost).toContainText(testPostContentGlobal);
 
         // Verify post has user information
         await expect(firstPost.locator('#post-author')).toContainText(process.env.FIRST_TEST_USER_NAME);
@@ -44,6 +43,21 @@ test.describe('Feed Post Creation', () => {
         // Verify post has interaction buttons (like, reply)
         await expect(firstPost.locator('button[title="Like"]')).toBeVisible();
         await expect(firstPost.locator('#reply-button')).toBeVisible();
+
+        // should clear form after successful submission
+
+        // Open modal again and verify form is cleared
+        await page.click('#new-post-button-desktop');
+        await expect(page.locator('#postModal')).toBeVisible();
+
+        // Content should be cleared
+        const contentValue = await page.locator('#new-post-content').inputValue();
+        expect(contentValue).toBe('');
+
+        // File input should be cleared (no files selected)
+        const fileInput = page.locator('input[type="file"][name="media"]');
+        const fileInputValue = await fileInput.inputValue();
+        expect(fileInputValue).toBe('');
     });
 
     test('should persist post in database', async ({ page }) => {
@@ -53,17 +67,17 @@ test.describe('Feed Post Creation', () => {
 
         const posts = page.locator('#post');
 
-        await expect(posts.first().locator('.post-content')).toContainText(testPostContent1);
+        await expect(posts.first().locator('.post-content')).toContainText(testPostContentGlobal);
 
         // Verify in database
         const db = getDb();
         const [rows] = await db.execute(
             'SELECT content FROM posts WHERE content = ? ORDER BY created_at DESC LIMIT 1',
-            [testPostContent1]
+            [testPostContentGlobal]
         );
 
         expect(rows).toHaveLength(1);
-        expect(rows[0].content).toBe(testPostContent1);
+        expect(rows[0].content).toBe(testPostContentGlobal);
     });
 
     test('should create a post with image attachment', async ({ page }) => {
@@ -169,26 +183,29 @@ test.describe('Feed Post Creation', () => {
         await expect(page.locator('#postModal')).toBeVisible();
     });
 
-    test.skip('should increment post count when new post is added', async ({ page }) => {
+    test('should increment post count when new post is added', async ({ page }) => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
         // Count existing posts
-        const initialPosts = page.locator('.post');
+        const initialPosts = page.locator('#post');
         const initialCount = await initialPosts.count();
 
         // Create new post
-        await page.click('.showPostForm');
+        await page.click('#new-post-button-desktop');
+        await expect(page.locator('#postModal')).toBeVisible();
+        await expect(page.locator('#add-post-form')).toBeVisible();
+
         await page.fill('#new-post-content', 'Post count increment test');
-        await page.click('button[type="submit"]');
+        await page.click('#submit-button');
 
         await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
 
         // Verify post count increased
-        const finalPosts = page.locator('.post');
+        const finalPosts = page.locator('#post');
         await expect(finalPosts).toHaveCount(initialCount + 1);
     });
 
-    test.skip('should handle post creation via mobile interface', async ({ page }) => {
+    test('should handle post creation via mobile interface', async ({ page }) => {
         // Set mobile viewport
         await page.setViewportSize({ width: 375, height: 667 });
 
@@ -197,47 +214,22 @@ test.describe('Feed Post Creation', () => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
         // On mobile, should use the mobile post button
-        const mobilePostButton = page.locator('.mobile-only .showPostForm');
-        await expect(mobilePostButton).toBeVisible();
 
-        await mobilePostButton.click();
+        // Open post creation modal
+        await page.click('#new-post-button-mobile');
         await expect(page.locator('#postModal')).toBeVisible();
+        await expect(page.locator('#add-post-form')).toBeVisible();
 
         await page.fill('#new-post-content', testPostContent);
-        await page.click('button[type="submit"]');
+
+        await page.click('#submit-button');
 
         await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
         await expect(page.locator('#toast-container', { hasText: 'Se posteó.' })).toBeVisible();
 
         // Verify post appears
-        const firstPost = page.locator('.post').first();
+        const firstPost = page.locator('#post').first();
         await expect(firstPost.locator('.post-content')).toContainText(testPostContent);
-    });
-
-    test.skip('should clear form after successful submission', async ({ page }) => {
-        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
-
-        await page.click('.showPostForm');
-        await page.fill('#new-post-content', 'Form clear test');
-
-        // Optionally add an image to test file input clearing
-        const fileInput = page.locator('input[type="file"][name="media"]');
-        await fileInput.setInputFiles('tests/e2e/fixtures/images/image1.jpeg');
-
-        await page.click('button[type="submit"]');
-        await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
-
-        // Open modal again and verify form is cleared
-        await page.click('.showPostForm');
-        await expect(page.locator('#postModal')).toBeVisible();
-
-        // Content should be cleared
-        const contentValue = await page.locator('#new-post-content').inputValue();
-        expect(contentValue).toBe('');
-
-        // File input should be cleared (no files selected)
-        const fileInputValue = await fileInput.inputValue();
-        expect(fileInputValue).toBe('');
     });
 
     test.skip('should close modal on escape key', async ({ page }) => {

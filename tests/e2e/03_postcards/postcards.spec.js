@@ -2,11 +2,11 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const fs = require('fs/promises');
 
-const { insertPostcard, updateJobStatus } = require('../../lib/postcardJobs');
-const { initDb, getDb } = require('../utils/seed/helpers/db.js');
-const { getUserId } = require('../utils/seed/helpers/userHelpers.js');
-const { getTripId } = require('../utils/seed/helpers/tripHelpers.js');
-const { createThumbnail } = require('../../lib/upload.js');
+const { insertPostcard, updateJobStatus } = require('../../../lib/postcardJobs');
+const { initDb, getDb } = require('../../utils/seed/helpers/db.js');
+const { getUserId } = require('../../utils/seed/helpers/userHelpers.js');
+const { getTripId } = require('../../utils/seed/helpers/tripHelpers.js');
+const { createThumbnail } = require('../../../lib/upload.js');
 
 test.describe('Postcards flow', () => {
 

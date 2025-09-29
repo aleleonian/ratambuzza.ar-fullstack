@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { initDb, getDb } = require('../utils/seed/helpers/db.js');
+const { initDb, getDb } = require('../../utils/seed/helpers/db.js');
 
 test.describe('Feed Post Creation', () => {
     test.beforeAll(async () => {
@@ -8,6 +8,24 @@ test.describe('Feed Post Creation', () => {
 
     const testPostContentGlobal = 'Test post from automated test - text only';
 
+    test('logs in', async function ({ page }) {
+
+        await page.goto(`http://${process.env.APP_HOST}:${process.env.PORT}/login`); // adjust to your app URL
+        await page.fill('input[name="handle"]', process.env.FIRST_TEST_USER_NAME);
+        await page.fill('input[name="password"]', process.env.FIRST_TEST_USER_PASS);
+        await page.click('button[type="submit"]');
+
+        const cookies = await page.context().cookies();
+        console.log('Cookies after login:', cookies.map(c => c.name));
+        const sessionCookie = cookies.find(c => c.name === 'connect.sid');
+
+        if (!sessionCookie) {
+            throw new Error('Session cookie not set after login!');
+        }
+
+        await page.waitForSelector('a.logo', { timeout: 5000 });
+
+    })
     test('should create a text-only post and display it in feed', async ({ page }) => {
 
         // Navigate to feed page

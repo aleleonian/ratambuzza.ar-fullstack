@@ -35,7 +35,6 @@ export default async () => {
   if (!sessionCookie) {
     throw new Error('Session cookie not set after login!');
   }
-  await page.screenshot({ path: 'test-results/screenshots/after-login.png' });
 
   await page.waitForSelector('a.logo', { timeout: 5000 });
 

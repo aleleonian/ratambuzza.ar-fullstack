@@ -1,10 +1,13 @@
 const { test, expect } = require('@playwright/test');
-const { initDb, getDb } = require('../../utils/seed/helpers/db.js');
+
+async function insertPost(page, postText) {
+    await page.click('#new-post-button-desktop');
+    await page.fill('#new-post-content', postText);
+    await page.click('#submit-button');
+    await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
+}
 
 test.describe('Feed Search Feature', () => {
-    test.beforeAll(async () => {
-        await initDb();
-    });
 
     test.beforeEach(async ({ page }) => {
         // Navigate to feed page before each test
@@ -12,7 +15,7 @@ test.describe('Feed Search Feature', () => {
         await page.waitForSelector('#posts-container', { timeout: 10000 });
     });
 
-    test.skip('should show desktop search form in sidebar', async ({ page }) => {
+    test('should show desktop search form in sidebar', async ({ page }) => {
         // Desktop search form should be visible in sidebar
         await expect(page.locator('#search-form')).toBeVisible();
         await expect(page.locator('#search-form input[name="search"]')).toBeVisible();
@@ -21,7 +24,7 @@ test.describe('Feed Search Feature', () => {
         await expect(page.locator('#clear-filters')).toBeVisible();
     });
 
-    test.skip('should show mobile search interface', async ({ page }) => {
+    test('should show mobile search interface', async ({ page }) => {
         // Set mobile viewport
         await page.setViewportSize({ width: 375, height: 667 });
 
@@ -41,7 +44,7 @@ test.describe('Feed Search Feature', () => {
         await expect(page.locator('#search-form-mobile select[name="user"]')).toBeVisible();
     });
 
-    test.skip('should perform text search and show results', async ({ page }) => {
+    test('should perform text search and show results', async ({ page }) => {
         // First, create some test posts with specific content to search for
         await page.click('#new-post-button-desktop');
         await page.fill('#new-post-content', 'Unique searchable content deangelo');
@@ -63,7 +66,6 @@ test.describe('Feed Search Feature', () => {
 
         // Verify search results header appears
         await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
-        await expect(page.locator('text=Mostrando todos los resultados')).toBeVisible();
 
         // Verify only matching posts are shown
         const posts = page.locator('#post');
@@ -95,15 +97,11 @@ test.describe('Feed Search Feature', () => {
             tom.setValue(value);
         }, firstUserValue);
 
-        await page.screenshot({ path: 'fullpage-prior-to-submit.png', fullPage: true });
-
         // Submit form
         await page.click('#search-form button[type="submit"]');
         await page.waitForTimeout(1500);
 
         await page.waitForSelector('#user-filter', { state: 'visible' });
-
-        await page.screenshot({ path: 'fullpage-post-submit.png', fullPage: true });
 
         // make sure the text in #no-search-results is not present:
         await expect(page.locator('#no-search-results')).toHaveCount(0);
@@ -123,8 +121,7 @@ test.describe('Feed Search Feature', () => {
         }
     });
 
-
-    test.skip('should clear search filters and return to normal feed', async ({ page }) => {
+    test('should clear search filters and return to normal feed', async ({ page }) => {
         // Perform a search first
         await page.fill('#search-form input[name="search"]', 'test');
         await page.click('#search-form button[type="submit"]');
@@ -147,48 +144,56 @@ test.describe('Feed Search Feature', () => {
         await expect(page.locator('#search-form select[name="user"]')).toHaveValue('');
     });
 
-    test.skip('should hide load more button during search', async ({ page }) => {
+    test('should hide load more button during search', async ({ page }) => {
+        for (let i = 0; i < 10; i++) {
+            await insertPost(page, `Text number ${i}`);
+        }
+
+        await page.reload();
+
         // First, verify load more button exists in normal feed (if there are enough posts)
         const loadMoreSection = page.locator('#load-more-section');
         const hasLoadMore = await loadMoreSection.isVisible();
 
-        if (hasLoadMore) {
-            // Perform search
-            await page.fill('#search-form input[name="search"]', 'test');
-            await page.click('#search-form button[type="submit"]');
-            await page.waitForTimeout(1000);
-
-            // Load more button should be hidden during search
-            await expect(loadMoreSection).toBeHidden();
-
-            // Clear search
-            await page.click('#clear-filters');
-            await page.waitForSelector('#posts-container', { timeout: 10000 });
-
-            // Load more button should reappear
-            await expect(loadMoreSection).toBeVisible();
+        if (!hasLoadMore) {
+            throw new Error('load more button is not present!');
         }
+
+        // Perform search
+        await page.fill('#search-form input[name="search"]', 'deangelo');
+        await page.click('#search-form button[type="submit"]');
+        await page.waitForTimeout(1000);
+
+        // Load more button should be hidden during search
+        await expect(loadMoreSection).toBeHidden();
+
+        // Clear search
+        await page.click('#clear-filters');
+        await page.waitForSelector('#posts-container', { timeout: 10000 });
+
+        // Load more button should reappear
+        await expect(loadMoreSection).toBeVisible();
+
     });
 
-    test.skip('should show no results message when search returns empty', async ({ page }) => {
+    test('should show no results message when search returns empty', async ({ page }) => {
         // Search for something that definitely won't exist
         await page.fill('#search-form input[name="search"]', 'xyznonexistentcontent123');
         await page.click('#search-form button[type="submit"]');
         await page.waitForTimeout(1000);
 
         // Should show no results message
-        await expect(page.locator('text=No se encontraron posts que coincidan')).toBeVisible();
+        await expect(page.locator('text=No se encontraron posts que coincidan con tu búsqueda.')).toBeVisible();
     });
 
-    test.skip('should preserve search values in form fields', async ({ page }) => {
+    test('should preserve search values in form fields', async ({ page }) => {
         const searchText = 'preserved search text';
         const userSelect = page.locator('#search-form select[name="user"]');
-
         // Fill search form
         await page.fill('#search-form input[name="search"]', searchText);
 
         // Select a user if available
-        const options = await userSelect.locator('option[value!=""]').all();
+        const options = await userSelect.locator('option').filter({ hasNot: page.locator('option[value=""]') }).all();
         let selectedUserValue = '';
         if (options.length > 0) {
             selectedUserValue = await options[0].getAttribute('value');
@@ -206,7 +211,7 @@ test.describe('Feed Search Feature', () => {
         }
     });
 
-    test.skip('should work with mobile search interface', async ({ page }) => {
+    test('should work with mobile search interface', async ({ page }) => {
         // Set mobile viewport
         await page.setViewportSize({ width: 375, height: 667 });
 
@@ -220,10 +225,8 @@ test.describe('Feed Search Feature', () => {
         await page.click('#submit-button');
         await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
 
-        // Reopen search (might have been hidden after post creation)
-        await page.click('button[onclick="toggleSearch()"]');
-
         // Perform search
+        await expect(page.locator('#search-form-mobile input[name="search"]')).toBeVisible();
         await page.fill('#search-form-mobile input[name="search"]', 'Mobile search');
         await page.click('#search-form-mobile button[type="submit"]');
         await page.waitForTimeout(1000);
@@ -234,7 +237,7 @@ test.describe('Feed Search Feature', () => {
         await expect(posts.first()).toContainText('Mobile search');
     });
 
-    test.skip('should handle combined text and user search', async ({ page }) => {
+    test('should handle combined text and user search', async ({ page }) => {
         // Create specific test content
         await page.click('#new-post-button-desktop');
         await page.fill('#new-post-content', 'Combined search test content');
@@ -245,7 +248,9 @@ test.describe('Feed Search Feature', () => {
         await page.fill('#search-form input[name="search"]', 'Combined');
 
         const userSelect = page.locator('#search-form select[name="user"]');
-        const options = await userSelect.locator('option[value!=""]').all();
+        // const options = await userSelect.locator('option[value!=""]').all();
+        const options = await userSelect.locator('option').filter({ hasNot: page.locator('option[value=""]') }).all();
+
 
         if (options.length > 0) {
             const userValue = await options[0].getAttribute('value');
@@ -268,58 +273,58 @@ test.describe('Feed Search Feature', () => {
         }
     });
 
-    test.skip('should maintain search state when returning from post detail', async ({ page }) => {
-        // Perform search
-        await page.fill('#search-form input[name="search"]', 'test');
-        await page.click('#search-form button[type="submit"]');
-        await page.waitForTimeout(1000);
+    // test.skip('should maintain search state when returning from post detail', async ({ page }) => {
+    //     // Perform search
+    //     await page.fill('#search-form input[name="search"]', 'test');
+    //     await page.click('#search-form button[type="submit"]');
+    //     await page.waitForTimeout(1000);
 
-        // Verify we're in search mode
-        await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
+    //     // Verify we're in search mode
+    //     await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
 
-        // Click on a post to go to detail view (if posts exist)
-        const posts = page.locator('#post');
-        const postCount = await posts.count();
+    //     // Click on a post to go to detail view (if posts exist)
+    //     const posts = page.locator('#post');
+    //     const postCount = await posts.count();
 
-        if (postCount > 0) {
-            const firstPost = posts.first();
-            const postLink = firstPost.locator('a').first();
+    //     if (postCount > 0) {
+    //         const firstPost = posts.first();
+    //         const postLink = firstPost.locator('a').first();
 
-            if (await postLink.isVisible()) {
-                await postLink.click();
+    //         if (await postLink.isVisible()) {
+    //             await postLink.click();
 
-                // Should navigate to post detail
-                await expect(page).toHaveURL(/\/feed\/\d+/);
+    //             // Should navigate to post detail
+    //             await expect(page).toHaveURL(/\/feed\/\d+/);
 
-                // Go back to feed
-                await page.goBack();
+    //             // Go back to feed
+    //             await page.goBack();
 
-                // Search state should be maintained
-                await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
-                await expect(page.locator('#search-form input[name="search"]')).toHaveValue('test');
-            }
-        }
-    });
+    //             // Search state should be maintained
+    //             await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
+    //             await expect(page.locator('#search-form input[name="search"]')).toHaveValue('test');
+    //         }
+    //     }
+    // });
 
-    test.skip('should handle special characters in search', async ({ page }) => {
-        // Create post with special characters
-        await page.click('#new-post-button-desktop');
-        await page.fill('#new-post-content', 'Special chars: ñáéíóú @#$%');
-        await page.click('#submit-button');
-        await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
+    // test.skip('should handle special characters in search', async ({ page }) => {
+    //     // Create post with special characters
+    //     await page.click('#new-post-button-desktop');
+    //     await page.fill('#new-post-content', 'Special chars: ñáéíóú @#$%');
+    //     await page.click('#submit-button');
+    //     await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
 
-        // Search for special characters
-        await page.fill('#search-form input[name="search"]', 'ñáéíóú');
-        await page.click('#search-form button[type="submit"]');
-        await page.waitForTimeout(1000);
+    //     // Search for special characters
+    //     await page.fill('#search-form input[name="search"]', 'ñáéíóú');
+    //     await page.click('#search-form button[type="submit"]');
+    //     await page.waitForTimeout(1000);
 
-        // Should find the post
-        await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
-        const posts = page.locator('#post');
-        await expect(posts.first()).toContainText('ñáéíóú');
-    });
+    //     // Should find the post
+    //     await expect(page.locator('text=🔍 Resultados:')).toBeVisible();
+    //     const posts = page.locator('#post');
+    //     await expect(posts.first()).toContainText('ñáéíóú');
+    // });
 
-    test.skip('should be case insensitive in search', async ({ page }) => {
+    test('should be case insensitive in search', async ({ page }) => {
         // Create post with mixed case
         await page.click('#new-post-button-desktop');
         await page.fill('#new-post-content', 'CaseInsensitive Test Content');

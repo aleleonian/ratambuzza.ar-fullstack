@@ -4,7 +4,7 @@
             style="border-radius: 50%; object-fit: cover;" alt="avatar" />
         <strong>@<%= reply.handle %></strong>
         <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right;">
-            <%= new Date(reply.created_at).toLocaleString() %>
+            <span id="reply-timestamp"><%= new Date(reply.created_at).toLocaleString() %></span>
         </span>
     </div>
 

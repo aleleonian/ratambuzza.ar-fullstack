@@ -87,7 +87,7 @@ test.describe('Feed Post Replies', () => {
         await expect(reply.locator('button[title="Like"]')).toBeVisible();
     });
 
-    test.skip('should create a reply with image attachment', async ({ page }) => {
+    test('should create a reply with image attachment', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -112,7 +112,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#toast-container', { hasText: 'Listo, loko.' })).toBeVisible();
 
         // Verify reply with image
-        const reply = page.locator('.replies-section .card[data-reply-id]').first();
+        const reply = page.locator('.replies-section #reply').first();
         await expect(reply).toBeVisible();
         await expect(reply).toContainText(replyText);
 
@@ -126,7 +126,7 @@ test.describe('Feed Post Replies', () => {
         await expect(imageThumb).toHaveAttribute('data-reply-id');
     });
 
-    test.skip('should create a reply with multiple images', async ({ page }) => {
+    test('should create a reply with multiple images', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -164,7 +164,7 @@ test.describe('Feed Post Replies', () => {
         }
     });
 
-    test.skip('should validate required reply text field', async ({ page }) => {
+    test('should validate required reply text field', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -181,7 +181,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#replyModal')).toBeVisible();
     });
 
-    test.skip('should like and unlike a reply', async ({ page }) => {
+    test('should like and unlike a reply', async ({ page }) => {
         // Navigate to post detail page and create a reply first
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -192,7 +192,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#replyModal')).toBeHidden({ timeout: 5000 });
 
         // Find the reply and its like button
-        const reply = page.locator('.replies-section .card[data-reply-id]').first();
+        const reply = page.locator('.replies-section #reply').first();
         const likeButton = reply.locator('button[title="Like"]');
         await expect(likeButton).toBeVisible();
 
@@ -225,36 +225,36 @@ test.describe('Feed Post Replies', () => {
         await expect(likeButton.locator('img[src*="like-off.png"]')).toBeVisible();
     });
 
-    test.skip('should persist replies in database', async ({ page }) => {
-        const replyText = 'Database persistence test reply';
+    // test('should persist replies in database', async ({ page }) => {
+    //     const replyText = 'Database persistence test reply';
 
-        // Navigate to post detail page
-        await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
+    //     // Navigate to post detail page
+    //     await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
-        // Create reply
-        await page.click('#new-reply-button-desktop');
-        await page.fill('#reply_text', replyText);
-        await page.click('#reply-form button[type="submit"]');
-        await expect(page.locator('#replyModal')).toBeHidden({ timeout: 5000 });
+    //     // Create reply
+    //     await page.click('#new-reply-button-desktop');
+    //     await page.fill('#reply_text', replyText);
+    //     await page.click('#reply-form button[type="submit"]');
+    //     await expect(page.locator('#replyModal')).toBeHidden({ timeout: 5000 });
 
-        // Refresh page and verify reply persists
-        await page.reload();
-        await page.waitForSelector('.replies-section', { timeout: 10000 });
+    //     // Refresh page and verify reply persists
+    //     await page.reload();
+    //     await page.waitForSelector('.replies-section', { timeout: 10000 });
 
-        // Verify reply is still there
-        const reply = page.locator('.replies-section .card[data-reply-id]').first();
-        await expect(reply).toContainText(replyText);
+    //     // Verify reply is still there
+    //     const reply = page.locator('.replies-section .card[data-reply-id]').first();
+    //     await expect(reply).toContainText(replyText);
 
-        // Verify in database
-        const db = getDb();
-        const [rows] = await db.execute(
-            'SELECT reply_text FROM post_replies WHERE reply_text = ? ORDER BY created_at DESC LIMIT 1',
-            [replyText]
-        );
+    //     // Verify in database
+    //     const db = getDb();
+    //     const [rows] = await db.execute(
+    //         'SELECT reply_text FROM post_replies WHERE reply_text = ? ORDER BY created_at DESC LIMIT 1',
+    //         [replyText]
+    //     );
 
-        expect(rows).toHaveLength(1);
-        expect(rows[0].reply_text).toBe(replyText);
-    });
+    //     expect(rows).toHaveLength(1);
+    //     expect(rows[0].reply_text).toBe(replyText);
+    // });
 
     test.skip('should handle mobile reply interface', async ({ page }) => {
         // Set mobile viewport

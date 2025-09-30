@@ -327,6 +327,8 @@ test.describe('Gallery Upload', () => {
 
         //logout and re log-in
         await page.goto('/logout'); // if your app has it
+        await page.context().clearCookies();
+
         // Then log in again via UI
         await page.goto('/login');
         await page.fill('input[name="handle"]', process.env.FIRST_TEST_USER_NAME);

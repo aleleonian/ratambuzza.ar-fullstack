@@ -1,35 +1,37 @@
-<div class="card" data-post-id="<%= post.id %>">
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-        <img src="/images/avatars/thumbs/<%= post.avatar_head_file_name %>" width="40" height="40"
-            style="border-radius: 50%; object-fit: cover;" alt="avatar" />
-        <strong>@<%= post.handle %></strong>
-        <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right">
-            <% if(currentPath !== `/trips/${currentOrUpcomingTrip.slug}/feed/${post.id}`) {%>
-            <a href="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>">
-                <%= new Date(post.created_at).toLocaleString() %>
-            </a>
-            <% } else {%>
-            <%= new Date(post.created_at).toLocaleString() %>
-            <% } %>
-        </span>
+<div class="card" id="post" data-post-id="<%= post.id %>">
+    <div class="post-content">
+        <div id="post-author" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <img src="/images/avatars/thumbs/<%= post.avatar_head_file_name %>" width="40" height="40"
+                style="border-radius: 50%; object-fit: cover;" alt="avatar" />
+            <strong id="post-handle">@<%= post.handle %></strong>
+            <span style="margin-left:auto; font-size: 10px; color: var(--muted); text-align: right">
+                <% if(currentPath !== `/trips/${currentOrUpcomingTrip.slug}/feed/${post.id}`) {%>
+                <a href="/trips/<%=currentOrUpcomingTrip.slug%>/feed/<%= post.id %>">
+                    <span id="post-timestamp"><%= new Date(post.created_at).toLocaleString() %></span>
+                </a>
+                <% } else {%>
+                <span id="post-timestamp"><%= new Date(post.created_at).toLocaleString() %></span>
+                <% } %>
+            </span>
+        </div>
+
+        <% if (post.content) { %>
+        <p><%= post.content %></p>
+        <% } %>
+
+        <% if (post.media && post.media.length > 0) { %>
+        <div class="post-images" data-post-id="<%= post.id %>">
+            <% post.media.forEach((mediaItem, index) => { %>
+            <img src="<%= mediaItem.thumbnail_url %>" data-full="<%= mediaItem.url %>" data-index="<%= index %>"
+                data-post-id="<%= post.id %>" class="post-image-thumb" alt="Post image <%= index + 1 %>" />
+            <% }) %>
+        </div>
+        <% } %>
+
     </div>
-
-    <% if (post.content) { %>
-    <p><%= post.content %></p>
-    <% } %>
-
-    <% if (post.media && post.media.length > 0) { %>
-    <div class="post-images" data-post-id="<%= post.id %>">
-        <% post.media.forEach((mediaItem, index) => { %>
-        <img src="<%= mediaItem.thumbnail_url %>" data-full="<%= mediaItem.url %>" data-index="<%= index %>"
-            data-post-id="<%= post.id %>" class="post-image-thumb"
-            alt="Post image <%= index + 1 %>" />
-        <% }) %>
-    </div>
-    <% } %>
-
     <%
-    const isFeedRoot = currentPath.endsWith('/feed') || currentPath.endsWith('/feed/more')  || currentPath.match(/\/feed\/?$/);
+    //TODO: this is a bit hacky
+    const isFeedRoot = currentPath.endsWith('/feed') || currentPath.endsWith('/posts/new') || currentPath.endsWith('/feed/more')  || currentPath.match(/\/feed\/?$/);
     %>
 
     <div class="post-botonera">

@@ -12,13 +12,16 @@ export default async () => {
   await insertUser(process.env.THIRD_TEST_USER_NAME, process.env.THIRD_TEST_USER_PASS, process.env.USER_ROLE);
   await insertUser(process.env.FOURTH_TEST_USER_NAME, process.env.FOURTH_TEST_USER_PASS, process.env.USER_ROLE);
   await insertTrip(process.env.FIRST_TRIP_NAME, process.env.FIRST_TRIP_SLUG, process.env.FIRST_TRIP_START_DATE, process.env.FIRST_TRIP_END_DATE, process.env.FIRST_TRIP_LANDSCAPE_IMAGE)
-  await addUsersToTrip([process.env.FIRST_TEST_USER_NAME, process.env.SECOND_TEST_USER_NAME, process.env.THIRD_TEST_USER_NAME , process.env.FOURTH_TEST_USER_NAME], process.env.FIRST_TRIP_NAME);
+  await addUsersToTrip([process.env.FIRST_TEST_USER_NAME, process.env.SECOND_TEST_USER_NAME, process.env.THIRD_TEST_USER_NAME, process.env.FOURTH_TEST_USER_NAME], process.env.FIRST_TRIP_NAME);
 
   // 2. Create browser and login
   // const browser = await chromium.launch();
   const browser = await chromium.launch({ headless: true, slowMo: 100 });
   const page = await browser.newPage();
   page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  await page.route('**/*', route => {
+    route.continue({ headers: { ...route.request().headers(), 'Cache-Control': 'no-cache' } });
+  });
 
   await page.goto(`http://${process.env.APP_HOST}:${process.env.PORT}/login`); // adjust to your app URL
   await page.fill('input[name="handle"]', process.env.FIRST_TEST_USER_NAME);
@@ -32,7 +35,6 @@ export default async () => {
   if (!sessionCookie) {
     throw new Error('Session cookie not set after login!');
   }
-  await page.screenshot({ path: 'test-results/screenshots/after-login.png' });
 
   await page.waitForSelector('a.logo', { timeout: 5000 });
 

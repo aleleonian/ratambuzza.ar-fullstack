@@ -12,7 +12,7 @@
         document.querySelectorAll('.showPostForm').forEach((btn) => {
             btn.addEventListener('click', () => {
                 document.getElementById('replyModal')?.classList.remove('hidden');
-                document.getElementById('reply-text')?.focus();
+                document.getElementById('reply_text')?.focus();
             });
         });
         // Handle modal close
@@ -30,8 +30,10 @@
             // Handle post addition - this fires AFTER the DOM is updated
             if (evt.target.id === 'replies-section') {
                 document.getElementById('replyModal')?.classList.add('hidden');
-                document.getElementById('reply-text').value = "";
+                document.getElementById('reply_text').value = "";
             }
         });
     });
 </script>
+
+

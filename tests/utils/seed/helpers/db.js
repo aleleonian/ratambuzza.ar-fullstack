@@ -12,6 +12,7 @@ export async function cleanDb() {
     await db.execute('DELETE FROM media_tags');
     await db.execute('DELETE FROM postcards');
     await db.execute('DELETE FROM media');
+    await db.execute('DELETE FROM post_replies');
     await db.execute('DELETE FROM posts');
     await db.execute('DELETE FROM sessions');
     await db.execute('DELETE FROM tags');

@@ -14,7 +14,7 @@
       onchange="enforceMaxFiles(this, 5)">
   </div>
 
-  <button type="submit" class="button" style="margin-top: 12px;">Postear</button>
+  <button type="submit" id="submit-button" class="button" style="margin-top: 12px;">Postear</button>
 </form>
 <script>
   function enforceMaxFiles(input, max) {
@@ -23,9 +23,16 @@
       input.value = ''; // Clear the selection
     }
   }
-  //TODO pending this validation
-  function submitHandler(e) {
-  }
-  document.getElementById('add-post-form').addEventListener('submit', submitHandler);
+
+  document.body.addEventListener('htmx:beforeRequest', function (event) {
+    if (event.target.id === 'add-post-form') {
+      const postContent = document.getElementById('new-post-content')?.value || '';
+      if (postContent.trim().length < 1) {
+        event.preventDefault(); // This works for HTMX
+        hideSpinner();
+        showToast('Broder, el texto del post no puede estar vacío.', 'error');
+      }
+    }
+  });
 
 </script>

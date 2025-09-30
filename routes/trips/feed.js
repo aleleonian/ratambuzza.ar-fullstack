@@ -165,7 +165,7 @@ router.get('/feed', requireLogin, async (req, res, next) => {
 
         if (isHtmxRequest) {
             if (posts.length === 0) {
-                return res.send('<div style="text-align: center; padding: 20px; color: #666;">No se encontraron posts que coincidan con tu búsqueda.</div>');
+                return res.send('<div id="no-search-results" style="text-align: center; padding: 20px; color: #666;">No se encontraron posts que coincidan con tu búsqueda.</div>');
             }
 
             const searchInfo = hasActiveFilters ? {

@@ -6,16 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Development:**
 - `npm start` or `node server.js` - Start the Express server (default port 3000)
+- `npm run start:dev` - Start server with development environment using nodemon (.env)
 - `npm run start:test` - Start server with test environment using nodemon (.env.test)
 - `npm install` - Install dependencies
 - `node scripts/resize.js` - Process avatar images (resize utility)
 
 **Testing:**
-- `npm run test:e2e` or `npx playwright test` - Run all Playwright tests
-- `npx playwright test login.spec.js` - Run specific test file
+- `npm run test:e2e` or `npx playwright test tests/e2e` - Run all Playwright tests
+- `npm run test:e2e-debug` - Run tests with debug mode and browser UI
+- `npx playwright test tests/e2e/02_feed/feed-post-creation.spec.js` - Run specific test file
+- Tests run on port 3001 (configured in playwright.config.js and .env.test)
 - Playwright test framework with global setup handling authentication via `storageState.json`
 - Environment-specific configs: `.env` for development, `.env.test` for testing
 - Test database seeding and cleanup utilities in `tests/utils/seed/helpers/`
+- All test images stored in `/tests/e2e/fixtures/images/` directory
 
 ## Architecture
 
@@ -51,6 +55,7 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Post creation:** `/trips/:slug/posts/new` with HTMX integration
 - **Infinite scroll:** `/trips/:slug/feed/more` for pagination  
 - **Feed search:** `/trips/:slug/feed?search=text&user=id` with HTMX detection for partial template rendering
+- **Post replies:** `/trips/:slug/feed/:postId` for individual post detail pages with threaded replies
 - **Media gallery:** `/trips/:slug/gallery` with filtering, tagging, and lightbox functionality
 - **Media uploads:** `/trips/:slug/upload` with multiple file support and image processing
 - **Postcards:** `/trips/:slug/postcards` with AI generation, job status, and posting to feed
@@ -62,11 +67,12 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **HTMX integration:** Forms use `hx-post` with `hx-target` for dynamic updates
 - **No layout engine:** Uses include() partials for composition
 
-**Infinite Scroll Implementation:**
-- **Intersection Observer API:** Replaces HTMX triggers for better reliability
+**Feed and Pagination Implementation:**
+- **Intersection Observer API:** Replaces HTMX triggers for better reliability in main feed
 - **10 posts per page:** `POSTS_PER_PAGE = 10` in trips routes (configurable in `lib/config.js`)
 - **Scroll sentinel:** Fixed element that triggers loading when visible
 - **Graceful degradation:** Handles "no more posts" state
+- **Search behavior:** Shows ALL search results without pagination for better UX
 
 **Database Schema:**
 - **users:** id, email, password_hash, handle, avatar_file_name, avatar_head_file_name
@@ -139,3 +145,21 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Session security:** Cookies set to non-secure in development/test environments
 - **Reply system:** Posts support threaded replies with media attachments, likes, and deletion controls
 - **Mobile responsive design:** Separate mobile forms and controls for optimal mobile UX, including collapsible search interface
+
+## Important Implementation Notes
+
+**HTMX Request Handling:**
+- Use `req.get('hx-request') === 'true'` to detect HTMX requests and return partial templates
+- Prevent "Russian doll" effect by returning `views/trips/feed/just-posts.ejs` for search results instead of full layouts
+- Ensure unique form IDs across desktop/mobile to prevent array parameters in search requests
+
+**Testing Best Practices:**
+- Tests must use selector `#reply` for reply elements (not `.card[data-reply-id]`)
+- Test fixtures centralized in `/tests/e2e/fixtures/images/` directory
+- Database persistence tests should create their own data rather than depend on previous tests
+- Use port 3001 for test environment to avoid conflicts with development server
+
+**Error Prevention:**
+- Don't comment out `console.log` or `console.error` when fixing linting errors (per global instructions)
+- Avoid JavaScript variable redeclaration in EJS templates that can break HTMX functionality
+- Use IIFE patterns in template scripts to prevent global namespace pollution

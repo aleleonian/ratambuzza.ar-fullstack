@@ -78,7 +78,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#toast-container', { hasText: 'Listo, loko.' })).toBeVisible();
 
         // Verify reply appears in replies section
-        const reply = page.locator('.replies-section .card[data-reply-id]').first();
+        const reply = page.locator('.replies-section #reply').first();
         await expect(reply).toBeVisible();
         await expect(reply).toContainText(replyText);
         await expect(reply).toContainText(process.env.FIRST_TEST_USER_NAME);
@@ -149,7 +149,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#replyModal')).toBeHidden({ timeout: 15000 });
 
         // Verify reply with multiple images
-        const reply = page.locator('.replies-section .card[data-reply-id]').first();
+        const reply = page.locator('.replies-section #reply').first();
         await expect(reply).toBeVisible();
         await expect(reply).toContainText(replyText);
 
@@ -256,7 +256,7 @@ test.describe('Feed Post Replies', () => {
     //     expect(rows[0].reply_text).toBe(replyText);
     // });
 
-    test.skip('should handle mobile reply interface', async ({ page }) => {
+    test('should handle mobile reply interface', async ({ page }) => {
         // Set mobile viewport
         await page.setViewportSize({ width: 375, height: 667 });
 
@@ -277,11 +277,11 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#replyModal')).toBeHidden({ timeout: 5000 });
 
         // Verify reply appears
-        const reply = page.locator('.replies-section .card[data-reply-id]').first();
+        const reply = page.locator('.replies-section #reply').first();
         await expect(reply).toContainText(replyText);
     });
 
-    test.skip('should clear reply form after successful submission', async ({ page }) => {
+    test('should clear reply form after successful submission', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -305,7 +305,7 @@ test.describe('Feed Post Replies', () => {
         expect(fileInputValue).toBe('');
     });
 
-    test.skip('should close reply modal on escape key', async ({ page }) => {
+    test('should close reply modal on escape key', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -319,7 +319,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#replyModal')).toBeHidden();
     });
 
-    test.skip('should close reply modal on close button click', async ({ page }) => {
+    test('should close reply modal on close button click', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -333,7 +333,7 @@ test.describe('Feed Post Replies', () => {
         await expect(page.locator('#replyModal')).toBeHidden();
     });
 
-    test.skip('should display multiple replies in chronological order', async ({ page }) => {
+    test('should display multiple replies in chronological order', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -349,7 +349,7 @@ test.describe('Feed Post Replies', () => {
         }
 
         // Verify all replies are displayed
-        const replyElements = page.locator('.replies-section .card[data-reply-id]');
+        const replyElements = page.locator('.replies-section #reply');
         await expect(replyElements).toHaveCount(3);
 
         // Verify replies appear in order (first reply should be first)
@@ -358,12 +358,13 @@ test.describe('Feed Post Replies', () => {
         }
     });
 
-    test.skip('should navigate back to feed from post detail page', async ({ page }) => {
+    test('should navigate back to feed from post detail page', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
         // Desktop: use browser back button
-        await page.goBack();
+        const backButtonDesktop = await page.locator('#back-to-feed-desktop')
+        await backButtonDesktop.click();
         await expect(page).toHaveURL(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
         // Navigate back to post detail
@@ -372,14 +373,13 @@ test.describe('Feed Post Replies', () => {
         // Mobile: use back button in mobile interface
         await page.setViewportSize({ width: 375, height: 667 });
 
-        const backButton = page.locator('.mobile-only a[href*="/feed"]').first();
-        if (await backButton.isVisible()) {
-            await backButton.click();
-            await expect(page).toHaveURL(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
-        }
+        const backButtonMobile = await page.locator('#back-to-feed-mobile')
+        await backButtonMobile.click();
+
+        await expect(page).toHaveURL(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
     });
 
-    test.skip('should handle lightbox functionality for reply images', async ({ page }) => {
+    test('should handle lightbox functionality for reply images', async ({ page }) => {
         // Navigate to post detail page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed/${testPostId}`);
 
@@ -411,7 +411,7 @@ test.describe('Feed Post Replies', () => {
         await expect(lightbox).toBeHidden();
     });
 
-    test.skip('should show reply count in post', async ({ page }) => {
+    test('should show reply count in post', async ({ page }) => {
         // Navigate to feed page first
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
@@ -431,7 +431,7 @@ test.describe('Feed Post Replies', () => {
 
         // Check if reply count is displayed on the post
         const post = page.locator('#post').first();
-        const replyCountElement = post.locator('.replies-count, [data-replies-count], text=replies, text=respuestas');
+        const replyCountElement = post.locator('#reply-button');
 
         // This might vary based on implementation - check if reply count is visible
         if (await replyCountElement.first().isVisible()) {

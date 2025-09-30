@@ -15,13 +15,22 @@ test.describe('Feed Post Creation', () => {
         await page.fill('input[name="password"]', process.env.FIRST_TEST_USER_PASS);
         await page.click('button[type="submit"]');
 
-        const cookies = await page.context().cookies();
-        console.log('Cookies after login:', cookies.map(c => c.name));
-        const sessionCookie = cookies.find(c => c.name === 'connect.sid');
-
-        if (!sessionCookie) {
-            throw new Error('Session cookie not set after login!');
+        // ✅ Save the fresh login state again
+        let tries = 0;
+        let cookies;
+        
+        while (tries < 10) {
+            cookies = await page.context().cookies();
+            if (cookies.find(c => c.name === 'connect.sid')) break;
+            await new Promise(res => setTimeout(res, 250));
+            tries++;
         }
+
+        if (tries === 10) throw new Error('Session cookie not set after login');
+
+        console.log('Cookies after login:', cookies.map(c => c.name));
+
+        await page.context().storageState({ path: 'storageState.json' });
 
         await page.waitForSelector('a.logo', { timeout: 5000 });
 
@@ -79,23 +88,32 @@ test.describe('Feed Post Creation', () => {
     });
 
     test('should persist post in database', async ({ page }) => {
+        const testPostContent = 'Database persistence test post';
+        
+        // Navigate to feed page
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/feed`);
 
+        // Create a post
+        await page.click('#new-post-button-desktop');
+        await page.fill('#new-post-content', testPostContent);
+        await page.click('#submit-button');
+        await expect(page.locator('#postModal')).toBeHidden({ timeout: 5000 });
+
+        // Wait for post to appear
         await page.waitForSelector('#post', { timeout: 10000 });
 
         const posts = page.locator('#post');
-
-        await expect(posts.first().locator('.post-content')).toContainText(testPostContentGlobal);
+        await expect(posts.first().locator('.post-content')).toContainText(testPostContent);
 
         // Verify in database
         const db = getDb();
         const [rows] = await db.execute(
             'SELECT content FROM posts WHERE content = ? ORDER BY created_at DESC LIMIT 1',
-            [testPostContentGlobal]
+            [testPostContent]
         );
 
         expect(rows).toHaveLength(1);
-        expect(rows[0].content).toBe(testPostContentGlobal);
+        expect(rows[0].content).toBe(testPostContent);
     });
 
     test('should create a post with image attachment', async ({ page }) => {

@@ -27,5 +27,5 @@ export default defineConfig({
     },
     globalSetup: './globalSetup.js',
     globalTeardown: './globalTeardown.js',
-    workers: 1
+    workers:1
 });

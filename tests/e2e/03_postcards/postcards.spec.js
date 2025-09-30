@@ -141,7 +141,7 @@ test.describe('Postcards flow', () => {
         const db = getDb();
 
         // gotta copy a postcard, a postcard thumb and update the postcard record
-        const postcard2Path = path.resolve(__dirname, `fixtures/images/${process.env.POSTCARD_IMAGE_2}`);
+        const postcard2Path = path.resolve(process.cwd(), `tests/e2e/fixtures/images/${process.env.POSTCARD_IMAGE_2}`);
         const postcard2DestinationPath = path.resolve(process.cwd(), `public/uploads/${process.env.POSTCARD_IMAGE_2}`);
 
         await fs.copyFile(postcard2Path, postcard2DestinationPath);
@@ -150,7 +150,7 @@ test.describe('Postcards flow', () => {
         const postcard2ThumbName = process.env.POSTCARD_IMAGE_THUMB_2;
         const thumbnail2Url = await createThumbnail(postcard2DestinationPath, postcard2ThumbName);
 
-        const postcard3Path = path.resolve(__dirname, `fixtures/images/${process.env.POSTCARD_IMAGE_3}`);
+        const postcard3Path = path.resolve(process.cwd(), `tests/e2e/fixtures/images/${process.env.POSTCARD_IMAGE_3}`);
         const postcard3DestinationPath = path.resolve(process.cwd(), `public/uploads/${process.env.POSTCARD_IMAGE_3}`);
         await fs.copyFile(postcard3Path, postcard3DestinationPath);
 

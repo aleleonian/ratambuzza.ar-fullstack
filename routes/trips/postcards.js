@@ -65,8 +65,8 @@ router.get('/postcards-status', async (req, res) => {
     const userId = req.session.user.id;
     const postcards = await getUserPostcards(userId);
     const hasPending = postcards.some(p => p.status === 'pending');
-    
-    res.json({ 
+
+    res.json({
         hasPending,
         totalPostcards: postcards.length,
         statusCounts: {
@@ -118,15 +118,15 @@ router.post('/postcards/new', async (req, res) => {
     try {
 
         if (!selectedAvatars || selectedAvatars.length < 1) {
-            throw new Error('Gotta choose an avatar!')
+            throw new Error('Tenés que elegir al menos un an avatar!')
         }
 
         if (!selectedBackground) {
-            throw new Error('Gotta choose an background!')
+            throw new Error('Tenés que elegir un escenario!')
         }
 
         if (!selectedAction) {
-            throw new Error('Gotta choose an action!')
+            throw new Error('Tenés que elegir una acción!')
         }
 
         await enqueuePostcardJob(userId, trip.id, avatars, background, action);
@@ -141,7 +141,7 @@ router.post('/postcards/new', async (req, res) => {
 
         const availableAvatars = await getTripMembersAvatars(req.db, trip.id);
 
-        res.setHeader('X-Toast', "Algo salió mal->" + error);
+        res.setHeader('X-Toast', error);
         res.setHeader('X-Toast-Type', 'error');
         res.render('trips/postcards/actual-postcard-form',
             {

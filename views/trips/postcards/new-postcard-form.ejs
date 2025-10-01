@@ -11,6 +11,7 @@
 
     fieldset[disabled] {
         opacity: 0.5;
+        pointer-events: none;
     }
 
     fieldset[disabled] * {
@@ -98,7 +99,9 @@
 
 <script>
 
-    const tomSelectInstances = {};
+    // Store on window so it can be accessed from postcards-list.ejs
+    window.tomSelectInstances = window.tomSelectInstances || {};
+    const tomSelectInstances = window.tomSelectInstances;
 
     function initTomSelect() {
         // Clean up any existing instances before re-initializing
@@ -156,14 +159,13 @@
     // Register listener only once
     document.addEventListener('DOMContentLoaded', () => {
         initTomSelect(); // Initial render
-        <% if (hasPending) { %>
-        for (const key in tomSelectInstances) {
-                tomSelectInstances[key].disable();
-            }
-        <% } %>
-            document.body.addEventListener('htmx:afterSettle', function () {
+
+        document.body.addEventListener('htmx:afterSettle', function (e) {
+            // Only reinit if specifically the form container was updated
+            if (e.target.id === 'new-postcard-form-container') {
                 initTomSelect();
-            });
+            }
+        });
         document.body.addEventListener('htmx:afterSwap', async function (e) {
             if (e.target.id === 'new-postcard-form-container') {
                 const options = { target: `#postcards-grid`, swap: 'innerHTML' };

@@ -4,7 +4,7 @@ test.describe('Login Process', () => {
     const testHandle = 'test-user-1';
     const testPassword = '12345';
 
-    test.skip('should successfully login with valid credentials', async ({ page }) => {
+    test('should successfully login with valid credentials', async ({ page }) => {
         // Navigate to login page
         await page.goto('/');
 
@@ -23,7 +23,7 @@ test.describe('Login Process', () => {
         await expect(page.locator('text=Ratambuzza.ar')).toBeVisible();
     });
 
-    test.skip('should fail login with invalid credentials', async ({ page }) => {
+    test('should fail login with invalid credentials', async ({ page }) => {
         await page.goto('/');
 
         await page.fill('input[name="handle"]', testHandle);

@@ -107,11 +107,141 @@
         });
     }
 
+    // Polling mechanism for postcard status updates
+    let pollingInterval = null;
+
+    function startPolling() {
+        
+        // Clear any existing interval
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+        }
+
+        console.log('Starting postcard status polling...');
+
+        pollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/trips/<%=currentOrUpcomingTrip.slug%>/playground/postcards-status`);
+
+                if (!response.ok) {
+                    console.warn('Polling response not OK:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Polling status:', data);
+
+                if (!data.hasPending) {
+                    // No more pending postcards, refresh only pending items and stop polling
+                    console.log('No pending postcards, refreshing pending items and stopping polling');
+                    await refreshPendingPostcards();
+                    stopPolling();
+                } else {
+                    // Still have pending postcards, refresh only pending items to check for completed ones
+                    console.log(`Still ${data.statusCounts.pending} pending postcards, checking for updates`);
+                    await refreshPendingPostcards();
+                }
+            } catch (error) {
+                console.error('Polling error:', error);
+                // Continue polling even if there's an error, but check if we should stop
+                const pendingElements = document.querySelectorAll('.pending-status');
+                if (pendingElements.length === 0) {
+                    console.log('No pending elements found in DOM, stopping polling');
+                    stopPolling();
+                }
+            }
+        }, 10000); // Poll every 10 seconds
+    }
+
+    async function stopPolling() {
+        if (pollingInterval) {
+            console.log('Stopping postcard status polling');
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+            // Re-enable form
+            enablePostcardForm();
+        }
+    }
+
+    function enablePostcardForm() {
+        const fieldset = document.querySelector('#postcards-form fieldset');
+        if (fieldset) {
+            fieldset.removeAttribute('disabled');
+            fieldset.style.pointerEvents = '';
+            fieldset.style.opacity = '';
+            console.log('Form re-enabled');
+        }
+
+        // Blur TomSelect to close any open dropdowns
+        const tomSelectInstances = window.tomSelectInstances || {};
+        for (const key in tomSelectInstances) {
+            const instance = tomSelectInstances[key];
+            if (instance) {
+                instance.blur();
+            }
+        }
+    }
+
+    async function refreshPendingPostcards() {
+        // Find all pending postcard elements
+        const pendingElements = document.querySelectorAll('[data-postcard-status="pending"]');
+
+        if (pendingElements.length === 0) {
+            console.log('No pending postcards to refresh');
+            return;
+        }
+
+        console.log(`Refreshing ${pendingElements.length} pending postcards`);
+
+        // Refresh each pending postcard individually
+        for (const element of pendingElements) {
+            const postcardId = element.dataset.postcardId;
+            if (postcardId) {
+                const url = `/trips/<%=currentOrUpcomingTrip.slug%>/playground/postcards/${postcardId}/item`;
+                const options = { target: `[data-postcard-id="${postcardId}"]`, swap: 'outerHTML' };
+                await window.htmxAjaxPromise('GET', url, options);
+            }
+        }
+
+        // Re-setup lightbox after updating postcards
+        setupPostcardLightbox();
+    }
+
+    function checkAndStartPolling() {
+        
+        // Check if there are any pending postcards in the current grid
+        const pendingElements = document.querySelectorAll('.pending-status');
+        console.log(`Found ${pendingElements.length} pending postcards in DOM`);
+        
+        if (pendingElements.length > 0) {
+            console.log('Starting polling for pending postcards');
+            startPolling();
+        } else {
+            console.log('No pending postcards found, stopping polling');
+            stopPolling();
+        }
+    }
+
     // Run it after HTMX swaps in new content
     document.body.addEventListener('htmx:afterSwap', (e) => {
         if (e.target.id === 'postcards-grid') {
+            
             setupPostcardLightbox();
+            checkAndStartPolling();
+        }
+        if (e.target.id === 'new-postcard-form-container') {
+            
+            // After submitting a new postcard, start polling
+            setTimeout(checkAndStartPolling, 1000); // Small delay to ensure grid is refreshed
         }
     });
+
+    // Initial check when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(checkAndStartPolling, 2000); // Wait for initial grid load
+    });
+
+    // Stop polling when page is about to unload
+    window.addEventListener('beforeunload', stopPolling);
 
 </script>

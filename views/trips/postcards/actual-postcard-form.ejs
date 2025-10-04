@@ -37,7 +37,8 @@
                     autocomplete="off" value="<%= typeof selectedAction != 'undefined' ? selectedAction : '' %>">
 
                 <span style=" font-size: x-small;">
-                    (Ejemplo: Andando en un carrito de montaña rusa, Bailando y tomando tragos, Arrojándose bolas de nieve...)
+                    (Ejemplo: Andando en un carrito de montaña rusa, Bailando y tomando tragos, Arrojándose bolas de
+                    nieve...)
                 </span>
             </div>
         </div>
@@ -50,3 +51,36 @@
         </div>
     </fieldset>
 </form>
+
+
+<script>
+
+    document.body.addEventListener('htmx:beforeRequest', function (event) {
+        if (event.target.id === 'postcards-form') {
+            if (!validatePostcardForm()) {
+                event.preventDefault();
+                hideSpinner();
+            }
+        }
+    });
+
+    function validatePostcardForm() {
+        const tomSelect = tomSelectInstances['avatar-select'];
+        const selected = tomSelect.getValue();
+        if (!selected || selected.length < 1) {
+            showToast('Tenés que elegir al menos un avatar, cabezón!', 'error');
+            return false
+        }
+        const selecteBackgrond = document.getElementById('background-select').value;
+        if (!selecteBackgrond || selecteBackgrond.length < 1) {
+            showToast('Tenés que tipear un escenario, termo!', 'error');
+            return false
+        }
+        const selectedAction = document.getElementById('action-select').value;
+        if (!selectedAction || selectedAction.length < 1) {
+            showToast('Tenés que tipear una acción, nabolín!', 'error');
+            return false
+        }
+        return true;
+    }
+</script>

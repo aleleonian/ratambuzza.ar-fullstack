@@ -16,7 +16,7 @@ router.get('/prizes', async (req, res) => {
 router.get('/prizes-grid', async (req, res) => {
     const userId = req.session.user.id;
     const trip = req.trip;
-    const { awardee, sort } = req.query;
+    const { awardee, sort, target } = req.query;
 
     let query = `
         SELECT
@@ -60,7 +60,10 @@ router.get('/prizes-grid', async (req, res) => {
 
     const [prizes] = await req.db.execute(query, params);
 
-    res.render('trips/prizes/prizes-grid', { prizes, userId });
+    // Determine grid target for HTMX responses
+    const gridTarget = target || 'prizes-grid';
+
+    res.render('trips/prizes/prizes-grid', { prizes, userId, gridTarget });
 });
 
 // Submit new prize
@@ -129,7 +132,8 @@ router.post('/prizes/likes/toggle', async (req, res) => {
             id: prize_id,
             liked_by_user: !!updated.liked_by_user,
             like_count: updated.like_count
-        }
+        },
+        currentOrUpcomingTrip: req.trip
     });
 });
 
@@ -154,9 +158,10 @@ router.delete('/prizes/:id', async (req, res) => {
             return res.status(403).send('Unauthorized');
         }
 
+        await req.db.execute('DELETE FROM likes_prizes WHERE prize_id = ?', [prizeId]);
         await req.db.execute('DELETE FROM prizes WHERE id = ?', [prizeId]);
 
-        const { awardee, sort } = req.query;
+        const { awardee, sort, target } = req.query;
         let query = `
             SELECT
                 p.id,
@@ -197,9 +202,11 @@ router.delete('/prizes/:id', async (req, res) => {
 
         const [prizes] = await req.db.execute(query, params);
 
+        const gridTarget = target || 'prizes-grid';
+
         res.setHeader('X-Toast', 'Premio borrado!');
         res.setHeader('X-Toast-Type', 'success');
-        res.render('trips/prizes/prizes-grid', { prizes, userId });
+        res.render('trips/prizes/prizes-grid', { prizes, userId, gridTarget });
     } catch (error) {
         console.error(error);
         res.setHeader('X-Toast', 'Error al borrar el premio');

@@ -130,15 +130,13 @@
 
                     <div class="prize-actions">
                         <!-- Like button -->
-                        <div id="prize-like-<%= prize.id %>">
-                            <%- include('like-button', { prize }) %>
-                        </div>
+                        <%- include('like-button', { prize }) %>
 
                         <!-- Delete button (only for author or admin) -->
                         <% if (prize.author_id === userId) { %>
                             <button class="button button-smaller delete-prize-btn"
                                     hx-delete="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes/<%= prize.id %>"
-                                    hx-target="#prizes-grid"
+                                    hx-target="#<%= gridTarget %>"
                                     hx-swap="innerHTML"
                                     hx-confirm="Estás seguro que querés borrar este premio?">
                                 Borrar

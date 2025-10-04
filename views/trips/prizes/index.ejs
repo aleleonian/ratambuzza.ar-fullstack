@@ -8,7 +8,7 @@
         <div class="prizes-layout desktop-only">
             <!-- Left side: Prizes list with filters -->
             <div class="prizes-left">
-                <div id="prizes-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid"
+                <div id="prizes-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?target=prizes-grid"
                     hx-trigger="load" hx-swap="innerHTML">
                 </div>
 
@@ -43,7 +43,7 @@
 
         <!-- Mobile: Prizes list + Floating button -->
         <div class="prizes-mobile mobile-only">
-            <div id="prizes-grid-mobile" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid"
+            <div id="prizes-grid-mobile" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?target=prizes-grid-mobile"
                 hx-trigger="load" hx-swap="innerHTML">
             </div>
 
@@ -240,6 +240,42 @@
         color: var(--text-primary);
     }
 
+    /* Like button */
+    .prize-like-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border: 2px solid var(--border-color);
+        background: var(--bg-primary);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9em;
+    }
+
+    .prize-like-button:hover {
+        transform: scale(1.05);
+        border-color: var(--accent-1);
+    }
+
+    .prize-like-button.liked {
+        background: var(--accent-1);
+        color: white;
+        border-color: var(--accent-1);
+    }
+
+    .like-icon {
+        font-size: 1.1em;
+        line-height: 1;
+    }
+
+    .like-count {
+        font-weight: bold;
+        min-width: 20px;
+        text-align: center;
+    }
+
     @media (max-width: 768px) {
         .prize-controls {
             flex-direction: column;
@@ -279,10 +315,11 @@
             const isDesktop = target === '#prizes-grid';
             const awardee = isDesktop ? awardeeFilter?.value : awardeeFilterMobile?.value;
             const sort = isDesktop ? sortSelect?.value : sortSelectMobile?.value;
+            const targetParam = target.replace('#', '');
 
-            let url = `/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?`;
-            if (awardee) url += `awardee=${awardee}&`;
-            if (sort && sort !== 'recent') url += `sort=${sort}`;
+            let url = `/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?target=${targetParam}`;
+            if (awardee) url += `&awardee=${awardee}`;
+            if (sort && sort !== 'recent') url += `&sort=${sort}`;
 
             htmx.ajax('GET', url, { target: target, swap: 'innerHTML' });
         }

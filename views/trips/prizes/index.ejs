@@ -1,0 +1,215 @@
+<%- include('../../partials/header/prizes-current-upcoming') %>
+
+<main class="generic-container">
+    <h1>Premios</h1>
+
+    <div id="prizes-container">
+
+        <!-- Prizes grid -->
+        <div id="prizes-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid"
+            hx-trigger="load, refreshPrizes from:body" hx-swap="innerHTML">
+        </div>
+
+        <!-- Prize form -->
+        <div id="prize-form-container">
+            <%- include('prize-form') %>
+        </div>
+
+        <!-- Filters and sorting -->
+        <div class="prize-controls">
+            <div class="filter-group">
+                <label for="awardee-filter">Filtrar por premiado:</label>
+                <select id="awardee-filter" placeholder="Elegí un amigo" class="pixel-input">
+                    <% avatars.forEach(avatar => { %>
+                    <% console.log(`index.ejs avatar->${JSON.stringify(avatar)}`)%>
+                    <option value="<%= avatar.handle %>"
+                        data-custom-properties='{"img":"/images/avatars/thumbs/<%= avatar.avatar_head_file_name %>"}'>
+                    </option>
+                    <%= avatar.handle %></option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort-select">Ordenar por:</label>
+                <select id="sort-select" class="pixel-input">
+                    <option value="recent">Más recientes</option>
+                    <option value="most-liked">Más gustados</option>
+                    <option value="least-liked">Menos gustados</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    #prizes-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .prize-controls {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+        .prize-controls {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    // Handle filter and sort changes
+    document.addEventListener('DOMContentLoaded', () => {
+        const awardeeFilter = document.getElementById('awardee-filter');
+        const sortSelect = document.getElementById('sort-select');
+        const prizesGrid = document.getElementById('prizes-grid');
+
+        function refreshGrid() {
+            const awardee = awardeeFilter.value;
+            const sort = sortSelect.value;
+
+            let url = `/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?`;
+            if (awardee) url += `awardee=${awardee}&`;
+            if (sort && sort !== 'recent') url += `sort=${sort}`;
+
+            htmx.ajax('GET', url, { target: '#prizes-grid', swap: 'innerHTML' });
+        }
+
+        awardeeFilter.addEventListener('change', refreshGrid);
+        sortSelect.addEventListener('change', refreshGrid);
+
+        // Listen for form submissions to refresh grid
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            if (e.target.id === 'prize-form-container') {
+                initTomSelect();
+                refreshGrid();
+            }
+        });
+    });
+
+    const tomSelectInstances = {};
+
+    function initTomSelect() {
+        // Clean up any existing instances before re-initializing
+        for (const key in tomSelectInstances) {
+            tomSelectInstances[key].destroy();
+            delete tomSelectInstances[key];
+        }
+
+        // AVATAR SELECT
+        const awardeeSelectorEl = document.getElementById('awardee-select');
+        if (awardeeSelectorEl) {
+            const options = [...awardeeSelectorEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{ }')
+            }));
+
+            tomSelectInstances['awardee-select'] = new TomSelect(awardeeSelectorEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                },
+            });
+
+            tomSelectInstances['awardee-select'].clear();
+        }
+
+        //AVATAR FILTER
+        const awardeeFilterEl = document.getElementById('awardee-filter');
+        if (awardeeFilterEl) {
+            const options = [...awardeeFilterEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{ }')
+            }));
+
+            tomSelectInstances['awardee-filter'] = new TomSelect(awardeeFilterEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                },
+            });
+
+            tomSelectInstances['awardee-filter'].clear();
+        }
+
+
+        const sortSelectEl = document.querySelector('#sort-select');
+        if (sortSelectEl) {
+            const options = [...sortSelectEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+            }));
+
+            tomSelectInstances['sort-select-criteria'] = new TomSelect(sortSelectEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initTomSelect(); 
+    });
+</script>
+
+<%- include('../../partials/footer') %>

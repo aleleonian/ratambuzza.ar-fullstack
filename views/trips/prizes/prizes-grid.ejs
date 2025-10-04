@@ -1,0 +1,153 @@
+<style>
+    .prizes-grid {
+        display: grid;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .prize-card {
+        background: var(--bg-secondary);
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .prize-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .prize-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .prize-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .prize-header-info {
+        flex: 1;
+    }
+
+    .prize-awardee {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: var(--accent-1);
+    }
+
+    .prize-author {
+        font-size: 0.9em;
+        color: var(--text-secondary);
+    }
+
+    .prize-reason {
+        margin: 15px 0;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .prize-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .prize-date {
+        font-size: 0.85em;
+        color: var(--text-secondary);
+    }
+
+    .prize-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .delete-prize-btn {
+        padding: 6px 12px;
+        font-size: 0.9em;
+    }
+
+    .no-prizes {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+        .prize-card {
+            padding: 15px;
+        }
+
+        .prize-footer {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="prizes-grid">
+    <% if (prizes.length === 0) { %>
+        <div class="no-prizes">
+            <p>No hay premios todavía. Sé el primero en otorgar uno!</p>
+        </div>
+    <% } else { %>
+        <% prizes.forEach(prize => { %>
+            <div class="prize-card" id="prize-<%= prize.id %>">
+                <div class="prize-header">
+                    <img src="/images/avatars/thumbs/<%= prize.awardee_avatar %>"
+                         alt="<%= prize.awardee_handle %>"
+                         class="prize-avatar">
+                    <div class="prize-header-info">
+                        <div class="prize-awardee">🏆 <%= prize.awardee_handle %></div>
+                        <div class="prize-author">Otorgado por <%= prize.author_handle %></div>
+                    </div>
+                </div>
+
+                <div class="prize-reason">
+                    <%= prize.reason %>
+                </div>
+
+                <div class="prize-footer">
+                    <div class="prize-date">
+                        <%= new Date(prize.created_at).toLocaleDateString('es-AR', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        }) %>
+                    </div>
+
+                    <div class="prize-actions">
+                        <!-- Like button -->
+                        <div id="prize-like-<%= prize.id %>">
+                            <%- include('like-button', { prize }) %>
+                        </div>
+
+                        <!-- Delete button (only for author or admin) -->
+                        <% if (prize.author_id === userId) { %>
+                            <button class="button button-smaller delete-prize-btn"
+                                    hx-delete="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes/<%= prize.id %>"
+                                    hx-target="#prizes-grid"
+                                    hx-swap="innerHTML"
+                                    hx-confirm="Estás seguro que querés borrar este premio?">
+                                Borrar
+                            </button>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    <% } %>
+</div>

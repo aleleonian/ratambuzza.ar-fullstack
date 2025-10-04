@@ -37,11 +37,6 @@
 <form id="prize-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/playground/prizes/new"
     hx-target="#prize-form-container" hx-swap="innerHTML">
     <h2>Otorgar un premio</h2>
-    <% console.log("typeof selectedAwardee->" + typeof selectedAwardee); %>
-    <% 
-    if(typeof selectedAwardee != "undefined") { console.log("selectedAwardee is defined")} 
-    else { console.log("selectedAwardee is NOT defined")}
-    %>
 
     <div class="form-group">
         <label for="awardee-select">Premiado:</label>
@@ -58,8 +53,8 @@
 
     <div class="form-group">
         <label for="reason-input">Razón del premio:</label>
-        <textarea name="reason" id="reason-input" class="pixel-input" placeholder="Por qué merece este premio?"
-            required><%= typeof selectedReason != 'undefined' ? selectedReason : '' %></textarea>
+        <textarea name="reason" id="reason-input" class="pixel-input"
+            placeholder="Por qué merece este premio?"><%= typeof selectedReason != 'undefined' ? selectedReason : '' %></textarea>
     </div>
 
     <button type="submit" class="button">Otorgar Premio</button>
@@ -67,6 +62,7 @@
 
 <script>
     document.body.addEventListener('htmx:beforeRequest', function (event) {
+        debugger;
         if (event.target.id === 'prize-form') {
             if (!validatePrizeForm()) {
                 event.preventDefault();
@@ -76,6 +72,7 @@
     });
 
     function validatePrizeForm() {
+        debugger;
         const awardee = document.getElementById('awardee-select').value;
         if (!awardee) {
             showToast('Tenés que elegir un usuario!', 'error');

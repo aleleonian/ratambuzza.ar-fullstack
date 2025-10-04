@@ -21,10 +21,8 @@
                 <label for="awardee-filter">Filtrar por premiado:</label>
                 <select id="awardee-filter" placeholder="Elegí un amigo" class="pixel-input">
                     <% avatars.forEach(avatar => { %>
-                    <% console.log(`index.ejs avatar->${JSON.stringify(avatar)}`)%>
-                    <option value="<%= avatar.handle %>"
+                    <option value="<%= avatar.id %>"
                         data-custom-properties='{"img":"/images/avatars/thumbs/<%= avatar.avatar_head_file_name %>"}'>
-                    </option>
                     <%= avatar.handle %></option>
                     <% }) %>
                 </select>
@@ -99,8 +97,14 @@
         // Listen for form submissions to refresh grid
         document.body.addEventListener('htmx:afterSwap', (e) => {
             if (e.target.id === 'prize-form-container') {
-                initTomSelect();
                 refreshGrid();
+            }
+        });
+
+        // Reinitialize TomSelect after any swap to form container
+        document.body.addEventListener('htmx:afterSettle', (e) => {
+            if (e.target.id === 'prize-form-container') {
+                initTomSelect();
             }
         });
     });

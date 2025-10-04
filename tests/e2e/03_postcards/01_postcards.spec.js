@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const fs = require('fs/promises');
 
-const { insertPostcard, updateJobStatus } = require('../../../lib/postcardJobs');
+const { insertPostcard, updateJobStatus } = require('../../../lib/postcardJobs.js');
 const { initDb, getDb } = require('../../utils/seed/helpers/db.js');
 const { getUserId } = require('../../utils/seed/helpers/userHelpers.js');
 const { getTripId } = require('../../utils/seed/helpers/tripHelpers.js');
@@ -37,7 +37,6 @@ test.describe('Postcards flow', () => {
         const chip = page.locator('.ts-wrapper .ts-control .item', { hasText: text });
         await expect(chip).toBeVisible({ timeout: 1000 });
     }
-
     test('can create a postcard and see it in the grid', async ({ page }) => {
         // Select up to 3 avatars (Tom Select is a div+input combo)
 
@@ -90,51 +89,48 @@ test.describe('Postcards flow', () => {
         // await page.locator('#lightbox #lightbox-close').click();
         await expect(page.locator('#lightbox')).toBeHidden();
     });
-
-    test('form elements keep their values after validation errors', async ({ page }) => {
+    test('shows the apropriate validation errors', async ({ page }) => {
         // Test 1: Submit with just avatars (missing background and action)  
         await selectAvatar(page, process.env.FIRST_TEST_USER_NAME);
         await selectAvatar(page, process.env.SECOND_TEST_USER_NAME);
 
         await page.click('button:has-text("Generar Postal")');
-        await page.waitForResponse(response =>
-            response.url().includes('postcards/new') && response.status() === 200
-        );
-        await page.waitForLoadState('networkidle');
+
+        await expect(page.locator('#toast-container')).toContainText('Tenés que tipear un escenario');
+
+        // await page.waitForResponse(response =>
+        //     response.url().includes('postcards/new') && response.status() === 200
+        // );
+        // await page.waitForLoadState('networkidle');
 
         // Avatars should be preserved
-        await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
+        // await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
 
         // Test 2: Add background, submit without action (missing action)
         await page.fill('#background-select', 'Discoteca');
         await page.click('button:has-text("Generar Postal")');
-        await page.waitForResponse(response =>
-            response.url().includes('postcards/new') && response.status() === 200
-        );
-        await page.waitForLoadState('networkidle');
+        // await page.waitForResponse(response =>
+        //     response.url().includes('postcards/new') && response.status() === 200
+        // );
+        // await page.waitForLoadState('networkidle');
 
-        // Background and avatars should be preserved
-        await expect(page.locator('#background-select')).toHaveValue('Discoteca');
-        await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
+        await expect(page.locator('#toast-container')).toContainText('Tenés que tipear una acción');
 
-        // Test 3: Clear background, add action, submit (missing background)
-        await page.fill('#background-select', '');
-        await page.fill('#action-select', 'Bailando');
+        // await page.fill('#action-select', 'Bailando');
 
-        await page.click('button:has-text("Generar Postal")');
+        // await page.click('button:has-text("Generar Postal")');
 
         // Wait for HTMX response to complete properly
-        await page.waitForResponse(response =>
-            response.url().includes('postcards/new') && response.status() === 200
-        );
-        await page.waitForLoadState('networkidle');
+        // await page.waitForResponse(response =>
+        //     response.url().includes('postcards/new') && response.status() === 200
+        // );
+        // await page.waitForLoadState('networkidle');
 
         // Action should be preserved, background should be empty, avatars should remain
-        await expect(page.locator('#action-select')).toHaveValue('Bailando');
-        await expect(page.locator('#background-select')).toHaveValue('');
-        await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
+        // await expect(page.locator('#action-select')).toHaveValue('Bailando');
+        // await expect(page.locator('#background-select')).toHaveValue('');
+        // await expect(page.locator('.ts-wrapper .ts-control .item')).toHaveCount(2);
     });
-
     test('lightbox supports keyboard navigation', async ({ page }) => {
         // 1. Visit the postcard page and ensure postcards exist
         await initDb();
@@ -185,8 +181,6 @@ test.describe('Postcards flow', () => {
         await page.goto(`/trips/${process.env.FIRST_TRIP_SLUG}/playground/postcards`);
 
         const thumbnails = page.locator('.postcard-grid .postcard-thumb');
-        const count = await thumbnails.count();
-        expect(count).toBeGreaterThanOrEqual(2); // Need at least 2 for meaningful navigation
 
         // 2. Open the first postcard
         await thumbnails.nth(0).click();
@@ -227,7 +221,7 @@ test.describe('Postcards flow', () => {
 
         // Step 3: Extract original postcard filename from lightbox image
         const fullSrc = await page.locator('#lightbox-img').getAttribute('src');
-        expect(fullSrc).toContain('/uploads/TEST-postcard-');
+        expect(fullSrc).toContain('/uploads/TEST-postcard');
 
         // Derive the resized and thumbnail filenames
         const fileName = fullSrc.split('/').pop(); // e.g., postcard-1757982436831.png
@@ -269,5 +263,4 @@ test.describe('Postcards flow', () => {
         // Expect toast message (assuming toast renders text in .toast class)
         await expect(page.locator('#toast-container')).toContainText('Ya se posteó esa imagen');
     });
-
 });

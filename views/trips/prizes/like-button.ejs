@@ -1,0 +1,7 @@
+<button id="prize-like-<%= prize.id %>" class="prize-like-button <%= prize.liked_by_user ? 'liked' : '' %>"
+        hx-post="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes/likes/toggle"
+        hx-vals='{"prize_id": "<%= prize.id %>"}'
+        hx-swap="outerHTML">
+    <span class="like-icon"><%= prize.liked_by_user ? '❤️' : '🤍' %></span>
+    <span class="like-count"><%= prize.like_count %></span>
+</button>

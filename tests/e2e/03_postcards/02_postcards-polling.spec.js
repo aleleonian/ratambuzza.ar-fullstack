@@ -37,7 +37,7 @@ test.describe('Postcards Polling Feature', () => {
 
         // Verify pending status appears
         await expect(page.locator('.pending-status')).toBeVisible();
-        await expect(page.locator('#polling-indicator')).toBeVisible();
+        await expect(page.locator('.polling-indicator')).toBeVisible();
 
         // Wait a bit and check that polling started
         await page.waitForTimeout(3000);

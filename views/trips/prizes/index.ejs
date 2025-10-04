@@ -1,0 +1,581 @@
+<%- include('../../partials/header/prizes-current-upcoming') %>
+
+<main class="generic-container">
+    <h1>Premios</h1>
+
+    <div id="prizes-container">
+        <!-- Desktop: Split Layout -->
+        <div class="prizes-layout desktop-only">
+            <!-- Left side: Prizes list with filters -->
+            <div class="prizes-left">
+                <div id="prizes-grid" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?target=prizes-grid"
+                    hx-trigger="load" hx-swap="innerHTML">
+                </div>
+
+                <div class="prize-controls">
+                    <div class="filter-group">
+                        <select id="awardee-filter" placeholder="Filtrar por premiado" class="pixel-input">
+                            <% avatars.forEach(avatar => { %>
+                            <option value="<%= avatar.id %>"
+                                data-custom-properties='{"img":"/images/avatars/thumbs/<%= avatar.avatar_head_file_name %>"}'>
+                                <%= avatar.handle %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select id="sort-select" placeholder="Ordenar por" class="pixel-input">
+                            <option value="recent">Más recientes</option>
+                            <option value="most-liked">Más gustados</option>
+                            <option value="least-liked">Menos gustados</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right side: Prize form -->
+            <div class="prizes-right">
+                <div id="prize-form-container">
+                    <%- include('prize-form') %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile: Prizes list + Floating button -->
+        <div class="prizes-mobile mobile-only">
+            <div id="prizes-grid-mobile" hx-get="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?target=prizes-grid-mobile"
+                hx-trigger="load" hx-swap="innerHTML">
+            </div>
+
+            <div class="prize-controls">
+                <div class="filter-group">
+                    <select id="awardee-filter-mobile" placeholder="Filtrar por premiado" class="pixel-input">
+                        <% avatars.forEach(avatar => { %>
+                        <option value="<%= avatar.id %>"
+                            data-custom-properties='{"img":"/images/avatars/thumbs/<%= avatar.avatar_head_file_name %>"}'>
+                            <%= avatar.handle %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <select id="sort-select-mobile" placeholder="Ordenar por" class="pixel-input">
+                        <option value="recent">Más recientes</option>
+                        <option value="most-liked">Más gustados</option>
+                        <option value="least-liked">Menos gustados</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Floating button -->
+            <button id="add-prize-btn" class="floating-btn">
+                + Agregar Premio
+            </button>
+        </div>
+
+        <!-- Mobile Modal -->
+        <div id="prize-modal" class="modal mobile-only">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <div id="prize-form-container-mobile">
+                    <%- include('prize-form-mobile') %>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    /* Form styles */
+    #prize-form,
+    #prize-form-mobile {
+        background: var(--bg-secondary);
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    #prize-form h2,
+    #prize-form-mobile h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    #prizes-container {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Desktop split layout */
+    .prizes-layout {
+        display: flex;
+        gap: 30px;
+        margin-top: 20px;
+    }
+
+    .prizes-left {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .prizes-right {
+        width: 400px;
+        position: sticky;
+        top: 20px;
+        align-self: flex-start;
+    }
+
+    /* Mobile layout */
+    .prizes-mobile {
+        margin-top: 20px;
+        padding-bottom: 80px;
+        /* Space for floating button */
+    }
+
+    /* Filters */
+    .prize-controls {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+
+    /* Floating button */
+    .floating-btn {
+        position: fixed;
+        top: 10%;
+        right: 30px;
+        background: var(--accent-1);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 16px 24px;
+        font-size: 1em;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+
+    .floating-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        overflow: auto;
+    }
+
+    .modal.show {
+        display: block;
+    }
+
+    /* .modal-content {
+        background-color: var(--bg-primary);
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    } */
+
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+        color: var(--text-primary);
+    }
+
+    /* Like button */
+    .prize-like-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border: 2px solid var(--border-color);
+        background: var(--bg-primary);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9em;
+    }
+
+    .prize-like-button:hover {
+        transform: scale(1.05);
+        border-color: var(--accent-1);
+    }
+
+    .prize-like-button.liked {
+        background: var(--accent-1);
+        color: white;
+        border-color: var(--accent-1);
+    }
+
+    .like-icon {
+        font-size: 1.1em;
+        line-height: 1;
+    }
+
+    .like-count {
+        font-weight: bold;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .prize-controls {
+            flex-direction: column;
+        }
+
+        .filter-group {
+            min-width: 100%;
+        }
+
+        .prizes-layout.desktop-only {
+            display: none !important;
+        }
+
+        .prizes-mobile.mobile-only {
+            display: block !important;
+        }
+    }
+</style>
+
+<script>
+    // Handle filter and sort changes
+    document.addEventListener('DOMContentLoaded', () => {
+        // Desktop filters
+        const awardeeFilter = document.getElementById('awardee-filter');
+        const sortSelect = document.getElementById('sort-select');
+
+        // Mobile filters
+        const awardeeFilterMobile = document.getElementById('awardee-filter-mobile');
+        const sortSelectMobile = document.getElementById('sort-select-mobile');
+
+        // Modal elements
+        const modal = document.getElementById('prize-modal');
+        const addPrizeBtn = document.getElementById('add-prize-btn');
+        const modalClose = document.querySelector('.modal-close');
+
+        function refreshGrid(target = '#prizes-grid') {
+            const isDesktop = target === '#prizes-grid';
+            const awardee = isDesktop ? awardeeFilter?.value : awardeeFilterMobile?.value;
+            const sort = isDesktop ? sortSelect?.value : sortSelectMobile?.value;
+            const targetParam = target.replace('#', '');
+
+            let url = `/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes-grid?target=${targetParam}`;
+            if (awardee) url += `&awardee=${awardee}`;
+            if (sort && sort !== 'recent') url += `&sort=${sort}`;
+
+            htmx.ajax('GET', url, { target: target, swap: 'innerHTML' });
+        }
+
+        // Desktop event listeners
+        if (awardeeFilter) {
+            awardeeFilter.addEventListener('change', () => refreshGrid('#prizes-grid'));
+        }
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => refreshGrid('#prizes-grid'));
+        }
+
+        // Mobile event listeners
+        if (awardeeFilterMobile) {
+            awardeeFilterMobile.addEventListener('change', () => refreshGrid('#prizes-grid-mobile'));
+        }
+        if (sortSelectMobile) {
+            sortSelectMobile.addEventListener('change', () => refreshGrid('#prizes-grid-mobile'));
+        }
+
+        // Modal handlers
+        if (addPrizeBtn) {
+            addPrizeBtn.addEventListener('click', () => {
+                modal.classList.add('show');
+            });
+        }
+
+        if (modalClose) {
+            modalClose.addEventListener('click', () => {
+                modal.classList.remove('show');
+            });
+        }
+
+        // Close modal on outside click
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
+
+        // Listen for form submissions to refresh grid
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            if (e.target.id === 'prize-form-container' || e.target.id === 'prize-form-container-mobile') {
+                refreshGrid('#prizes-grid');
+                // Close modal on mobile after successful submission
+                if (e.target.id === 'prize-form-container-mobile' && modal) {
+                    setTimeout(() => modal.classList.remove('show'), 100);
+                }
+            }
+        });
+
+        // Reinitialize TomSelect after any swap to form container
+        document.body.addEventListener('htmx:afterSettle', (e) => {
+            if (e.target.id === 'prize-form-container' || e.target.id === 'prize-form-container-mobile') {
+                initTomSelect();
+            }
+        });
+    });
+
+    const tomSelectInstances = {};
+
+    function initTomSelect() {
+        // Clean up any existing instances before re-initializing
+        for (const key in tomSelectInstances) {
+            tomSelectInstances[key].destroy();
+            delete tomSelectInstances[key];
+        }
+
+        // AVATAR SELECT
+        const awardeeSelectorEl = document.getElementById('awardee-select');
+        if (awardeeSelectorEl) {
+            const options = [...awardeeSelectorEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{ }')
+            }));
+
+            tomSelectInstances['awardee-select'] = new TomSelect(awardeeSelectorEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                },
+            });
+
+            tomSelectInstances['awardee-select'].clear();
+        }
+
+        //AVATAR FILTER
+        const awardeeFilterEl = document.getElementById('awardee-filter');
+        if (awardeeFilterEl) {
+            const options = [...awardeeFilterEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{ }')
+            }));
+
+            tomSelectInstances['awardee-filter'] = new TomSelect(awardeeFilterEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                },
+            });
+
+            tomSelectInstances['awardee-filter'].clear();
+        }
+
+
+        const sortSelectEl = document.querySelector('#sort-select');
+        if (sortSelectEl) {
+            const options = [...sortSelectEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+            }));
+
+            tomSelectInstances['sort-select-criteria'] = new TomSelect(sortSelectEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+            });
+        }
+
+        // MOBILE: Awardee filter
+        const awardeeFilterMobileEl = document.getElementById('awardee-filter-mobile');
+        if (awardeeFilterMobileEl) {
+            const options = [...awardeeFilterMobileEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{ }')
+            }));
+
+            tomSelectInstances['awardee-filter-mobile'] = new TomSelect(awardeeFilterMobileEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                },
+            });
+
+            tomSelectInstances['awardee-filter-mobile'].clear();
+        }
+
+        // MOBILE: Sort select
+        const sortSelectMobileEl = document.querySelector('#sort-select-mobile');
+        if (sortSelectMobileEl) {
+            const options = [...sortSelectMobileEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+            }));
+
+            tomSelectInstances['sort-select-mobile-criteria'] = new TomSelect(sortSelectMobileEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+            });
+        }
+
+        // MOBILE FORM: Awardee select (in modal)
+        const awardeeSelectMobileEl = document.getElementById('awardee-select-mobile');
+        if (awardeeSelectMobileEl) {
+            const options = [...awardeeSelectMobileEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{ }')
+            }));
+
+            tomSelectInstances['awardee-select-mobile'] = new TomSelect(awardeeSelectMobileEl, {
+                maxItems: 1,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                },
+            });
+
+            tomSelectInstances['awardee-select-mobile'].clear();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initTomSelect();
+    });
+</script>
+
+<%- include('../../partials/footer') %>

@@ -7,11 +7,17 @@ const cache = new Map(); // key: trip.id, value: { html, data, expiresAt }
 const TTL_MS = 10 * 60 * 1000; // 10 min
 
 router.get('/crew-fragment', async (req, res, next) => {
+
   try {
     const trip = req.trip;
 
     // serve from cache if fresh
     const cached = cache.get(trip.id);
+
+    if (req.query.noCache === '1') {
+      if (cached) cache.del(trip.id);
+    }
+
     if (cached && cached.expiresAt > Date.now()) {
       res.set('Cache-Control', 'private, max-age=60'); // let browser reuse for 60s
       return res.send(cached.html);
@@ -26,8 +32,6 @@ router.get('/crew-fragment', async (req, res, next) => {
        ORDER BY u.handle ASC`,
       [trip.id]
     );
-
-    console.log("avatars->" + JSON.stringify(rows));
 
     res.render('partials/avatar-grid', { people: rows }, (err, html) => {
       if (err) return next(err);

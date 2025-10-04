@@ -1,10 +1,10 @@
-<form id="prize-form" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/playground/prizes/new"
-    hx-target="#prize-form-container" hx-swap="innerHTML">
+<form id="prize-form-mobile" hx-post="/trips/<%= currentOrUpcomingTrip.slug %>/playground/prizes/new"
+    hx-target="#prize-form-container-mobile" hx-swap="innerHTML">
     <h2>Otorgar un premio</h2>
 
     <div class="form-group">
-        <label for="awardee-select">Premiado:</label>
-        <select name="awardee" id="awardee-select" placeholder="Elegí un amigo" class="pixel-input" required>
+        <label for="awardee-select-mobile">Premiado:</label>
+        <select name="awardee" id="awardee-select-mobile" placeholder="Elegí un amigo" class="pixel-input" required>
             <% avatars.forEach(avatar => { %>
             <option value="<%= avatar.id %>"
                 <% if(typeof selectedAwardee != "undefined" && selectedAwardee == avatar.id) {%> selected <% } %>
@@ -16,8 +16,8 @@
     </div>
 
     <div class="form-group">
-        <label for="reason-input">Razón del premio:</label>
-        <textarea name="reason" id="reason-input" class="pixel-input"
+        <label for="reason-input-mobile">Razón del premio:</label>
+        <textarea name="reason" id="reason-input-mobile" class="pixel-input"
             placeholder="Por qué merece este premio?"><%= typeof selectedReason != 'undefined' ? selectedReason : '' %></textarea>
     </div>
 
@@ -26,24 +26,22 @@
 
 <script>
     document.body.addEventListener('htmx:beforeRequest', function (event) {
-        
-        if (event.target.id === 'prize-form') {
-            if (!validatePrizeForm()) {
+        if (event.target.id === 'prize-form-mobile') {
+            if (!validatePrizeFormMobile()) {
                 event.preventDefault();
                 hideSpinner();
             }
         }
     });
 
-    function validatePrizeForm() {
-        
-        const awardee = document.getElementById('awardee-select').value;
+    function validatePrizeFormMobile() {
+        const awardee = document.getElementById('awardee-select-mobile').value;
         if (!awardee) {
             showToast('Tenés que elegir un usuario!', 'error');
             return false;
         }
 
-        const reason = document.getElementById('reason-input').value.trim();
+        const reason = document.getElementById('reason-input-mobile').value.trim();
         if (!reason) {
             showToast('Tenés que escribir una razón!', 'error');
             return false;

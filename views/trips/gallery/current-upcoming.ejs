@@ -26,7 +26,7 @@
                 Subite unas fotis, Rey 👑 <span style="font-size: 0.85em;">(máximo 5)</span>.
             </div>
 
-            <form action="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
+            <form hx-post="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
                 hx-encoding="multipart/form-data">
                 <input type="file" name="media" accept="image/*" multiple onchange="toggleUploadButton(this)">
                 <button type="submit" class="button" disabled id="uploadButton">Súbele</button>

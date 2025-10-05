@@ -3,7 +3,6 @@ const router = express.Router({ mergeParams: true });
 
 // tiny in-memory cache
 const cache = new Map(); // key: trip.id, value: { html, data, expiresAt }
-
 const TTL_MS = 10 * 60 * 1000; // 10 min
 
 router.get('/crew-fragment', async (req, res, next) => {
@@ -15,7 +14,7 @@ router.get('/crew-fragment', async (req, res, next) => {
     const cached = cache.get(trip.id);
 
     if (req.query.noCache === '1') {
-      if (cached) cache.del(trip.id);
+      if (cached) cache.delete(trip.id);
     }
 
     if (cached && cached.expiresAt > Date.now()) {

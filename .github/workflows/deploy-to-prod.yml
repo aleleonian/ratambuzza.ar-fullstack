@@ -24,18 +24,18 @@ jobs:
       - name: Deploy via SSH (copy files)
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.PROD_VPS_HOST }}
-          username: ${{ secrets.PROD_VPS_USER }}
-          key: ${{ secrets.PROD_VPS_KEY }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
           source: "."
           target: "~/apps/ratambuzza-prod"
 
       - name: Restart Node app using PM2
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.PROD_VPS_HOST }}
-          username: ${{ secrets.PROD_VPS_USER }}
-          key: ${{ secrets.PROD_VPS_KEY }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
           script: |
             cd ~/apps/ratambuzza-prod
             npm install --omit=dev

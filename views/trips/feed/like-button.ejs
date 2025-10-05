@@ -1,0 +1,11 @@
+<!-- Like button (HTMX) -->
+<form hx-post="/trips/<%= trip.slug %>/feed/likes/toggle" hx-vals='{"post_id": <%= post.id %>}' hx-target="this"
+    hx-swap="outerHTML" style="display:inline">
+    <button class="button" title="Like">
+        <% if (post.liked_by_user) { %>
+        <img src="/images/like-on.png" alt="Liked" style="width: 25px;">
+        <% } else { %>
+        <img src="/images/like-off.png" alt="Liked" style="width: 25px;">
+        <% } %> <%= post.like_count || 0 %>
+    </button>
+</form>

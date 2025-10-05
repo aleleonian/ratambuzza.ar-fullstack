@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "storageState.json",
+    "test-results/**",
+    "playwright-report/**",
+    "*.spec.js"
+  ]
+}

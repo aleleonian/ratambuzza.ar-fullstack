@@ -1,0 +1,16 @@
+<!-- Search Results Header -->
+<% if (typeof searchInfo !== 'undefined' && searchInfo.hasSearch) { %>
+<div
+    style="background: var(--bg); padding: 10px; margin-bottom: 15px; border-radius: 4px; border-left: 3px solid var(--primary);">
+    <strong id="search-results-summary">🔍 Resultados: </strong><%= searchInfo.resultCount %>
+    post<%= searchInfo.resultCount !== 1 ? 's' : '' %> encontrado<%= searchInfo.resultCount !== 1 ? 's' : '' %>
+    <% if (searchInfo.showingAllResults) { %>
+    <br><small style="color: #666;">Mostrando todos los resultados</small>
+    <% } %>
+</div>
+<% } %>
+
+<!-- Render all posts in the feed -->
+<% posts.forEach(post => { %>
+<%- include('post', { trip, post }) %>
+<% }) %>

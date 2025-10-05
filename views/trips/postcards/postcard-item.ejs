@@ -1,0 +1,16 @@
+<% if (card.status === 'done') { %>
+<div class="postcard postcard-thumb" data-full="<%-card.image_url%>" data-id="<%-card.id%>" data-postcard-id="<%-card.id%>" data-postcard-status="done">
+    <img src="<%= card.thumbnail_url %>" alt="Postcard thumbnail" style="width: 100%; height: auto;">
+</div>
+<% } else if (card.status === 'pending') { %>
+<div class="pending-status" data-postcard-id="<%-card.id%>" data-postcard-status="pending">
+    <div>Volvé en un rato... <span class="polling-indicator" style="color: #666; font-size: 0.8em;">🔄</span></div>
+    <img src="/images/hourglass-anime.gif" style="width: 25px; height: 25px;">
+</div>
+<% } else if (card.status === 'error') { %>
+<div class="postcard error" data-postcard-id="<%-card.id%>" data-postcard-status="error">
+    ❌ Error
+    <br>
+    <button class="button button-smaller" onclick="deletePostcardErrorHandler(<%- card.id %>)">Borrar</button>
+</div>
+<% } %>

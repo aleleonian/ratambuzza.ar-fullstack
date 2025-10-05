@@ -1,0 +1,39 @@
+<div id="replyModal" class="modal hidden">
+    <div class="modal-content">
+        <button id="closePostModal" class="modal-close">✖</button>
+        <%- include('./new-reply-form', { trip }) %>
+    </div>
+</div>
+
+<script>
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // Handle all open buttons
+        document.querySelectorAll('.showPostForm').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                document.getElementById('replyModal')?.classList.remove('hidden');
+                document.getElementById('reply_text')?.focus();
+            });
+        });
+        // Handle modal close
+        document.getElementById('closePostModal')?.addEventListener('click', () => {
+            document.getElementById('replyModal')?.classList.add('hidden');
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('replyModal')?.classList.add('hidden')
+            }
+        })
+
+
+        document.body.addEventListener('htmx:afterSwap', (evt) => {
+            // Handle post addition - this fires AFTER the DOM is updated
+            if (evt.target.id === 'replies-section') {
+                document.getElementById('replyModal')?.classList.add('hidden');
+                document.getElementById('reply_text').value = "";
+            }
+        });
+    });
+</script>
+
+

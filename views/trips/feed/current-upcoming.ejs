@@ -1,4 +1,4 @@
-<%- include('../../partials/header/current-upcoming') %>
+<%- include('../../partials/header/feed-current-upcoming') %>
 
 <div class="layout">
     <aside class="sidebar left">
@@ -7,39 +7,81 @@
     </aside>
 
     <main class="feed">
-        <h2><%= trip.name %></h2>
-
         <!-- Everything related to creating a new post -->
-        <div id="post-controls" class="mobile-only">
-            <button class="button showPostForm" style="margin-bottom: 20px;">+ Nuevo</button>
-        </div>
 
-        <!-- Injected post (new post via HTMX) -->
-        <div id="post-inject-point"></div>
+        <div class="mobile-only mobile-feed-controls-wrapper">
+            <!-- Row with 2 buttons -->
+            <div class="mobile-feed-controls-row">
+                <button class="button showPostForm" id="new-post-button-mobile">+ Nuevo</button>
+                <button class="button secondary-color" onclick="toggleSearch()">🔍</button>
+            </div>
+
+            <!-- Hidden search form -->
+            <div id="search-form-wrapper" class="hidden">
+                <form id="search-form-mobile" hx-get="/trips/<%= trip.slug %>/feed" hx-target="#posts-container"
+                    hx-swap="innerHTML" hx-trigger="submit" hx-indicator="#search-loading"
+                    style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+
+                    <!-- Text search -->
+                    <input type="text" id="search-text" name="search" placeholder="Buscar en posts..."
+                        value="<%= typeof search !== 'undefined' ? search : '' %>" class="pixel-input"
+                        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px; width: 100%;">
+
+                    <!-- Author filter -->
+                    <select id="user-filter-mobile" name="user"
+                        style="padding: 10px; border: 1px solid #aaa; border-radius: 6px; font-size: 14px;">
+                        <option value="">Por autor</option>
+                        <% if (typeof tripUsers !== 'undefined') { %>
+                        <% tripUsers.forEach(user => { %>
+                        <option value="<%= user.id %>"
+                            <%= (typeof userFilter !== 'undefined' && userFilter == user.id) ? 'selected' : '' %>>
+                            <%= user.handle %>
+                        </option>
+                        <% }) %>
+                        <% } %>
+                    </select>
+
+                    <!-- Buttons row -->
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="button" style="flex: 1;">
+                            🔍 Buscar
+                            <span id="search-loading" class="htmx-indicator" style="display: none;">⏳</span>
+                        </button>
+
+                        <button type="button" id="clear-filters-mobile" class="button button-smaller"
+                            style="flex: 1; background-color: #ccc;">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- Post list container -->
         <div id="posts-container">
             <% if (posts.length === 0) { %>
-            <p>No posts yet for this trip. Be the first to share!</p>
+            <p>Todavía no postearon nada che, que amargura.</p>
             <% } else { %>
             <!-- Initial posts -->
             <% posts.forEach(post => { %>
-            <%- include('../../partials/post', { trip, post }) %>
+            <%- include('./post', { trip, post }) %>
             <% }) %>
             <% } %>
         </div>
 
         <!-- Post ID-based pagination -->
         <% if (theresMore) { %>
-        <div style="text-align: center; padding: 20px;">
+        <div id="load-more-section" style="text-align: center; padding: 20px;" <%= (typeof hasActiveFilters !== 'undefined' && hasActiveFilters) ? 'class="hidden"' : '' %>>
             <input type="hidden" id="exclude-ids" name="exclude_ids" value="" />
-            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more" hx-include="#exclude-ids"
-                hx-target="#posts-container" hx-swap="beforeend" class="button">
+            <button id="load-more-btn" hx-get="/trips/<%= trip.slug %>/feed/more"
+                hx-include="#exclude-ids, #search-form-mobile" hx-target="#posts-container" hx-swap="beforeend" class="button">
                 Cargar más posteos
             </button>
-            <p>Debug: loaded posts = <span id="loaded-count">0</span></p>
         </div>
         <% } %>
+
+        <%- include('../../partials/lightbox-standalone') %>
+
     </main>
 
 
@@ -53,49 +95,28 @@
 
     // Function to collect all post IDs currently shown
     function updateExcludeIds() {
-        // Look for posts in both containers: main posts and newly injected posts
         const postsContainer = document.getElementById('posts-container');
-        const injectPoint = document.getElementById('post-inject-point');
-
         const mainPosts = postsContainer.querySelectorAll('[data-post-id]');
-        const injectedPosts = injectPoint.querySelectorAll('[data-post-id]');
-
         // Combine both sets of posts
-        const allPostElements = [...mainPosts, ...injectedPosts];
+        const allPostElements = [...mainPosts];
         const postIds = allPostElements.map(el => el.getAttribute('data-post-id'));
 
-        console.log('📊 Collecting post IDs:');
-        console.log('  - Main container posts:', Array.from(mainPosts).map(el => el.getAttribute('data-post-id')));
-        console.log('  - Injected posts:', Array.from(injectedPosts).map(el => el.getAttribute('data-post-id')));
-        console.log('  - Combined:', postIds);
 
         // document.getElementById('exclude-ids').value = postIds.join(',');
         const input = document.getElementById('exclude-ids');
         if (input) {
             input.value = postIds.join(',');
         }
-        const loadedCount = document.getElementById('loaded-count');
-        if (loadedCount) {
-            loadedCount.textContent = postIds.length;
-        }
         return postIds;
     }
 
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         // Handle post addition - this fires AFTER the DOM is updated
-        if (evt.target.id === 'post-inject-point') {
-            document.getElementById('postModal')?.classList.add('hidden')
-            console.log('➕ Post added and DOM updated — updating exclude IDs');
+        if (evt.target.id === 'posts-container') {
 
-            // Debug: check what was actually added
-            console.log('🔍 DEBUG: Post inject point contents:', evt.target.innerHTML);
-            const newPostElement = evt.target.querySelector('[data-post-id]');
-            if (newPostElement) {
-                console.log('✅ Found new post with ID:', newPostElement.getAttribute('data-post-id'));
-            } else {
-                console.log('❌ No data-post-id found in new post!');
-                console.log('🔍 New post HTML:', evt.target.innerHTML.substring(0, 200));
-            }
+            setupFeedPostLightbox();
+
+            document.getElementById('postModal')?.classList.add('hidden')
 
             setTimeout(() => updateExcludeIds(), 50);
         }
@@ -104,7 +125,6 @@
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         // Handle post deletion 
         if (evt.detail?.requestConfig?.elt?.closest('form')?.classList?.contains('delete-post-form')) {
-            console.log('🗑 Post deleted — updating exclude IDs');
             setTimeout(() => updateExcludeIds(), 50);
         }
     })
@@ -114,16 +134,7 @@
 
     document.body.addEventListener('htmx:beforeRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('🚀 Load More clicked!');
             const excludeIds = document.getElementById('exclude-ids').value;
-            console.log('  - Exclude IDs:', excludeIds);
-            console.log('  - Exclude IDs length:', excludeIds.length);
-            console.log('  - URL:', evt.target.getAttribute('hx-get'));
-
-            // Debug: also show what posts are currently visible
-            const postElements = document.querySelectorAll('[data-post-id]');
-            console.log('  - Visible posts count:', postElements.length);
-            console.log('  - Visible post IDs:', Array.from(postElements).map(el => el.getAttribute('data-post-id')));
 
             evt.target.textContent = 'Loading...';
         }
@@ -131,16 +142,10 @@
 
     document.body.addEventListener('htmx:afterRequest', (evt) => {
         if (evt.target.id === 'load-more-btn') {
-            console.log('📦 Got response! Status:', evt.detail.xhr.status);
-
             // Check if the response indicates no more posts
             const responseText = evt.detail.xhr.responseText;
             if (responseText.includes('data-no-more-posts="true"')) {
-                console.log('❌ No more posts available - disabling button');
-                evt.target.disabled = true;
-                evt.target.textContent = 'No More Posts';
-                evt.target.style.background = '#ccc';
-                evt.target.style.cursor = 'not-allowed';
+                evt.target.style.display = 'none';
                 return;
             }
 
@@ -149,34 +154,114 @@
             evt.target.textContent = 'Cargar más posteos';
         }
     });
-</script>
 
-<div id="postModal" class="modal hidden">
-    <div class="modal-content">
-        <button id="closePostModal" class="modal-close">✖</button>
-        <%- include('./new-post-form', { trip }) %>
-    </div>
-</div>
-<script>
-    // Handle all open buttons
-    document.querySelectorAll('.showPostForm').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            document.getElementById('postModal')?.classList.remove('hidden');
-            document.getElementById('new-post-content')?.focus();
+    // Handle search form functionality
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchForm = document.getElementById('search-form-mobile');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        const clearFiltersMobileBtn = document.getElementById('clear-filters-mobile');
+        const searchText = document.getElementById('search-text');
+        const userFilter = document.getElementById('user-filter');
+        const userFilterMobile = document.getElementById('user-filter-mobile');
+
+
+        // Clear filters functionality
+        // Added: 2025-09-16 - Resets search form and reloads page to show all posts
+        clearFiltersBtn?.addEventListener('click', () => {
+            searchText.value = '';
+            userFilter.value = '';
+            userFilterMobile.value = '';
+
+            // Reload the page to show all posts
+            window.location.reload();
         });
-    });
+        clearFiltersMobileBtn?.addEventListener('click', () => {
+            searchText.value = '';
+            userFilter.value = '';
+            userFilterMobile.value = '';
 
-    // Handle modal close
-    document.getElementById('closePostModal')?.addEventListener('click', () => {
-        document.getElementById('postModal')?.classList.add('hidden');
-    });
+            // Reload the page to show all posts
+            window.location.reload();
+        });
 
-    const modal = document.getElementById('postModal')
+        // Set initial load more button visibility on page load
+        updateLoadMoreVisibility();
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            modal?.classList.add('hidden')
+        // Update load more button when search is performed
+        // Added: 2025-09-16 - Handles pagination during filtered results
+        // When filters are active, hide the "Load More" button since we're showing search results
+        // When no filters, restore normal infinite scroll pagination
+        document.body.addEventListener('htmx:afterSwap', (evt) => {
+            if (evt.target.id === 'posts-container') {
+                updateLoadMoreVisibility();
+            }
+        });
+
+        // Function to check all search forms and update load more button visibility
+        function updateLoadMoreVisibility() {
+            const loadMoreSection = document.getElementById('load-more-section');
+            if (!loadMoreSection) return;
+
+            // Check both mobile and desktop search forms for active filters
+            const mobileForm = document.getElementById('search-form-mobile');
+            const desktopForm = document.getElementById('search-form'); // from sidebar
+
+            let hasActiveFilters = false;
+
+            // Check mobile form
+            if (mobileForm) {
+                const mobileFormData = new FormData(mobileForm);
+                hasActiveFilters = hasActiveFilters || Array.from(mobileFormData.values()).some(value => value.trim() !== '');
+            }
+
+            // Check desktop form
+            if (desktopForm) {
+                const desktopFormData = new FormData(desktopForm);
+                hasActiveFilters = hasActiveFilters || Array.from(desktopFormData.values()).some(value => value.trim() !== '');
+            }
+
+            // Update visibility
+            if (hasActiveFilters) {
+                loadMoreSection.style.display = 'none';
+            } else {
+                loadMoreSection.style.display = 'block';
+            }
         }
-    })
+    });
 </script>
+
+<%- include('new-post-modal') %>
+
+<script>
+    function setupFeedPostLightbox() {
+        // Loop over each post container
+        document.querySelectorAll('.post-images').forEach(postEl => {
+            const thumbs = Array.from(postEl.querySelectorAll('.post-image-thumb'));
+            if (thumbs.length === 0) return;
+
+            const items = thumbs.map(el => ({
+                url: el.dataset.full,
+                id: el.dataset.id,
+            }));
+
+            thumbs.forEach((el, i) => {
+                el.addEventListener('click', () => {
+                    initLightbox();
+                    openLightbox(i, items);
+                });
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', setupFeedPostLightbox);
+
+</script>
+
+<script>
+    function toggleSearch() {
+        const el = document.getElementById('search-form-wrapper');
+        el.classList.toggle('hidden');
+    }
+</script>
+
 <%- include('../../partials/footer') %>

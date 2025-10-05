@@ -8,11 +8,13 @@
     <title><%= typeof title !== 'undefined' ? title + ' — Ratambuzza' : 'Ratambuzza.ar' %></title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/style/main.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-    <script src="https://unpkg.com/htmx.org"></script>
+    <script src="/javascript/vendor/htmx.min.js"></script>
+    <script src="/javascript/base.js"></script>
+
 
     <style>
         body {
@@ -30,7 +32,7 @@
 
 
 <body>
-
+    <%- include('../spinner') %>
     <%- include('../top-menu/past-trips')%>
 
     <main class="main-container">

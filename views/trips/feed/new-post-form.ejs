@@ -1,22 +1,38 @@
-<form action="/trips/<%= trip.slug %>/posts/new" id="add-post-form" method="POST" enctype="multipart/form-data" class="card"
-  style="margin-bottom: 24px;" hx-on::after-request="this.reset()" hx-post="/trips/<%= trip.slug %>/posts/new"
-  hx-encoding="multipart/form-data" hx-target="#post-inject-point" hx-swap="innerHTML">
+<form action="/trips/<%= trip.slug %>/posts/new" id="add-post-form" method="POST" enctype="multipart/form-data"
+  class="card" style="margin-bottom: 24px;" hx-on::after-request="this.reset()"
+  hx-post="/trips/<%= trip.slug %>/posts/new" hx-encoding="multipart/form-data" hx-target="#posts-container"
+  hx-swap="afterbegin">
   <h3>Nuevo posteo</h3>
   <input type="hidden" name="trip_id" value="<%= trip.id %>" />
 
-  <textarea name="new-post-content" id="new-post-content" rows="3" autofocus placeholder="Qué anda pasando?" style="width: 100%;"></textarea>
+  <textarea name="new-post-content" id="new-post-content" rows="3" autofocus placeholder="Qué anda pasando?"
+    style="width: 100%;"></textarea>
 
   <div style="margin-top: 8px;">
     <label for="image">Imagen:</label>
-    <input type="file" style="margin-top: 10px;" name="image" accept="image/*">
+    <input type="file" multiple style="margin-top: 10px;" name="media" accept="image/*"
+      onchange="enforceMaxFiles(this, 5)">
   </div>
 
-  <button type="submit" class="button" style="margin-top: 12px;">Postear</button>
+  <button type="submit" id="submit-button" class="button" style="margin-top: 12px;">Postear</button>
 </form>
 <script>
-  //TODO pending this validation
-  function submitHandler(e) {
+  function enforceMaxFiles(input, max) {
+    if (input.files.length > max) {
+      alert(`No se puede subir más de ${max} archivos, loko.`);
+      input.value = ''; // Clear the selection
+    }
   }
-  document.getElementById('add-post-form').addEventListener('submit', submitHandler);
+
+  document.body.addEventListener('htmx:beforeRequest', function (event) {
+    if (event.target.id === 'add-post-form') {
+      const postContent = document.getElementById('new-post-content')?.value || '';
+      if (postContent.trim().length < 1) {
+        event.preventDefault(); // This works for HTMX
+        hideSpinner();
+        showToast('Broder, el texto del post no puede estar vacío.', 'error');
+      }
+    }
+  });
 
 </script>

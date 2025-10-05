@@ -1,0 +1,114 @@
+<%- include('../../partials/header/feed-current-upcoming') %>
+
+<style>
+    .mobile-buttons {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        margin-bottom: 20px;
+    }
+
+    .post-controls {
+        display: flex;
+    }
+</style>
+<div class="layout">
+    <aside class="sidebar left">
+        <!-- e.g. Profile / Trip Switcher -->
+        <%- include('./sidebar-left-reply') %>
+    </aside>
+
+    <main class="feed">
+        <div class="mobile-only">
+            <div class="mobile-buttons">
+                <a id="back-to-feed-mobile" href="/trips/<%=currentOrUpcomingTrip.slug%>/feed">
+                    <img class="menu-item" src="/images/back.png" alt="">
+                </a>
+                <div id="post-controls" class="mobile-only post-controls">
+                    <button class="button showPostForm" id="new-reply-button-mobile" style="width:100%">+ Nueva Respuesta</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="post-container">
+
+            <%- include('post', { trip:currentOrUpcomingTrip, post }) %>
+
+        </div>
+
+        <div class="replies-section" id="replies-section">
+            <%- include('replies-section',{post}) %>
+        </div>
+
+    </main>
+
+    <aside class="sidebar right">
+        <!-- e.g. Suggested posts / About Ratambuzza -->
+        <%- include('./sidebar-right-reply', { trip:currentOrUpcomingTrip }) %>
+    </aside>
+
+    <%- include('../../partials/lightbox-standalone') %>
+
+</div>
+
+<script>
+    function setupLightbox() {
+        const replyBlocks = document.querySelectorAll('.reply-images');
+
+        initLightbox();
+
+        replyBlocks.forEach(replyEl => {
+            const imageThumbs = Array.from(replyEl.querySelectorAll('.reply-image-thumb'));
+            if (imageThumbs.length === 0) return;
+
+            const items = imageThumbs.map(img => ({
+                url: img.dataset.full,
+                id: img.dataset.replyId
+            }));
+
+            // Bind click handlers just for this group
+            imageThumbs.forEach((img, i) => {
+                img.addEventListener('click', () => openLightbox(i, items));
+            });
+        });
+
+        const postImages = document.querySelectorAll('.post-images');
+
+        postImages.forEach(replyEl => {
+            const imageThumbs = Array.from(replyEl.querySelectorAll('.post-image-thumb'));
+            if (imageThumbs.length === 0) return;
+
+            const items = imageThumbs.map(img => ({
+                url: img.dataset.full,
+                id: img.dataset.id
+            }));
+
+            // Bind click handlers just for this group
+            imageThumbs.forEach((img, i) => {
+                img.addEventListener('click', () => openLightbox(i, items));
+            });
+        });
+    }
+
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        if (e.target.id === 'replies-section') {
+            setupLightbox();
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setupLightbox();
+    });
+
+    document.body.addEventListener('htmx:configRequest', function (evt) {
+        const targetForm = evt.detail.elt.closest('form.delete-post-form');
+        if (targetForm) {
+            evt.detail.headers['X-Standalone-Page'] = 'true';
+        }
+    });
+</script>
+
+<%- include('new-reply-modal',{trip:currentOrUpcomingTrip}) %>
+
+
+<%- include('../../partials/footer') %>

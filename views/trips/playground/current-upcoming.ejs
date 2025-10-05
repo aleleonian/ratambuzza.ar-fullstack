@@ -1,0 +1,94 @@
+<%- include('../../partials/header/current-upcoming') %>
+
+
+<main class="generic-container">
+    <main class="playground-wrapper">
+        <!-- Mobile Menu -->
+        <div class="playground-layout">
+            <!-- Desktop Sidebar -->
+            <aside class="playground-menu">
+                <a href="/trips/<%=currentOrUpcomingTrip.slug%>/playground/postcards">
+                    <div class="playground-menu-item">
+                        <div>
+                            <img src="/images/polaroid.png" alt="">
+                        </div>
+                        <div>
+                            Postales
+                        </div>
+                    </div>
+                </a>
+                <a href="/trips/<%=currentOrUpcomingTrip.slug%>/playground/prizes">
+                    <div class="playground-menu-item">
+                        <div>
+                            <img src="/images/trophy.svg" alt="">
+                        </div>
+                        <div>
+                            Premios
+                        </div>
+                    </div>
+                </a>
+            </aside>
+        </div>
+    </main>
+
+    <style>
+        .playground-menu-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid transparent;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            color: var(--accent-1)
+        }
+
+        /* Hover effect */
+        .playground-menu-item:hover {
+            transform: scale(1.05);
+        }
+
+        .playground-menu-item img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .playground-wrapper {
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .playground-layout {
+            display: flex;
+            gap: 24px;
+        }
+
+        .playground-menu a {
+            text-decoration: none;
+        }
+
+
+        .playground-menu {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .playground-content {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .playground-menu-item img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+
+</main>
+
+<%- include('../../partials/footer') %>

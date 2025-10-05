@@ -8,12 +8,6 @@
             <div id="countdown"><span id="timer"></span></div>
         </div>
 
-        <!-- <div id="avatars">
-        <div class="avatar-container" data-person="Afro" aria-haspopup="dialog">
-            <img src="images/avatars/Afro.png" alt="Afro" class="avatar" />
-            <h5>Afro</h5>
-        </div>
-     -->
         <div id="avatars" hx-get="/trips/<%= currentOrUpcomingTrip.slug %>/crew-fragment" hx-trigger="load"
             hx-swap="outerHTML">
             <div style="opacity:.6; padding:2rem; text-align:center;">Loading crew…</div>
@@ -23,12 +17,8 @@
     <!-- Dialog -->
     <div class="dialog-overlay" id="personOverlay" aria-hidden="true">
         <div class="person-dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
-            <!-- <button class="dlg-close" id="dlgClose" aria-label="Close dialog">✖</button> -->
             <header>
                 <img id="dlgAvatar" class="dlg-avatar" alt="">
-                <!-- <div>
-                    <h2 id="dlgTitle">Name</h2>
-                </div> -->
                 <div>
                     <p id="dlgBio"></p>
                 </div>
@@ -49,7 +39,7 @@
             const now = new Date();
             const diff = targetDate - now;
 
-            if (diff <= 0) { countdown.textContent = "Estamos en Rio!"; return; }
+            if (diff <= 0) { countdown.textContent = "Disfruten de Rio!"; return; }
 
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -61,33 +51,6 @@
         updateCountdown();
         setInterval(updateCountdown, 1000);
 
-        // TODO: dynamic
-
-        // ===== Person data (stub – tweak freely) =====
-        // Use short keys you like; UI capitalizes keys as given.
-        const PEOPLE = {
-            "Afro": {
-                avatar: "images/avatars/afro.png",
-            },
-            "Alefa": {
-                avatar: "images/avatars/alefa.png",
-            },
-            "Boli": {
-                avatar: "images/avatars/boli.png",
-            },
-            "Butis": {
-                avatar: "images/avatars/butis.png",
-            },
-            "Charly": { avatar: "images/avatars/charly.png" },
-            "Depo": { avatar: "images/avatars/depo.png" },
-            "Firulais": { avatar: "images/avatars/firulais.png" },
-            "Latigo": { avatar: "images/avatars/latigo.png" },
-            "Marian": { avatar: "images/avatars/mariano.png" },
-            "Patas": { avatar: "images/avatars/patas.png" },
-            "Pato": { avatar: "images/avatars/pato.png" },
-            "Sanchez": { avatar: "images/avatars/sanchez.png" },
-            "Topo": { avatar: "images/avatars/topo.png" }
-        };
 
         // ===== Dialog wiring =====
 
@@ -169,6 +132,5 @@
     </script>
 
 </main>
-</body>
 
-</html>
+<%- include('../partials/footer') %>

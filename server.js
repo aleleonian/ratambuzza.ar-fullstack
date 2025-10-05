@@ -1,9 +1,11 @@
-// server.js
-require('dotenv').config()
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+require('dotenv').config({ path: envFile });
+
+console.log("process.env.DB_NAME:", process.env.DB_NAME);
+
 const express = require('express')
 const session = require('express-session')
 const path = require('path')
-const mysql = require('mysql2/promise')
 const authRoutes = require('./routes/auth')
 const viajesRoutes = require('./routes/viajes')
 const app = express();
@@ -11,16 +13,12 @@ const MySQLStore = require('express-mysql-session')(session)
 const tripRoutes = require('./routes/trips');
 const homeRoutes = require('./routes/home');
 const tripContext = require('./middleware/tripContext');
+const { requireLogin } = require('./middleware/requireLogin')
 
 const PORT = process.env.PORT || 3000
 
 // DB connection
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-})
+const pool = require("./lib/db");
 
 const sessionStore = new MySQLStore({}, pool)
 
@@ -39,7 +37,10 @@ app.use(session({
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        // secure: process.env.NODE_ENV === 'production', // 🛑 false in dev/test
+        sameSite: 'lax',
+        secure: false,
     }
 }))
 
@@ -47,8 +48,11 @@ app.use(session({
 // Make db + user available in req
 app.use((req, res, next) => {
     req.db = pool
-    res.locals.user = req.session.user
+    res.locals.currentUser = req.session.user
     res.locals.currentPath = req.path;
+    // also are available:
+    // res.locals.currentOrUpcomingTrip
+    // res.locals.tripMode
     next()
 })
 
@@ -58,33 +62,16 @@ app.get('/debug', (req, res) => {
 });
 
 app.use('/', authRoutes)
-app.use('/', homeRoutes);
+app.use('/', requireLogin, homeRoutes);
+app.use('/trips', requireLogin, tripRoutes);
 
-// app.get('/', requireLogin, async (req, res) => {
-//     const [trips] = await req.db.execute('SELECT * FROM trips ORDER BY start_date DESC');
-//     const now = new Date();
-
-//     const currentTrip = trips.find(t => new Date(t.start_date) <= now && new Date(t.end_date) >= now);
-//     const upcomingTrip = trips.find(t => new Date(t.start_date) > now);
-//     const pastTrips = trips.filter(t => new Date(t.end_date) < now);
-
-//     res.render('home', {
-//         currentTrip: currentTrip,
-//         upcomingTrip: upcomingTrip,
-//         pastTrips: pastTrips,
-//         user: req.session.user
-//     })
-// })
-app.use('/trips', tripRoutes);
-
-//TODO deprecated
 app.get('/partials/avatar-ribbon', async (req, res) => {
     const [crew] = await req.db.execute('SELECT handle, avatar_head_file_name FROM users ORDER BY handle')
     console.log("returning crew:", crew);
     res.render('partials/avatar-ribbon', { crew })
 })
 
-app.use('/viajes', viajesRoutes)
+app.use('/viajes', requireLogin, viajesRoutes)
 
 app.get(/^\/\.well-known\/.*/, (req, res) => {
     res.status(204).end()
@@ -97,4 +84,4 @@ app.use((req, res) => {
     })
 })
 
-app.listen(PORT, () => console.log(`Ratambuzza server on http://localhost:${PORT}`))
+app.listen(PORT, '0.0.0.0', () => console.log(`Ratambuzza server on http://localhost:${PORT}`))

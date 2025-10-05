@@ -15,6 +15,7 @@ async function generateThumbs() {
 
     try {
       await sharp(inputPath)
+        .rotate()
         .resize(80, 80)
         .toFile(outputPath);
       console.log(`✓ Created: ${outputPath}`);

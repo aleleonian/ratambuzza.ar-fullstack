@@ -1,0 +1,177 @@
+<style>
+    .ts-wrapper.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    fieldset {
+        border: 0;
+    }
+
+    fieldset[disabled] {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    fieldset[disabled] * {
+        cursor: not-allowed;
+    }
+
+    form label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: bold;
+    }
+
+    .multi-avatar-picker {
+        margin-bottom: 1rem;
+        max-width: 400px;
+    }
+
+    .avatar-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .avatar-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 2px solid transparent;
+        padding: 0.25rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: border 0.2s ease;
+    }
+
+    .avatar-option img {
+        width: 24;
+        height: 24px;
+        border-radius: 50%;
+    }
+
+    .avatar-option.selected {
+        border-color: #2196f3;
+        background-color: #e3f2fd;
+    }
+
+    .avatar-option span {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-row>div {
+        flex: 1;
+        min-width: 0;
+        max-width: 400px;
+    }
+
+    .center {
+        justify-content: center;
+        align-items: center;
+
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+
+        .avatar-grid {
+            justify-content: space-evenly;
+        }
+    }
+</style>
+
+
+<div id="new-postcard-form-container">
+    <%- include('actual-postcard-form')%>
+</div>
+
+<script>
+
+    // Store on window so it can be accessed from postcards-list.ejs
+    window.tomSelectInstances = window.tomSelectInstances || {};
+    const tomSelectInstances = window.tomSelectInstances;
+
+    function initTomSelect() {
+        // Clean up any existing instances before re-initializing
+        for (const key in tomSelectInstances) {
+            tomSelectInstances[key].destroy();
+            delete tomSelectInstances[key];
+        }
+
+        // AVATAR SELECT
+        const avatarSelectEl = document.querySelector('#avatar-select');
+        if (avatarSelectEl) {
+            const options = [...avatarSelectEl.options].map(opt => ({
+                value: opt.value,
+                text: opt.textContent,
+                customProperties: JSON.parse(opt.dataset.customProperties || '{}')
+            }));
+
+            tomSelectInstances['avatar-select'] = new TomSelect(avatarSelectEl, {
+                maxItems: 3,
+                options,
+                valueField: "value",
+                labelField: "text",
+                searchField: "text",
+                plugins: ['remove_button'],
+                render: {
+                    option: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;">
+              ${escape(data.text)}
+            </div>`;
+                    },
+                    item: function (data, escape) {
+                        const imgUrl = data.customProperties?.img || '';
+                        return `<div>
+              <img src="${imgUrl}" style="width:16px;height:16px;border-radius:50%;margin-right:6px;">
+              ${escape(data.text)}
+            </div>`;
+                    }
+                }
+            });
+        }
+    }
+
+    // Attach listeners
+
+    const disableSelect = (id) => {
+        const instance = TomSelect.instances[id];
+        if (instance) {
+            instance.disable();
+            instance.wrapper.classList.add('disabled');
+        }
+    };
+
+    // Register listener only once
+    document.addEventListener('DOMContentLoaded', () => {
+        initTomSelect(); // Initial render
+
+        document.body.addEventListener('htmx:afterSettle', function (e) {
+            // Only reinit if specifically the form container was updated
+            if (e.target.id === 'new-postcard-form-container') {
+                initTomSelect();
+            }
+        });
+        document.body.addEventListener('htmx:afterSwap', async function (e) {
+            if (e.target.id === 'new-postcard-form-container') {
+                const options = { target: `#postcards-grid`, swap: 'innerHTML' };
+                const url = `/trips/<%=currentOrUpcomingTrip.slug%>/playground/postcards-grid`;
+                await window.htmxAjaxPromise('GET', url, options);
+            }
+        });
+    });
+</script>

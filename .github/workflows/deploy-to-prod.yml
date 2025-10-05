@@ -1,0 +1,42 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy via SSH (copy files)
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.PROD_VPS_HOST }}
+          username: ${{ secrets.PROD_VPS_USER }}
+          key: ${{ secrets.PROD_VPS_KEY }}
+          source: "."
+          target: "~/apps/ratambuzza-prod"
+
+      - name: Restart Node app using PM2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_VPS_HOST }}
+          username: ${{ secrets.PROD_VPS_USER }}
+          key: ${{ secrets.PROD_VPS_KEY }}
+          script: |
+            cd ~/apps/ratambuzza-prod
+            npm install --omit=dev
+            pm2 start server.js --name ratambuzza-prod || pm2 restart ratambuzza-prod

@@ -1,0 +1,6 @@
+<form class="like-form" data-media-id="<%= mediaId %>"
+  action="/trips/<%-currentOrUpcomingTrip.slug%>/gallery/<%= mediaId %>/like" hx-swap="none" onsubmit="return false;">
+  <button class="overlay-btn" title="Like" aria-pressed="<%= liked %>"><%= liked ? '❤️' : '🤍' %> <%= count %></button>
+</form>
+
+<!-- There's a listener for this form inside events.js -->

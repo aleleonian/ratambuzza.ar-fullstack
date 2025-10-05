@@ -1,0 +1,130 @@
+<%- include('../../partials/header/current-upcoming') %>
+
+<link rel="stylesheet" href="/style/gallery.css" />
+
+<script type="module" src="/javascript/gallery/index.js"></script>
+
+<script>
+    window.galleryState = {
+        tripSlug: "<%= currentOrUpcomingTrip.slug %>",
+        currentUserRole: "<%= currentUser.role %>",
+    };
+
+    (() => {
+        window.toggleUploadButton = function (input) {
+            const btn = document.getElementById('uploadButton');
+            btn.disabled = input.files.length === 0;
+        }
+    })()
+</script>
+
+<main class="gallery-container" id="gallery-container">
+    <div id="uploadModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closeUploadModalButton" class="modal-close">✖</button>
+            <div style="margin-bottom: 1rem;">
+                Subite unas fotis, Rey 👑 <span style="font-size: 0.85em;">(máximo 5)</span>.
+            </div>
+
+            <form action="/trips/<%-currentOrUpcomingTrip.slug%>/upload" hx-target="#media-grid" hx-swap="afterbegin"
+                hx-encoding="multipart/form-data">
+                <input type="file" name="media" accept="image/*" multiple onchange="toggleUploadButton(this)">
+                <button type="submit" class="button" disabled id="uploadButton">Súbele</button>
+            </form>
+        </div>
+    </div>
+
+    <% if (media.length === 0) { %>
+    <p>No hay imágenes todavía. ¡Que amargos son!</p>
+    <% } %>
+
+    <div class="controls">
+        <button class="button" id="showUploadModalButton">Agregar Fotis</button>
+    </div>
+
+    <script>
+            (() => {
+                function isTheUserAnAuthor() {
+                    let authors = document.getElementsByClassName('author-pill');
+                    let userFound = false;
+                    for (let i = 0; i < authors.length; i++) {
+                        if (authors[i].textContent.toLocaleLowerCase() === '<%=currentUser.handle%>'.toLocaleLowerCase()) {
+                            userFound = true;
+                            break;
+                        }
+                    }
+                    return userFound;
+                }
+                function filtersAreActive() {
+                    const activeTag = document.querySelector('.tag-pill.active');
+                    const activeAuthor = document.querySelector('.author-pill.active');
+                    const activeSort = document.querySelector('.sort-pill.sort-order-pill.active');
+                    return (
+                        window.galleryState.selectedTagId !== "-1" ||
+                        window.galleryState.selectedAuthor !== "-1" ||
+                        window.galleryState.selectedSortCriteria !== "-1"
+                    );
+                }
+                const form = document.querySelector('#uploadModal form');
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'HX-Request': 'true', // Optional: for server to send X-Toast
+                        }
+                    });
+
+                    const toast = response.headers.get('X-Toast');
+                    if (toast) showToast(toast, 'success');
+
+                    if (filtersAreActive() || !isTheUserAnAuthor()) {
+                        // Reset everything
+                        setTimeout(() => {
+                            // document.getElementById('loading-overlay').classList.remove('hidden');
+                            showSpinner();
+                            window.location.href = '/trips/<%-currentOrUpcomingTrip.slug%>/gallery';
+                        }, 1000);
+
+                    }
+                    else {
+                        const html = await response.text();
+                        document.querySelector('#media-grid').insertAdjacentHTML('afterbegin', html);
+                    }
+
+                    form.reset();
+                    document.getElementById('uploadModal').classList.add('hidden');
+                });
+                function hideUploadForm() {
+                    document.getElementById('uploadModal')?.classList.add('hidden');
+                    document.querySelector('#uploadModal form')?.reset();
+                }
+                function showUploadForm() {
+                    document.getElementById('uploadModal')?.classList.remove('hidden');
+                }
+                document.getElementById('closeUploadModalButton').addEventListener('click', hideUploadForm);
+                document.getElementById('showUploadModalButton').addEventListener('click', showUploadForm);
+            })();
+    </script>
+
+    <%- include('filter')%>
+
+    <div id="media-grid" class="media-grid">
+        <% if (media.length > 0 ) {%>
+        <% media.forEach((item, index) => { %>
+        <%- include('media-item',{index, item}) %>
+        <% }) %>
+    </div>
+    <div id="no-images-message"></div>
+
+
+    <!-- Lightbox -->
+    <%- include('lightbox') %>
+    <!-- Lightbox -->
+    <% } %>
+</main>
+
+<%- include('../../partials/footer') %>

@@ -5,11 +5,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 **Development:**
-- `node server.js` - Start the Express server (default port 3000)
+- `npm start` or `node server.js` - Start the Express server (default port 3000)
+- `npm run start:dev` - Start server with development environment using nodemon (.env)
+- `npm run start:test` - Start server with test environment using nodemon (.env.test)
 - `npm install` - Install dependencies
 - `node scripts/resize.js` - Process avatar images (resize utility)
 
-**Note:** Test infrastructure exists but package.json test script is currently disabled.
+**Testing:**
+- `npm run test:e2e` or `npx playwright test tests/e2e` - Run all Playwright tests
+- `npm run test:e2e-debug` - Run tests with debug mode and browser UI
+- `npx playwright test tests/e2e/02_feed/feed-post-creation.spec.js` - Run specific test file
+- Tests run on port 3001 (configured in playwright.config.js and .env.test)
+- Playwright test framework with global setup handling authentication via `storageState.json`
+- Environment-specific configs: `.env` for development, `.env.test` for testing
+- Test database seeding and cleanup utilities in `tests/utils/seed/helpers/`
+- All test images stored in `/tests/e2e/fixtures/images/` directory
 
 ## Architecture
 
@@ -21,11 +31,21 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - Post creation with image uploads via HTMX
 - Infinite scroll pagination using Intersection Observer API
 - Avatar system with thumbnails
+- Feed search functionality with text search and user filtering via HTMX
+- Media gallery system with multiple file uploads, tagging, and filtering
+- Lightbox viewing with metadata display
+- Like system for media items
+- AI-powered postcard generation with Google Gemini using avatar references
+- Background job processing for postcard creation with status tracking
 
 **Key Components:**
 - **Server Entry Point:** `server.js` - Express app with MySQL session store. Note: some routes (feed, posts, likes) are currently commented out
 - **Authentication:** `routes/auth.js` - Handle-based login with secure redirects, auto-generated avatar filenames
-- **Trips:** `routes/trips.js` - Main trip functionality with slug-based routing, post creation, and infinite scroll
+- **Trips:** `routes/trips/index.js` - Main trip router with slug-based routing and subrouter mounting (feed, posts, likes, crew, media, postcards)
+- **Media System:** `routes/trips/media.js` - Gallery system with multiple upload, tagging, filtering, and like functionality
+- **Feed System:** `routes/trips/feed.js` - Post creation, infinite scroll, and search functionality for trip feeds with HTMX-powered real-time filtering. Uses `lib/feedQuery.js` for query abstraction
+- **Postcards System:** `routes/trips/postcards.js` - AI postcard generation, job management, and posting to feed
+- **Background Worker:** `queue/postcardWorker.js` - Processes postcard generation jobs using Google Gemini AI
 - **Legacy Routes:** `routes/viajes.js` - Legacy trip listing, `routes/feed.js` - Legacy feed system (may be deprecated)
 - **Middleware:** `middleware/requireLogin.js` - Authentication guard with redirect handling
 
@@ -33,25 +53,40 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - **Slug-based URLs:** `/trips/:slug/feed` instead of `/feed/:id`
 - **Router param middleware:** `router.param('slug')` handles trip lookup by slug
 - **Post creation:** `/trips/:slug/posts/new` with HTMX integration
-- **Infinite scroll:** `/trips/:slug/feed/more` for pagination
+- **Infinite scroll:** `/trips/:slug/feed/more` for pagination  
+- **Feed search:** `/trips/:slug/feed?search=text&user=id` with HTMX detection for partial template rendering
+- **Post replies:** `/trips/:slug/feed/:postId` for individual post detail pages with threaded replies
+- **Media gallery:** `/trips/:slug/gallery` with filtering, tagging, and lightbox functionality
+- **Media uploads:** `/trips/:slug/upload` with multiple file support and image processing
+- **Postcards:** `/trips/:slug/postcards` with AI generation, job status, and posting to feed
 
 **Template System:**
 - **Organized by feature:** `views/trips/` for trip-specific templates
 - **EJS partials:** Modular components in `views/partials/`
+- **Gallery templates:** Comprehensive set in `views/trips/gallery/` including media grid, lightbox, tag editor, and filter components
 - **HTMX integration:** Forms use `hx-post` with `hx-target` for dynamic updates
 - **No layout engine:** Uses include() partials for composition
 
-**Infinite Scroll Implementation:**
-- **Intersection Observer API:** Replaces HTMX triggers for better reliability
-- **3 posts per page:** `POSTS_PER_PAGE = 3` in trips routes
+**Feed and Pagination Implementation:**
+- **Intersection Observer API:** Replaces HTMX triggers for better reliability in main feed
+- **10 posts per page:** `POSTS_PER_PAGE = 10` in trips routes (configurable in `lib/config.js`)
 - **Scroll sentinel:** Fixed element that triggers loading when visible
 - **Graceful degradation:** Handles "no more posts" state
+- **Search behavior:** Shows ALL search results without pagination for better UX
 
 **Database Schema:**
 - **users:** id, email, password_hash, handle, avatar_file_name, avatar_head_file_name
 - **trips:** id, name, slug, start_date
 - **posts:** id, user_id, trip_id, content, image_filename, created_at
+- **post_replies:** id, post_id, user_id, trip_id, reply_text, created_at
 - **likes:** id, user_id, post_id (if still active)
+- **likes_posts:** user_id, post_id (post like system)
+- **likes_replies:** user_id, reply_id (reply like system)
+- **media:** id, trip_id, user_id, url, thumbnail_url, width, height, type, created_at
+- **tags:** id, name (for media tagging)
+- **media_tags:** media_id, tag_id (many-to-many relationship)
+- **likes_media:** user_id, media_id (media like system)
+- **postcards:** id, user_id, trip_id, avatars, background, action, status, image_url, thumbnail_url, post_id, created_at
 
 **Session Management:**
 - MySQL-backed sessions via `express-mysql-session`
@@ -60,15 +95,21 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 
 **File Organization:**
 - `public/images/avatars/thumbs/` - Avatar thumbnails for UI
-- `public/uploads/` - User-uploaded post images
+- `public/uploads/` - User-uploaded post images and media files
 - `views/trips/` - Trip-specific templates (feed, gallery, members)
+- `views/trips/gallery/` - Gallery-specific templates (media grid, lightbox, tag editor, filters)
 - `views/partials/` - Reusable EJS components
+- `routes/trips/` - Modular trip route handlers (feed, media, posts, likes, crew)
+- `lib/` - Shared utilities including database connection (`db.js`), file upload (`upload.js`), and feed query abstraction (`feedQuery.js`)
 - `noupload/` - Development assets not committed
 
 **Environment Variables Required:**
 - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` - MySQL connection details
 - `SESSION_SECRET` - Express session secret
 - `PORT` - Server port (optional, defaults to 3000)
+- `APP_HOST` - Application host for testing (localhost)
+- `NODE_ENV` - Environment mode (test/development/production)
+- `GEMINI_API_KEY` - Google Gemini AI API key for postcard generation
 
 **Key Dependencies:**
 - express - Web framework
@@ -78,8 +119,47 @@ This is a travel log (bitácora de viajes) web application built with Express.js
 - multer - File upload handling
 - sharp - Image processing
 - ejs - Templating system
+- htmx.org - Frontend interactivity and dynamic updates
+- uuid - Unique identifier generation
+- @google/genai - Google Gemini AI integration for postcard generation
+- image-size - Image dimension analysis
+- @playwright/test - End-to-end testing framework
 
 **Development Notes:**
 - **Legacy code:** Some routes in server.js are commented out, indicating ongoing refactoring
 - **Debug output:** Templates include debug comments for development
 - **HTMX migration:** Moving from HTMX triggers to Intersection Observer for infinite scroll
+- **Media processing:** Sharp library handles image resizing (1600x1600 max, 80% quality) and thumbnail generation
+- **Authorization system:** Role-based access control for media deletion and tag editing (owner or admin)
+- **Custom toast system:** Uses X-Toast headers for user feedback on HTMX requests
+- **Tag cleanup:** Automatic cleanup of unused tags when updating media item tags
+- **Gallery state management:** Uses `window.galleryState` object for filter persistence and `htmx:afterSettle` for reliable DOM updates
+- **JavaScript encapsulation:** Template scripts use IIFE patterns to avoid global namespace pollution
+- **AI postcard generation:** Background worker processes jobs using Google Gemini with 16-bit pixel art prompts
+- **Job processing:** Queue system with pending/in-progress/completed status tracking
+- **Feed search implementation:** HTMX request detection via `hx-request: true` header prevents "Russian doll" nested layouts by returning partial templates (`views/trips/feed/just-posts.ejs`) for search results instead of full page layouts. Unique form IDs prevent duplicate inclusions. Search results show ALL matching posts (no pagination) while normal feed browsing uses pagination
+- **Query abstraction:** `lib/feedQuery.js` provides reusable functions for building feed WHERE clauses, SELECT columns, and fetching posts with media attachments
+- **Test environment stubbing:** Postcard worker uses static test image and updates all postcards to "done" status when `NODE_ENV=test`
+- **Database abstraction:** Centralized DB connection pool in `lib/db.js` using `mysql2/promise`
+- **Test setup:** Global setup seeds 4 test users, creates trips with member associations, and handles authenticated session storage
+- **Session security:** Cookies set to non-secure in development/test environments
+- **Reply system:** Posts support threaded replies with media attachments, likes, and deletion controls
+- **Mobile responsive design:** Separate mobile forms and controls for optimal mobile UX, including collapsible search interface
+
+## Important Implementation Notes
+
+**HTMX Request Handling:**
+- Use `req.get('hx-request') === 'true'` to detect HTMX requests and return partial templates
+- Prevent "Russian doll" effect by returning `views/trips/feed/just-posts.ejs` for search results instead of full layouts
+- Ensure unique form IDs across desktop/mobile to prevent array parameters in search requests
+
+**Testing Best Practices:**
+- Tests must use selector `#reply` for reply elements (not `.card[data-reply-id]`)
+- Test fixtures centralized in `/tests/e2e/fixtures/images/` directory
+- Database persistence tests should create their own data rather than depend on previous tests
+- Use port 3001 for test environment to avoid conflicts with development server
+
+**Error Prevention:**
+- Don't comment out `console.log` or `console.error` when fixing linting errors (per global instructions)
+- Avoid JavaScript variable redeclaration in EJS templates that can break HTMX functionality
+- Use IIFE patterns in template scripts to prevent global namespace pollution

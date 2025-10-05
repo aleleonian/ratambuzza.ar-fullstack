@@ -1,0 +1,47 @@
+<button id="toggle-filters" class="button button-smaller secondary-color">Filtros</button>
+
+<div class="filter-container hidden">
+    <div class="filter-row">
+        <span class="filter-label">Tags:</span>
+        <div class="pill-container">
+            <span class="sorting-pill tag-pill" id="default-tag-pill" data-tag="-1">Ninguno</span>
+            <% tags.forEach(tag => { %>
+            <span class="sorting-pill tag-pill" data-tag="<%= tag.id %>"><%= tag.name %></span>
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="filter-row">
+        <span class="filter-label">Autores:</span>
+        <div class="pill-container">
+            <span class="sorting-pill author-pill" id="default-author-pill" data-author="-1">Todos</span>
+            <% authors.forEach(author => { %>
+            <span class="sorting-pill author-pill" data-author="<%= author.id %>"><%= author.handle %></span>
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="filter-row">
+        <span class="filter-label">Ordenar:</span>
+        <div class="pill-container">
+            <span class="sorting-pill sort-pill" id="default-sort-pill" data-sort="-1">Reciente</span>
+            <% sort.forEach(s => { %>
+            <span class="sorting-pill sort-pill" data-sort="<%= s.value %>"><%= s.name %></span>
+            <% }) %>
+        </div>
+    </div>
+
+    <button id="clean-filters-button" class="button button-smaller">Limpiar</button>
+</div>
+
+<script>
+    // let's not pollute the global space, shall we
+    (() => {
+        function resetFilters() {
+            // document.getElementById('loading-overlay').classList.remove('hidden');
+            showSpinner();
+            location.href = "/trips/<%=currentOrUpcomingTrip.slug%>/gallery"
+        }
+        document.getElementById('clean-filters-button').addEventListener('click', resetFilters)
+    })()
+</script>
